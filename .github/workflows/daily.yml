@@ -66,6 +66,9 @@ jobs:
           git pull --rebase origin main || true
           git push
 
+      - name: 同步最新数据（防止与其他运行的提交交错）
+        run: git pull --rebase origin main || true
+
       - name: 生成网站
         run: python scanner/build_site.py --data data --out site
 
