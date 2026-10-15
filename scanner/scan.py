@@ -144,10 +144,10 @@ def analyze_df(df: pd.DataFrame, symbol: str, name: str, exchange: str) -> dict 
 
     # 近 20 日收盘序列（网页迷你走势图用）
     closes = [round(float(x), 2) for x in df["收盘价"].iloc[-20:]]
-    # 近 45 日 (日期, 收盘, 成交量, 持仓) 简史：用于回算历史形态、胜率统计与连续天数
+    # 近 45 日简史 (日期, 开, 高, 低, 收, 成交量, 持仓)：用于合并进 data/history/*.csv 长期日线库
     tail = df.iloc[-45:]
-    hist = [[str(r["日期"]), round(float(r["收盘价"]), 2), int(r["成交量"]), int(r["持仓量"])]
-            for _, r in tail.iterrows()]
+    hist = [[str(r["日期"]), float(r["开盘价"]), float(r["最高价"]), float(r["最低价"]), round(float(r["收盘价"]), 2),
+             int(r["成交量"]), int(r["持仓量"])] for _, r in tail.iterrows()]
 
     return {
         "symbol": symbol, "name": name, "exchange": exchange,

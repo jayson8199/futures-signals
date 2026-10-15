@@ -1,34 +1,40 @@
 #!/usr/bin/env python3
 """
 历史战绩统计 & 形态连续天数
-思路：把所有 data/*.json 里每个品种的 hist（日期/收盘/成交量/持仓）合并成连续日线，
-      用与 scan.py 完全相同的规则回算每一天的形态，再用之后 1/3/5 个交易日的收盘价算实际涨跌。
+数据源：data/history/<SYM>.csv 长期日线库（优先），再合并各日 data.json 的 hist/当日行作为补充。
+用与 scan.py 完全相同的规则回算每一天的八种形态，再用之后 1/3/5 个交易日的收盘价算实际涨跌。
+MACD 八策略的历史信号与前向收益由 macd8.scan_all 给出，这里只做汇总。
 """
 from collections import defaultdict
 
+import history as history_mod
+import macd8
 from scan import classify_pattern, SYMBOLS
 
 PATTERNS = ["高富帅", "白富美", "上涨乏力", "下跌乏力", "虚涨分歧", "虚跌分歧", "涨势将尽", "跌势将尽"]
-# 有明确方向预期的形态：+1 预期上涨，-1 预期下跌
 EXPECT = {"高富帅": 1, "白富美": -1, "涨势将尽": -1, "跌势将尽": 1}
 HORIZONS = (1, 3, 5)
 
 
 def merge_history(datas):
-    """sym -> [(date, close, vol, oi), ...] 按日期升序去重"""
+    """sym -> [(date, close, vol, oi), ...] 升序去重；CSV 库为主，data.json 补充"""
     by_sym = defaultdict(dict)
+    for sym, rows in history_mod.load_all().items():
+        for r in rows:
+            by_sym[sym][r["date"]] = (r["date"], r["close"], r["volume"], r["oi"])
     for d in datas:
         for it in d["all_results"]:
             sym = it["symbol"]
             for row in it.get("hist") or []:
-                by_sym[sym][row[0]] = (row[0], float(row[1]), int(row[2]), int(row[3]))
-            # 没有 hist 的旧数据也能贡献当天一行
+                if len(row) >= 7:
+                    by_sym[sym].setdefault(row[0], (row[0], float(row[4]), int(row[5]), int(row[6])))
+                elif len(row) == 4:
+                    by_sym[sym].setdefault(row[0], (row[0], float(row[1]), int(row[2]), int(row[3])))
             by_sym[sym].setdefault(it["date"], (it["date"], float(it["today_close"]), int(it["today_vol"]), int(it["today_hold"])))
     return {s: [v for _, v in sorted(rows.items())] for s, rows in by_sym.items()}
 
 
 def daily_patterns(series):
-    """对一条日线序列逐日回算形态，返回 [{date, pattern, pc, hc, vr, close, idx}]"""
     out = []
     for i in range(20, len(series)):
         d, close, vol, oi = series[i]
@@ -44,15 +50,19 @@ def daily_patterns(series):
     return out
 
 
+def _agg(vals):
+    if not vals:
+        return None
+    n = len(vals)
+    return {"n": n, "up_rate": sum(1 for v in vals if v > 0) / n * 100, "avg": sum(vals) / n, "median": sorted(vals)[n // 2]}
+
+
 def compute(datas):
-    """返回 {signals: [...], table: {...}, streaks: {sym: n}, span: (first,last), n_days}"""
     hist = merge_history(datas)
     per_sym = {s: daily_patterns(rows) for s, rows in hist.items()}
-    series_by_sym = hist
 
-    # 每日市场环境（用于抗跌先锋标注）：当日有效品种 mom20 中位数
     moms = defaultdict(list)
-    for s, recs in per_sym.items():
+    for recs in per_sym.values():
         for r in recs:
             moms[r["date"]].append(r["mom20"])
     weak_day = {}
@@ -63,13 +73,10 @@ def compute(datas):
 
     signals = []
     for s, recs in per_sym.items():
-        ser = series_by_sym[s]
+        ser = hist[s]
         for r in recs:
             i = r["idx"]
-            fwd = {}
-            for k in HORIZONS:
-                if i + k < len(ser):
-                    fwd[k] = (ser[i + k][1] / r["close"] - 1) * 100
+            fwd = {k: (ser[i + k][1] / r["close"] - 1) * 100 for k in HORIZONS if i + k < len(ser)}
             tag = ""
             if r["pattern"] == "高富帅":
                 if r["pc"] > 3:
@@ -81,48 +88,57 @@ def compute(datas):
             signals.append({"symbol": s, "name": SYMBOLS.get(s, (s,))[0], "date": r["date"], "pattern": r["pattern"],
                             "tag": tag, "pc": r["pc"], "hc": r["hc"], "fwd": fwd})
 
-    # 汇总表：按形态（含标注细分）× 周期
     groups = defaultdict(list)
     for sg in signals:
         groups[sg["pattern"]].append(sg)
         if sg["pattern"] == "高富帅" and sg["tag"]:
             for t in sg["tag"].split("+"):
                 groups[f"高富帅·{t}"].append(sg)
-
-    def agg(items, k):
-        vals = [x["fwd"][k] for x in items if k in x["fwd"]]
-        if not vals:
-            return None
-        n = len(vals)
-        up = sum(1 for v in vals if v > 0)
-        return {"n": n, "up_rate": up / n * 100, "avg": sum(vals) / n,
-                "median": sorted(vals)[n // 2]}
-
     table = {}
     for g, items in groups.items():
         base = g.split("·")[0]
         row = {"n_signals": len(items), "expect": EXPECT.get(base, 0)}
         for k in HORIZONS:
-            a = agg(items, k)
+            a = _agg([x["fwd"][k] for x in items if k in x["fwd"]])
             if a and row["expect"]:
                 a["win_rate"] = a["up_rate"] if row["expect"] > 0 else 100 - a["up_rate"]
             row[k] = a
         table[g] = row
 
-    # 连续天数：最新日期起向前数同形态
+    # 形态连续天数
     streaks = {}
     for s, recs in per_sym.items():
-        if not recs:
-            continue
-        last = recs[-1]["pattern"]
-        n = 0
-        for r in reversed(recs):
-            if r["pattern"] == last:
-                n += 1
-            else:
-                break
-        streaks[s] = (recs[-1]["date"], last, n)
+        if recs:
+            last = recs[-1]["pattern"]
+            n = 0
+            for r in reversed(recs):
+                if r["pattern"] == last:
+                    n += 1
+                else:
+                    break
+            streaks[s] = (recs[-1]["date"], last, n)
+
+    # MACD 八策略：fwd 已按方向调整（正=方向正确）
+    H = {s: [{"date": d, "close": c} for d, c, _, _ in rows] for s, rows in hist.items()}
+    macd_sigs = macd8.scan_all(H, SYMBOLS)
+    macd_table = {}
+    by = defaultdict(list)
+    for sg in macd_sigs:
+        by[sg["strategy"]].append(sg)
+        by["多头合计" if sg["direction"] == "多" else "空头合计"].append(sg)
+    for g, items in by.items():
+        row = {"n_signals": len(items)}
+        for k in HORIZONS:
+            a = _agg([x["fwd"][k] for x in items if k in x["fwd"]])
+            if a:
+                a["win_rate"] = a["up_rate"]
+            row[k] = a
+        macd_table[g] = row
+    macd_by_date = defaultdict(list)
+    for sg in macd_sigs:
+        macd_by_date[sg["date"]].append(sg)
 
     dates = sorted({r["date"] for recs in per_sym.values() for r in recs})
     return {"signals": signals, "table": table, "streaks": streaks,
+            "macd_signals": macd_sigs, "macd_table": macd_table, "macd_by_date": macd_by_date,
             "span": (dates[0], dates[-1]) if dates else None, "n_days": len(dates)}

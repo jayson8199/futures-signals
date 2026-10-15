@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 import events_cal
 import stats as stats_mod
+import macd8
 
 CN_TZ = ZoneInfo("Asia/Shanghai")
 SITE_TITLE = "期货八种形态日报"
@@ -139,7 +140,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>
@@ -153,8 +154,9 @@ def layout(title, body, nav_on, root="", desc=""):
 </div></body></html>"""
 
 
-def build_report_body(data, prev, dates_sorted, root="", streaks=None):
+def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None):
     streaks = streaks or {}
+    macd = macd or []
     D = data["data_date"]
     allr = data["all_results"]
     up_c, down_c, strong = data["up_count"], data["down_count"], data["strong_count"]
@@ -303,14 +305,41 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None):
     best_html = "".join(f"<span class='best-card'>{it['name']} <b class='up'>{s(it['price_change_pct'], 1)}</b> 增仓{s(it['hold_change_pct'], 1)}</span>"
                         for it in best_items) or "<span class='muted'>今日无⭐⭐优选信号</span>"
 
+    # MACD 八策略买卖点（当日首发信号）+ 与形态的共振/冲突
+    pat_by_sym = {i["symbol"]: i for i in allr}
+    LONG_PATS, SHORT_PATS = {"高富帅", "跌势将尽"}, {"白富美", "涨势将尽"}
+    macd_rows, n_res = "", 0
+    for sg in macd:
+        it = pat_by_sym.get(sg["symbol"])
+        pat = it["pattern"] if it else "—"
+        agree = (sg["direction"] == "多" and pat in LONG_PATS) or (sg["direction"] == "空" and pat in SHORT_PATS)
+        conflict = (sg["direction"] == "多" and pat in SHORT_PATS) or (sg["direction"] == "空" and pat in LONG_PATS)
+        n_res += agree
+        res_tag = ("<span class='tag tag-best'>⚡双重共振</span>" if agree else
+                   "<span class='tag tag-warn'>形态相反</span>" if conflict else "")
+        dcls = "up" if sg["direction"] == "多" else "down"
+        macd_rows += (f"<tr><td class='b {dcls}'>{sg['direction']}</td><td class='b'>{sg['symbol']}</td><td>{sg['name']}</td>"
+                      f"<td style='text-align:left'>{sg['sid']}·{sg['short']}<div class='muted' style='font-size:10.5px'>{macd8.STRAT_MEANING[sg['sid'] - 1]}</div></td>"
+                      f"<td>{sg['close']:g}</td><td class='{cls(sg['dif_pct'])}'>{sg['dif_pct']:+.2f}%</td>"
+                      f"<td>{pat_disp(pat)}</td><td>{res_tag}</td></tr>")
+    n_long = sum(1 for x in macd if x["direction"] == "多")
+    macd_html = (f"<div class='card'><h3 class='blue'>MACD 八策略买卖点（今日首发 {len(macd)} 个：多 {n_long} / 空 {len(macd) - n_long}，双重共振 {n_res}）</h3>"
+                 + (f"<div class='tbl' style='border-radius:8px'><table><thead><tr><th>方向</th><th>代码</th><th>品种</th><th style='text-align:left'>策略</th>"
+                    f"<th>收盘</th><th>DIF偏离</th><th>今日形态</th><th>共振</th></tr></thead><tbody>{macd_rows}</tbody></table></div>"
+                    if macd_rows else "<div class='muted'>今日无首发买卖点信号</div>")
+                 + "<div class='muted' style='font-size:11.5px;margin-top:6px'>首发=昨日未触发、今日触发；双重共振=买卖点方向与量仓价形态方向一致（多↔高富帅/跌势将尽，空↔白富美/涨势将尽）。"
+                   "回测提示：空头四策略历史表现弱，详见「历史战绩」。</div></div>")
+
     # 上/下一交易日导航
     idx = dates_sorted.index(D) if D in dates_sorted else -1
     prev_link = f"<a href='{root}reports/{dates_sorted[idx - 1]}.html'>← {dates_sorted[idx - 1]}</a>" if idx > 0 else ""
     next_link = f"<a href='{root}reports/{dates_sorted[idx + 1]}.html'>{dates_sorted[idx + 1]} →</a>" if 0 <= idx < len(dates_sorted) - 1 else ""
 
     stale_note = ""
+    if data.get("backfilled"):
+        stale_note += "<div class='status'><span class='dot stale'></span>本日为回填数据：由 2026-10-15 抓取的历史日线按同一规则重算，换月品种的持仓变化可能与当日实时快照略有出入。</div>"
     if data.get("error_count"):
-        stale_note = f"<div class='status'><span class='dot stale'></span>本日 {data['error_count']} 个品种数据获取失败（{'、'.join(data.get('errors', []))}），未纳入统计。</div>"
+        stale_note += f"<div class='status'><span class='dot stale'></span>本日 {data['error_count']} 个品种数据获取失败（{'、'.join(data.get('errors', []))}），未纳入统计。</div>"
 
     principles = """<b>选择标的</b>：高富帅=新资金涌入选多点；白富美=新资金做空选空点；底部三角形有大行情；岛型反转常规3-5天。<br>
 <b>判断趋势</b>：破趋势线→反弹不创新高→破颈线；震荡用摆动指数，趋势用均线。<br>
@@ -329,13 +358,14 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None):
 <div class='kpi'><div class='v down'>{down_c}</div><div class='k'>下跌家数</div></div>
 <div class='kpi'><div class='v'>{strong}</div><div class='k'>双20%强信号</div></div>
 <div class='kpi'><div class='v'>{len(best_items)}</div><div class='k'>⭐⭐优选/抗跌</div></div>
-<div class='kpi'><div class='v'>{len([p for p in PATTERNS if data['patterns'][p]['count'] > 0])}/8</div><div class='k'>形态覆盖</div></div>
+<div class='kpi'><div class='v'>{len(macd)}</div><div class='k'>MACD买卖点</div></div>
 </div>
 <div class='view'><b>大势判断：</b>今日 {up_c} 涨 {down_c} 跌，双20%强信号 {strong} 个，{'资金进攻力度强，顺势为主。' if up_c > down_c else '空方占优，防守为主。'}{resonance}</div>
 <div class='grid2'><div class='card'><h3>八形态分布</h3>{dist_html}</div><div class='card'><h3>涨幅 TOP 10</h3>{top_html}</div></div>
 
 <div class='card'><h3 class='blue'>⭐⭐ 今日优选信号</h3><div>{best_html}</div>
 <div class='muted' style='font-size:11.5px;margin-top:6px'>优选标准：涨幅0~2% 且 增仓2~5%（400天回测5日胜率55.1%）；涨幅&gt;3%为⚠️追高（次日胜率仅44%）；弱势市里的高富帅为🛡抗跌先锋（胜率58%）</div></div>
+{macd_html}
 {section("高富帅")}{section("白富美")}
 <div class='grid2'>
 <div class='card'><h3>警惕名单（涨势将尽）</h3><ul><li>{warn_txt}</li><li class='muted'>价格与量仓背离时「最终还是看量」——这些品种追涨风险最大，持仓者准备反手。</li></ul></div>
@@ -354,7 +384,8 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None):
 """
 
 
-def archive_body(datas):
+def archive_body(datas, macd_by_date=None):
+    macd_by_date = macd_by_date or {}
     rows = ""
     for d in sorted(datas, key=lambda x: x["data_date"], reverse=True):
         D = d["data_date"]
@@ -364,7 +395,7 @@ def archive_body(datas):
         regime = (d.get("market") or {}).get("regime", "")
         rows += (f"<li><span class='d'><a href='reports/{D}.html'>{D}</a></span>"
                  f"<span>涨 <b class='up'>{d['up_count']}</b> 跌 <b class='down'>{d['down_count']}</b>"
-                 f"<span class='pill up'>👑 {gao}</span><span class='pill down'>💎 {bai}</span>{f'<span class=pill>{regime}市</span>' if regime else ''}</span>"
+                 f"<span class='pill up'>👑 {gao}</span><span class='pill down'>💎 {bai}</span><span class='pill'>MACD {len(macd_by_date.get(D, []))}</span>{f'<span class=pill>{regime}市</span>' if regime else ''}</span>"
                  f"<span class='m'>{gao_names or '无高富帅'}</span><span class='m'><a href='data/{D}.json'>JSON</a></span></li>")
     return f"<div class='hd'><div><h1>历史归档</h1><div class='sub'>共 {len(datas)} 个交易日 ｜ 点击日期查看当日完整报告</div></div></div><div class='card'><ul class='arch'>{rows}</ul></div>"
 
@@ -457,8 +488,42 @@ def stats_body(st):
     return f"""<div class='hd'><div><h1>历史战绩</h1><div class='sub'>回算区间 {st['span'][0]} ~ {st['span'][1]}（{st['n_days']} 个交易日）｜ 规则与每日报告完全相同 ｜ 每日自动更新</div></div></div>
 <div class='view'><b>怎么读：</b>"正确率"= 信号发出后第 N 个交易日收盘相对信号日收盘，方向与形态预期一致的比例（高富帅/跌势将尽预期涨，白富美/涨势将尽预期跌）；无方向预期的形态只给"上涨占比↑"。均收益为简单算术平均，未计手续费与滑点。样本少于 30 时参考意义有限。</div>
 <div class='card'><h3>按形态统计</h3><div class='tbl' style='border-radius:8px'><table><thead>{head}</thead><tbody>{rows}</tbody></table></div></div>
+<div class='card'><h3>MACD 八策略</h3><p style='font-size:13px'>买卖点策略的分策略胜率与最近信号明细见 <a href='macd.html'>MACD买卖点</a> 页。</p></div>
 <div class='card'><h3>最近 60 条强信号及后续表现</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>品种</th><th>形态</th><th>标注</th><th>当日涨跌</th><th>持仓变化</th><th>后1日</th><th>后3日</th><th>后5日</th></tr></thead><tbody>{det or "<tr><td colspan=9 class=muted>暂无</td></tr>"}</tbody></table></div></div>
-<p class='muted' style='font-size:11.5px'>说明：历史形态由各日保存的品种简史（收盘/成交量/持仓）按同一规则回算得到，主力连续合约换月期间的持仓跳变会带来噪音；本页仅为规则自检，不构成投资建议。</p>"""
+<p class='muted' style='font-size:11.5px'>说明：历史形态由长期日线库（新浪主力连续，2026-10-15 起每日续接）按同一规则回算得到；新浪会在主力换月后重新拼接历史序列，因此回算结果与当日快照可能有少量出入。历史形态由各日保存的品种简史（收盘/成交量/持仓）按同一规则回算得到，主力连续合约换月期间的持仓跳变会带来噪音；本页仅为规则自检，不构成投资建议。</p>"""
+
+
+def macd_body(st, latest_date):
+    sigs = sorted(st["macd_signals"], key=lambda x: (x["date"], x["direction"] != "多", x["sid"]), reverse=True)
+    recent_dates = sorted({x["date"] for x in sigs}, reverse=True)[:20]
+    recent = [x for x in sigs if x["date"] in set(recent_dates)]
+    rows = ""
+    for x in recent:
+        def f(k):
+            v = x["fwd"].get(k)
+            return f"<td class='{cls(v)}'>{v:+.2f}%</td>" if v is not None else "<td class='muted'>待定</td>"
+        dcls = "up" if x["direction"] == "多" else "down"
+        rows += (f"<tr><td>{x['date']}</td><td class='b {dcls}'>{x['direction']}</td><td class='b'>{x['name']}</td>"
+                 f"<td style='text-align:left'>{x['sid']}·{x['short']}</td><td>{x['close']:g}</td><td class='{cls(x['dif_pct'])}'>{x['dif_pct']:+.2f}%</td>{f(1)}{f(3)}{f(5)}</tr>")
+    rules = "".join(
+        f"<tr><td class='b {'up' if macd8.STRAT_DIR[i] == '多' else 'down'}'>{macd8.STRAT_DIR[i]}</td><td style='text-align:left'><b>{i + 1}. {macd8.STRAT_SHORT[i]}</b></td>"
+        f"<td style='text-align:left;white-space:normal'>{macd8.STRAT_MEANING[i]}</td></tr>" for i in range(8))
+    t = st["macd_table"]
+    def cell(a):
+        if not a:
+            return "<td class='muted'>—</td><td class='muted'>—</td>"
+        return (f"<td class='b'>{a['win_rate']:.0f}%<span class='muted' style='font-weight:400;font-size:10.5px'> /{a['n']}</span></td>"
+                f"<td class='{'up' if a['avg'] > 0 else 'down'}'>{a['avg']:+.2f}%</td>")
+    order = [macd8.STRAT_NAMES[i] for i in range(4)] + ["多头合计"] + [macd8.STRAT_NAMES[i] for i in range(4, 8)] + ["空头合计"]
+    srows = "".join(f"<tr class='{'b' if g.endswith('合计') else ''}'><td style='text-align:left'>{g}</td><td>{t[g]['n_signals']}</td>"
+                    + "".join(cell(t[g].get(k)) for k in (1, 3, 5)) + "</tr>" for g in order if g in t)
+    return f"""<div class='hd'><div><h1>MACD 八策略买卖点</h1><div class='sub'>54 品种主力连续日线 ｜ 4 多 4 空镜像策略 ｜ 首发信号（昨日未触发、今日触发）｜ 每日与形态报告同步更新</div></div></div>
+<div class='view'><b>指标口径：</b>EMA12−EMA26=DIF，DIF 的 9 日 EMA=DEA，MACD 柱=2×(DIF−DEA)；所有阈值用 DIF/收盘价 的相对偏离度（T1=0.5%、T2=0.8%、零轴带 ±0.5%），以适配不同价格量级的品种。</div>
+<div class='card'><h3>八个策略</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>方向</th><th style='text-align:left'>策略</th><th style='text-align:left'>含义</th></tr></thead><tbody>{rules}</tbody></table></div></div>
+<div class='card'><h3>历史表现（按信号方向持有，正=方向正确；回算区间 {st['span'][0]} ~ {st['span'][1]}）</h3>
+<div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>策略</th><th>信号数</th><th>1日 胜率/样本</th><th>1日 均收益</th><th>3日 胜率/样本</th><th>3日 均收益</th><th>5日 胜率/样本</th><th>5日 均收益</th></tr></thead><tbody>{srows}</tbody></table></div>
+<div class='muted' style='font-size:11.5px;margin-top:6px'>均收益已按方向折算（空头信号价格下跌记为正收益），未计手续费与滑点。样本少于 30 时参考意义有限。</div></div>
+<div class='card'><h3>最近 20 个交易日的全部首发信号（{len(recent)} 条）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>方向</th><th>品种</th><th style='text-align:left'>策略</th><th>收盘</th><th>DIF偏离</th><th>后1日</th><th>后3日</th><th>后5日</th></tr></thead><tbody>{rows or "<tr><td colspan=9 class=muted>暂无</td></tr>"}</tbody></table></div></div>"""
 
 
 def method_body():
@@ -478,7 +543,8 @@ def method_body():
 <b>🛡抗跌先锋</b>：弱势市中仍为高富帅的品种（胜率58%）。<br>
 <b>市场环境</b>：全部品种 20 日动量的中位数 &lt;0 为弱势市，否则强势市。<br>
 <b>板块共振</b>：同板块 ≥2 个品种同日出现高富帅或白富美。</div>
-<div class='rule'><h4>5. 数据与免责</h4>成交量、持仓量以交易所正式日线为准；节假日自动跳过。原始数据按日公开（每份报告页右上角「原始数据 JSON」）。本站仅供学习交流，不构成任何投资建议。</div>"""
+<div class='rule'><h4>5. MACD 八策略买卖点</h4>与形态报告并行的第二套信号：基于日线收盘价的 MACD（12,26,9）判定 4 个多头买点（红柱二次翻红、绿柱峰后收窄、零轴回踩拐头、双绿柱底背离）与 4 个镜像空头卖点，只报"首发"（昨日未触发、今日触发）。详细规则与历史胜率见「MACD买卖点」页。两套信号方向一致时在日报中标注"双重共振"。</div>
+<div class='rule'><h4>6. 数据与免责</h4>成交量、持仓量以交易所正式日线为准；节假日自动跳过。原始数据按日公开（每份报告页右上角「原始数据 JSON」）。本站仅供学习交流，不构成任何投资建议。</div>"""
 
 
 def main():
@@ -518,13 +584,16 @@ def main():
     st = stats_mod.compute(datas)
     for i, d in enumerate(datas):
         prev = datas[i - 1] if i > 0 else None
-        body = build_report_body(d, prev, dates, root="../", streaks=st["streaks"] if i == len(datas) - 1 else None)
+        body = build_report_body(d, prev, dates, root="../", streaks=st["streaks"] if i == len(datas) - 1 else None,
+                                 macd=st["macd_by_date"].get(d["data_date"], []))
         (out / "reports" / f"{d['data_date']}.html").write_text(
             layout(f"{SITE_TITLE} {d['data_date']}", body, "home", root="../"), encoding="utf-8")
-    body = build_report_body(latest, datas[-2] if len(datas) > 1 else None, dates, root="", streaks=st["streaks"])
+    body = build_report_body(latest, datas[-2] if len(datas) > 1 else None, dates, root="", streaks=st["streaks"],
+                             macd=st["macd_by_date"].get(latest["data_date"], []))
     (out / "index.html").write_text(layout(f"{SITE_TITLE} · 最新 {latest['data_date']}", body, "home"), encoding="utf-8")
-    (out / "archive.html").write_text(layout(f"历史归档 · {SITE_TITLE}", archive_body(datas), "archive"), encoding="utf-8")
+    (out / "archive.html").write_text(layout(f"历史归档 · {SITE_TITLE}", archive_body(datas, st["macd_by_date"]), "archive"), encoding="utf-8")
     (out / "trend.html").write_text(layout(f"信号趋势 · {SITE_TITLE}", trend_body(datas), "trend"), encoding="utf-8")
+    (out / "macd.html").write_text(layout(f"MACD买卖点 · {SITE_TITLE}", macd_body(st, latest["data_date"]), "macd"), encoding="utf-8")
     (out / "stats.html").write_text(layout(f"历史战绩 · {SITE_TITLE}", stats_body(st), "stats"), encoding="utf-8")
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / ".nojekyll").write_text("")

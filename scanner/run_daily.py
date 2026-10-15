@@ -80,6 +80,13 @@ def main():
 
     out = ROOT / "data" / f"{data['data_date']}.json"
     out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+    try:
+        sys.path.insert(0, str(ROOT / "scanner"))
+        import history
+        n = history.merge_from_data(data)
+        print(f"📚 长期日线库已合并 {n} 行")
+    except Exception as e:
+        print(f"[警告] 日线库合并失败（不影响报告）：{e}")
     print(f"✅ 已写入 {out.relative_to(ROOT)}  涨{data['up_count']} 跌{data['down_count']} "
           f"高富帅{data['patterns']['高富帅']['count']} 白富美{data['patterns']['白富美']['count']}")
     gh_output(updated="true", data_date=data["data_date"])
