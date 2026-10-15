@@ -11,6 +11,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import events_cal
+import stats as stats_mod
 
 CN_TZ = ZoneInfo("Asia/Shanghai")
 SITE_TITLE = "期货八种形态日报"
@@ -138,7 +139,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>
@@ -152,7 +153,8 @@ def layout(title, body, nav_on, root="", desc=""):
 </div></body></html>"""
 
 
-def build_report_body(data, prev, dates_sorted, root=""):
+def build_report_body(data, prev, dates_sorted, root="", streaks=None):
+    streaks = streaks or {}
     D = data["data_date"]
     allr = data["all_results"]
     up_c, down_c, strong = data["up_count"], data["down_count"], data["strong_count"]
@@ -262,6 +264,9 @@ def build_report_body(data, prev, dates_sorted, root=""):
             tags = gao_tags(it) if p == "高富帅" else ([("watch", "观察名单")] if p == "白富美" else [])
             if it.get("is_strong"):
                 tags.append(("best", "⭐双20%"))
+            st = streaks.get(it["symbol"])
+            if st and st[0] == D and st[1] == p and st[2] >= 2:
+                tags.append(("watch", f"连续{st[2]}天"))
             tag_html = "".join(f"<span class='tag tag-{c}'>{t}</span>" for c, t in tags)
             body += (f"<tr><td class='b'>{it['symbol']}</td><td>{it['name']}</td><td class='muted'>{it['exchange']}</td>"
                      f"<td>{it['today_close']:g}</td>"
@@ -412,6 +417,50 @@ def trend_body(datas):
 <div class='card'><h3>最近 10 个交易日出现「高富帅」次数最多的品种</h3>{freq}</div>"""
 
 
+def stats_body(st):
+    if not st["span"] or st["n_days"] < 3:
+        return ("<div class='hd'><div><h1>历史战绩</h1></div></div><div class='card'><p class='muted'>数据积累中：网站上线后每日自动累积，"
+                "有 3 个以上交易日的回算数据后此页自动出现统计。</p></div>")
+    t = st["table"]
+    order = ["高富帅", "高富帅·优选", "高富帅·抗跌", "高富帅·追高", "白富美", "涨势将尽", "跌势将尽",
+             "上涨乏力", "下跌乏力", "虚涨分歧", "虚跌分歧"]
+
+    def cell(a, expect):
+        if not a:
+            return "<td class='muted'>—</td><td class='muted'>—</td>"
+        rate = a.get("win_rate", a["up_rate"])
+        c = "up" if (a["avg"] > 0) else "down"
+        lab = f"{rate:.0f}%" if expect else f"{a['up_rate']:.0f}%↑"
+        return f"<td class='b'>{lab}<span class='muted' style='font-weight:400;font-size:10.5px'> /{a['n']}</span></td><td class='{c}'>{a['avg']:+.2f}%</td>"
+
+    rows = ""
+    for g in order:
+        if g not in t:
+            continue
+        r = t[g]
+        exp = {1: "预期涨", -1: "预期跌"}.get(r["expect"], "无方向")
+        rows += (f"<tr><td class='b' style='text-align:left'>{g}</td><td class='muted'>{exp}</td><td>{r['n_signals']}</td>"
+                 + "".join(cell(r.get(k), r["expect"]) for k in (1, 3, 5)) + "</tr>")
+    head = ("<tr><th style='text-align:left'>形态 / 标注</th><th>方向</th><th>信号数</th>"
+            "<th>1日 正确率/样本</th><th>1日 均收益</th><th>3日 正确率/样本</th><th>3日 均收益</th><th>5日 正确率/样本</th><th>5日 均收益</th></tr>")
+
+    # 最近信号明细（高富帅/白富美，最近 60 条，含后续表现）
+    recent = [x for x in st["signals"] if x["pattern"] in ("高富帅", "白富美")]
+    recent.sort(key=lambda x: x["date"], reverse=True)
+    det = ""
+    for x in recent[:60]:
+        def f(k):
+            v = x["fwd"].get(k)
+            return f"<td class='{cls(v)}'>{v:+.2f}%</td>" if v is not None else "<td class='muted'>待定</td>"
+        det += (f"<tr><td>{x['date']}</td><td class='b'>{x['name']}</td><td>{x['pattern']}</td><td class='muted'>{x['tag'] or ''}</td>"
+                f"<td class='{cls(x['pc'])}'>{x['pc']:+.2f}%</td><td class='{cls(x['hc'])}'>{x['hc']:+.2f}%</td>{f(1)}{f(3)}{f(5)}</tr>")
+    return f"""<div class='hd'><div><h1>历史战绩</h1><div class='sub'>回算区间 {st['span'][0]} ~ {st['span'][1]}（{st['n_days']} 个交易日）｜ 规则与每日报告完全相同 ｜ 每日自动更新</div></div></div>
+<div class='view'><b>怎么读：</b>"正确率"= 信号发出后第 N 个交易日收盘相对信号日收盘，方向与形态预期一致的比例（高富帅/跌势将尽预期涨，白富美/涨势将尽预期跌）；无方向预期的形态只给"上涨占比↑"。均收益为简单算术平均，未计手续费与滑点。样本少于 30 时参考意义有限。</div>
+<div class='card'><h3>按形态统计</h3><div class='tbl' style='border-radius:8px'><table><thead>{head}</thead><tbody>{rows}</tbody></table></div></div>
+<div class='card'><h3>最近 60 条强信号及后续表现</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>品种</th><th>形态</th><th>标注</th><th>当日涨跌</th><th>持仓变化</th><th>后1日</th><th>后3日</th><th>后5日</th></tr></thead><tbody>{det or "<tr><td colspan=9 class=muted>暂无</td></tr>"}</tbody></table></div></div>
+<p class='muted' style='font-size:11.5px'>说明：历史形态由各日保存的品种简史（收盘/成交量/持仓）按同一规则回算得到，主力连续合约换月期间的持仓跳变会带来噪音；本页仅为规则自检，不构成投资建议。</p>"""
+
+
 def method_body():
     rows = "".join(
         f"<tr><td>{PAT_ICON[p]} {p}</td><td>{PAT_DESC[p].split('｜')[0]}</td><td style='white-space:normal;text-align:left'>{PAT_DESC[p].split('｜')[1]}</td></tr>" for p in PATTERNS)
@@ -466,18 +515,24 @@ def main():
           "gao": d["patterns"]["高富帅"]["count"], "bai": d["patterns"]["白富美"]["count"],
           "regime": (d.get("market") or {}).get("regime")} for d in datas], ensure_ascii=False), encoding="utf-8")
 
+    st = stats_mod.compute(datas)
     for i, d in enumerate(datas):
         prev = datas[i - 1] if i > 0 else None
-        body = build_report_body(d, prev, dates, root="../")
+        body = build_report_body(d, prev, dates, root="../", streaks=st["streaks"] if i == len(datas) - 1 else None)
         (out / "reports" / f"{d['data_date']}.html").write_text(
             layout(f"{SITE_TITLE} {d['data_date']}", body, "home", root="../"), encoding="utf-8")
-    body = build_report_body(latest, datas[-2] if len(datas) > 1 else None, dates, root="")
+    body = build_report_body(latest, datas[-2] if len(datas) > 1 else None, dates, root="", streaks=st["streaks"])
     (out / "index.html").write_text(layout(f"{SITE_TITLE} · 最新 {latest['data_date']}", body, "home"), encoding="utf-8")
     (out / "archive.html").write_text(layout(f"历史归档 · {SITE_TITLE}", archive_body(datas), "archive"), encoding="utf-8")
     (out / "trend.html").write_text(layout(f"信号趋势 · {SITE_TITLE}", trend_body(datas), "trend"), encoding="utf-8")
+    (out / "stats.html").write_text(layout(f"历史战绩 · {SITE_TITLE}", stats_body(st), "stats"), encoding="utf-8")
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / ".nojekyll").write_text("")
     print(f"网站已生成：{out}  共 {len(datas)} 天，最新 {latest['data_date']}")
+    # 事件日历年度维护提醒：FOMC 日期按年硬编码，11 月起若下一年缺失则在日志中警告
+    yr = int(latest["data_date"][:4])
+    if int(latest["data_date"][5:7]) >= 11 and not any(k.startswith(str(yr + 1)) for k in getattr(events_cal, "FOMC_2026", {})):
+        print(f"::warning::events_cal.py 缺少 {yr + 1} 年 FOMC 日期，请在年底前补充")
 
 
 if __name__ == "__main__":

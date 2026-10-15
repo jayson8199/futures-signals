@@ -144,6 +144,10 @@ def analyze_df(df: pd.DataFrame, symbol: str, name: str, exchange: str) -> dict 
 
     # 近 20 日收盘序列（网页迷你走势图用）
     closes = [round(float(x), 2) for x in df["收盘价"].iloc[-20:]]
+    # 近 45 日 (日期, 收盘, 成交量, 持仓) 简史：用于回算历史形态、胜率统计与连续天数
+    tail = df.iloc[-45:]
+    hist = [[str(r["日期"]), round(float(r["收盘价"]), 2), int(r["成交量"]), int(r["持仓量"])]
+            for _, r in tail.iterrows()]
 
     return {
         "symbol": symbol, "name": name, "exchange": exchange,
@@ -159,6 +163,7 @@ def analyze_df(df: pd.DataFrame, symbol: str, name: str, exchange: str) -> dict 
         "is_strong": is_hold_20p and is_vol_20p,
         "is_hold_20p": is_hold_20p, "is_vol_20p": is_vol_20p,
         "closes20": closes,
+        "hist": hist,
         "dims": {
             "price": "上涨" if price_change_pct > 0 else "下跌" if price_change_pct < 0 else "平盘",
             "vol": "放量" if today_vol > vol_5ma and today_vol > vol_20ma else "缩量",
