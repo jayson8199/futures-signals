@@ -13,6 +13,7 @@ from datetime import datetime
 import pandas as pd
 
 URLS = ["https://tl.kaixin8.top/tushare/sdk", "https://datahubco.com/api/tushare"]
+CONNECT_ERRORS: list[str] = []
 
 
 def connect():
@@ -28,8 +29,9 @@ def connect():
             if df is not None and len(df):
                 return pro, url
         except Exception as e:
-            print(f"{url} 连通失败: {str(e)[:120]}")
-    raise SystemExit("两个服务器都连不上")
+            print(f"{url} 连通失败: {str(e)[:200]}")
+            CONNECT_ERRORS.append(f"{url}: {str(e)[:300]}")
+    raise SystemExit("两个服务器都连不上：\n" + "\n".join(CONNECT_ERRORS))
 
 
 def probe(pro, name, fn):
@@ -117,5 +119,18 @@ def main():
     print("\n".join(md))
 
 
+def _safe(msg: str) -> str:
+    tok = os.environ.get("TUSHARE_TOKEN", "").strip()
+    return msg.replace(tok, "***") if tok else msg
+
+
 if __name__ == "__main__":
-    main()
+    import traceback
+    try:
+        main()
+    except BaseException as e:  # 连不上/缺 token 也要把原因写进结果文件
+        os.makedirs("experiments", exist_ok=True)
+        with open("experiments/tushare_probe.md", "w", encoding="utf-8") as f:
+            f.write(f"# tushare 数据包期货接口探测\n\n- 时间：{datetime.now():%Y-%m-%d %H:%M}（UTC）\n- 结果：**失败**\n\n```\n"
+                    + _safe(traceback.format_exc())[-3000:] + "\n```\n")
+        raise

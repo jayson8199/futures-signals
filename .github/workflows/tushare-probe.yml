@@ -26,6 +26,7 @@ jobs:
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
         run: python scanner/tushare_probe.py --out experiments/tushare_probe.md ${{ github.event.inputs.pull == 'true' && '--pull' || '' }}
       - name: 提交结果
+        if: always()
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
