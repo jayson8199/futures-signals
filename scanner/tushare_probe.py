@@ -62,6 +62,15 @@ def main():
     rows = []
     if a.codes:
         for code in a.codes.split(","):
+            if code == "BASIC":
+                rows.append(probe(pro, "fut_basic exchange only", lambda: pro.fut_basic(exchange="DCE")))
+                rows.append(probe(pro, "fut_basic +fields", lambda: pro.fut_basic(exchange="DCE", fut_type="1", fields="ts_code,symbol,name,list_date,delist_date")))
+                rows.append(probe(pro, "fut_basic fut_code", lambda: pro.fut_basic(exchange="DCE", fut_code="P")))
+                rows.append(probe(pro, "fut_basic no args", lambda: pro.fut_basic()))
+                rows.append(probe(pro, "fut_basic fut_type=2", lambda: pro.fut_basic(exchange="DCE", fut_type="2")))
+                rows.append(probe(pro, "fut_daily trade_date DCE", lambda: pro.fut_daily(trade_date="20261014", exchange="DCE")))
+                rows.append(probe(pro, "fut_daily trade_date only", lambda: pro.fut_daily(trade_date="20261014")))
+                continue
             rows.append(probe(pro, f"fut_daily {code}", lambda c=code: pro.fut_daily(ts_code=c)))
         md = ["# 代码格式探测\n", "| 接口 | 状态 | 行数 | 最早 | 最晚 | 字段 / 报错 |", "|---|---|---|---|---|---|"] + ["| " + " | ".join(str(x) for x in r) + " |" for r in rows]
         os.makedirs(os.path.dirname(a.out), exist_ok=True)
