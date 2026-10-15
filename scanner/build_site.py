@@ -43,74 +43,93 @@ PAT_CLASS = {"高富帅": "p-gao", "白富美": "p-bai", "上涨乏力": "p-n", 
 EVENT_PAT = {"高富帅", "白富美", "虚涨分歧", "虚跌分歧", "涨势将尽", "跌势将尽"}
 
 CSS = """
-:root{--bg:#f4f5f7;--card:#fff;--ink:#1f2328;--muted:#6b7280;--line:#e5e7eb;--up:#d1322f;--down:#15803d;
---gold:#b45309;--gold-bg:#fff7ed;--accent:#111827;--soft:#f9fafb;--blue:#1d4ed8}
+:root{--bg:#070b12;--panel:#0d141f;--panel2:#111a27;--line:#1b2636;--line2:#263348;--ink:#d9e1ec;--muted:#7f8da1;--dim:#55627a;
+--up:#ff5a5f;--down:#2fd27a;--amber:#f2b544;--cyan:#4cc9f0;--cyan-dim:rgba(76,201,240,.14);--up-dim:rgba(255,90,95,.12);--down-dim:rgba(47,210,122,.12);--amber-dim:rgba(242,181,68,.13);
+--mono:"Cascadia Code","SF Mono",Menlo,Consolas,"Roboto Mono","Noto Sans Mono CJK SC",monospace;
+--sans:-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
-a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
-.top{background:var(--accent);color:#fff}
-.top .in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand{font-weight:700;font-size:17px;letter-spacing:1px;color:#fff}
-.brand small{display:block;font-weight:400;font-size:11px;color:#9ca3af;letter-spacing:0}
-.nav a{color:#d1d5db;margin-left:14px;font-size:13px}.nav a.on{color:#fff;font-weight:600}
-.wrap{max-width:1080px;margin:0 auto;padding:16px}
-.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
-.hd h1{font-size:22px;letter-spacing:1px}
-.hd .sub{color:var(--muted);font-size:12px;margin-top:2px}
-.badge{padding:6px 14px;border-radius:6px;font-weight:700;font-size:13px;white-space:nowrap}
-.badge.strong{background:#fef2f2;color:var(--up);border:1px solid #fecaca}
-.badge.weak{background:#f0fdf4;color:var(--down);border:1px solid #bbf7d0}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-.kpi .v{font-size:22px;font-weight:700;line-height:1.2}.kpi .k{color:var(--muted);font-size:11px;margin-top:2px}
+html{-webkit-text-size-adjust:100%;color-scheme:dark}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;
+background-image:linear-gradient(rgba(76,201,240,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(76,201,240,.035) 1px,transparent 1px);background-size:28px 28px;background-attachment:fixed}
+a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
+.num,td,.kpi .v,.bar-val,.badge,.pill,.tag,.hd .sub,.status,.ft{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td{font-family:var(--mono)}
+.top{background:rgba(7,11,18,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.top .in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:16px;letter-spacing:1px;color:var(--ink);font-family:var(--mono)}
+.brand::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--down);box-shadow:0 0 8px var(--down);margin-right:9px;vertical-align:1px;animation:pulse 2.4s ease-in-out infinite}
+.brand small{display:block;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0;font-family:var(--sans);margin-left:17px}
+.nav a{color:var(--muted);margin-left:16px;font-size:13px;padding:4px 0;border-bottom:1px solid transparent}.nav a.on{color:var(--cyan);border-bottom-color:var(--cyan)}.nav a:hover{color:var(--ink);text-decoration:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
+.hd h1{font-size:22px;letter-spacing:.5px;font-family:var(--mono);font-weight:600}
+.hd .sub{color:var(--muted);font-size:12px;margin-top:4px}
+.badge{padding:7px 14px;border-radius:4px;font-weight:600;font-size:12.5px;white-space:nowrap;border:1px solid}
+.badge.strong{background:var(--up-dim);color:var(--up);border-color:rgba(255,90,95,.4);box-shadow:0 0 14px rgba(255,90,95,.15)}
+.badge.weak{background:var(--down-dim);color:var(--down);border-color:rgba(47,210,122,.4);box-shadow:0 0 14px rgba(47,210,122,.15)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-bottom:12px}
+.kpi{background:var(--panel);padding:12px 14px}
+.kpi .v{font-size:26px;font-weight:600;line-height:1.1;letter-spacing:-.5px}.kpi .k{color:var(--muted);font-size:11px;margin-top:4px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px}
-.card h3{font-size:14px;margin-bottom:8px;padding-left:8px;border-left:4px solid var(--accent)}
-.card h3.blue{border-left-color:var(--blue)}
-.bar-row{display:flex;align-items:center;margin:4px 0;font-size:12px}
-.bar-label{width:84px;flex:none}.bar-label.sm{width:64px}
-.bar-track{flex:1;background:#eef0f3;border-radius:3px;height:14px;margin:0 8px;overflow:hidden}
-.bar-fill{display:block;height:100%;background:#9aa4ae;border-radius:3px}
-.bar-fill.red{background:var(--up)}.bar-fill.green{background:var(--down)}
-.bar-val{width:52px;text-align:right;flex:none}
-.view{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:12px}
-.view b{color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:12px}
+.card h3{font-size:13px;margin-bottom:10px;color:var(--ink);font-weight:600;display:flex;align-items:center;gap:8px}
+.card h3::before{content:"";width:3px;height:14px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.card h3.blue::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.bar-row{display:flex;align-items:center;margin:5px 0;font-size:12px}
+.bar-label{width:88px;flex:none;color:var(--ink)}.bar-label.sm{width:64px}
+.bar-track{flex:1;background:var(--panel2);height:12px;margin:0 10px;position:relative;
+background-image:repeating-linear-gradient(90deg,transparent 0 5px,var(--bg) 5px 6px)}
+.bar-fill{display:block;height:100%;background:var(--dim)}
+.bar-fill.red{background:var(--up);box-shadow:0 0 10px rgba(255,90,95,.45)}.bar-fill.green{background:var(--down);box-shadow:0 0 10px rgba(47,210,122,.45)}
+.bar-val{width:56px;text-align:right;flex:none;color:var(--ink)}
+.view{background:var(--panel);border:1px solid var(--line2);border-left:3px solid var(--amber);border-radius:4px;padding:12px 16px;margin-bottom:12px;font-family:var(--mono);font-size:13px;line-height:1.75}
+.view b{color:var(--amber)}
+.view::after{content:"▌";color:var(--amber);animation:blink 1.1s steps(1) infinite;margin-left:2px}
 .sec{margin-bottom:12px}
-.sec-h{display:flex;align-items:baseline;gap:8px;padding:7px 12px;background:var(--soft);border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;border-left:4px solid var(--accent)}
-.sec-h.p-gao{border-left-color:var(--up)}.sec-h.p-bai{border-left-color:var(--down)}.sec-h.p-warn{border-left-color:var(--gold)}.sec-h.p-good{border-left-color:#0891b2}
-.sec-t{font-weight:700;font-size:14px}.sec-n{color:var(--muted);font-size:12px}.sec-d{color:#9ca3af;font-size:11px;margin-left:auto}
-.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:0 0 8px 8px}
+.sec-h{display:flex;align-items:baseline;gap:8px;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0;border-left:3px solid var(--dim)}
+.sec-h.p-gao{border-left-color:var(--up)}.sec-h.p-bai{border-left-color:var(--down)}.sec-h.p-warn{border-left-color:var(--amber)}.sec-h.p-good{border-left-color:var(--cyan)}
+.sec-t{font-weight:600;font-size:14px}.sec-n{color:var(--muted);font-size:12px;font-family:var(--mono)}.sec-d{color:var(--dim);font-size:11px;margin-left:auto}
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:0 0 6px 6px}
 table{width:100%;border-collapse:collapse;min-width:560px}
-th,td{padding:6px 8px;text-align:center;border-bottom:1px solid #f1f3f5;font-size:12.5px;white-space:nowrap}
-th{background:#fafbfc;color:var(--muted);font-weight:500;font-size:11px}
+th,td{padding:7px 9px;text-align:center;border-bottom:1px solid var(--line);font-size:12.5px;white-space:nowrap}
+th{background:var(--panel2);color:var(--muted);font-weight:500;font-size:11px;font-family:var(--sans)}
 tr:last-child td{border-bottom:0}
-td.b{font-weight:700}.up{color:var(--up)}.down{color:var(--down)}.muted{color:var(--muted)}
-.tag{font-size:10.5px;padding:1px 7px;border-radius:4px;white-space:nowrap;margin-right:3px}
-.tag-best{background:#fef2f2;color:var(--up);border:1px solid #fecaca}
-.tag-warn{background:#fffbeb;color:var(--gold);border:1px solid #fde68a}
-.tag-watch{background:#f3f4f6;color:var(--muted);border:1px solid #e5e7eb}
-.best-card{display:inline-block;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 11px;margin:3px 6px 3px 0;font-size:13px}
-.ev{margin:4px 0;font-size:13px}.star{color:var(--gold);font-size:11px;margin-right:4px}
-.hint{background:#fef2f2;border-left:3px solid var(--up);padding:5px 10px;margin:5px 0;font-size:12.5px;border-radius:0 4px 4px 0}
+tbody tr:hover td{background:rgba(76,201,240,.04)}
+td.b{font-weight:600}.up{color:var(--up)}.down{color:var(--down)}.muted{color:var(--muted)}
+.tag{font-size:10.5px;padding:1px 7px;border-radius:3px;white-space:nowrap;margin-right:3px;border:1px solid}
+.tag-best{background:var(--up-dim);color:var(--up);border-color:rgba(255,90,95,.4)}
+.tag-warn{background:var(--amber-dim);color:var(--amber);border-color:rgba(242,181,68,.4)}
+.tag-watch{background:var(--panel2);color:var(--muted);border-color:var(--line2)}
+.best-card{display:inline-block;background:var(--up-dim);border:1px solid rgba(255,90,95,.35);border-radius:4px;padding:5px 11px;margin:3px 6px 3px 0;font-size:13px;font-family:var(--mono)}
+.ev{margin:4px 0;font-size:13px}.star{color:var(--amber);font-size:11px;margin-right:4px}
+.hint{background:var(--up-dim);border-left:3px solid var(--up);padding:5px 10px;margin:5px 0;font-size:12.5px;border-radius:0 4px 4px 0}
 ul{margin-left:20px}li{margin:3px 0}
-details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;padding:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:8px;list-style:none;display:flex;align-items:center;gap:8px}
-summary::-webkit-details-marker{display:none}summary::after{content:"展开 ▾";margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
-details[open] summary{border-radius:8px 8px 0 0}details[open] summary::after{content:"收起 ▴"}
-details .tbl{border-radius:0 0 8px 8px}
-.ft{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:11.5px;line-height:1.9}
-.arch{list-style:none;margin:0}.arch li{display:flex;justify-content:space-between;gap:10px;padding:9px 4px;border-bottom:1px solid #f1f3f5;flex-wrap:wrap}
-.arch li:last-child{border-bottom:0}.arch .d{font-weight:600;min-width:110px}.arch .m{color:var(--muted);font-size:12px}
-.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;background:#f3f4f6;color:#374151;margin-left:4px}
-.pill.up{background:#fef2f2;color:var(--up)}.pill.down{background:#f0fdf4;color:var(--down)}
+details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;list-style:none;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}summary::after{content:"[+]";margin-left:auto;font-weight:400;color:var(--cyan);font-size:12px;font-family:var(--mono)}
+details[open] summary{border-radius:6px 6px 0 0}details[open] summary::after{content:"[−]"}
+details .tbl{border-radius:0 0 6px 6px}
+.ft{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;line-height:1.9}
+.arch{list-style:none;margin:0}.arch li{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.arch li:last-child{border-bottom:0}.arch .d{font-weight:600;min-width:110px;font-family:var(--mono)}.arch .m{color:var(--muted);font-size:12px}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:3px;background:var(--panel2);color:var(--muted);margin-left:4px;border:1px solid var(--line2)}
+.pill.up{background:var(--up-dim);color:var(--up);border-color:rgba(255,90,95,.35)}.pill.down{background:var(--down-dim);color:var(--down);border-color:rgba(47,210,122,.35)}
 .spark{vertical-align:middle}
 .status{font-size:12px;color:var(--muted);margin-bottom:10px}
-.status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a34a;margin-right:5px}
-.status .dot.stale{background:#f59e0b}
-.rule{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px}
-.rule h4{font-size:14px;margin-bottom:4px}
-code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:12px}
-@media (max-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.hd h1{font-size:19px}.nav a{margin-left:10px;font-size:12px}.wrap{padding:12px}table{min-width:520px}summary .sec-d{display:none}}
+.status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--down);box-shadow:0 0 6px var(--down);margin-right:5px}
+.status .dot.stale{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.rule{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:10px}
+.rule h4{font-size:14px;margin-bottom:6px;color:var(--cyan);font-family:var(--mono)}
+code{background:var(--panel2);padding:1px 6px;border-radius:3px;font-size:12px;font-family:var(--mono);color:var(--amber)}
+.gauge{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
+.gauge .track{position:relative;flex:1;max-width:260px;height:6px;background:linear-gradient(90deg,var(--down) 0,var(--panel2) 50%,var(--up) 100%);border-radius:3px;opacity:.9}
+.gauge .mark{position:absolute;top:-4px;width:2px;height:14px;background:#fff;box-shadow:0 0 8px #fff;transform:translateX(-1px)}
+.gauge .tick{position:absolute;top:-2px;left:50%;width:1px;height:10px;background:var(--dim)}
+svg text{fill:var(--muted)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.brand::before,.view::after{animation:none}}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}.hd h1{font-size:18px}.nav a{margin-left:10px;font-size:12px}.wrap{padding:12px}table{min-width:520px}summary .sec-d{display:none}.kpi .v{font-size:22px}body{background-attachment:scroll}}
 """
 
 
@@ -132,7 +151,7 @@ def spark(closes, w=72, h=20):
     lo, hi = min(closes), max(closes)
     rng = (hi - lo) or 1
     pts = " ".join(f"{i * w / (len(closes) - 1):.1f},{h - 2 - (c - lo) / rng * (h - 4):.1f}" for i, c in enumerate(closes))
-    color = "#d1322f" if closes[-1] >= closes[0] else "#15803d"
+    color = "#ff5a5f" if closes[-1] >= closes[0] else "#2fd27a"
     return (f"<svg class='spark' width='{w}' height='{h}' viewBox='0 0 {w} {h}'>"
             f"<polyline fill='none' stroke='{color}' stroke-width='1.5' points='{pts}'/></svg>")
 
@@ -143,7 +162,7 @@ def layout(title, body, nav_on, root="", desc=""):
            ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
 <meta name="description" content="{desc or '国内期货54品种 量·仓·价三维八种形态每日自动扫描公示'}">
 <style>{CSS}</style></head><body>
 <div class="top"><div class="in"><a class="brand" href="{root}index.html">{SITE_TITLE}<small>国内期货 54 品种 · 量仓价三维自动扫描 · 每交易日收盘后更新</small></a>
@@ -171,6 +190,8 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None
         REGIME_TXT = "弱势市" if weak_market else "强势市"
         REGIME_MOM = f"{mom:+.2f}"
         regime_cls = "weak" if weak_market else "strong"
+
+    gauge_pct = 50.0 if mom is None else max(0.0, min(100.0, (mom + 10) / 20 * 100))
 
     def gao_tags(it):
         pc, hc = it["price_change_pct"], it["hold_change_pct"]
@@ -351,7 +372,8 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None
 <div class='hd'><div><h1>期货八种形态日报 · {D}</h1>
 <div class='sub'>数据日期 {D} ｜ {data['valid_count']}/{data['total_scanned']} 品种有效 ｜ 量比基准：5日/20日均量 ｜ 扫描时间 {data.get('scan_date', '')}
  &nbsp; {prev_link} &nbsp; {next_link} &nbsp; <a href='{root}data/{D}.json'>原始数据 JSON</a></div></div>
-<div class='badge {regime_cls}'>市场环境 · {REGIME_TXT}（20日中位动量 {REGIME_MOM}%）</div></div>
+<div><div class='badge {regime_cls}'>市场环境 {REGIME_TXT} ｜ 20日中位动量 {REGIME_MOM}%</div>
+<div class='gauge'><span>-10%</span><span class='track'><span class='tick'></span><span class='mark' style='left:{gauge_pct:.1f}%'></span></span><span>+10%</span></div></div></div>
 {stale_note}
 <div class='kpis'>
 <div class='kpi'><div class='v up'>{up_c}</div><div class='k'>上涨家数</div></div>
@@ -417,11 +439,11 @@ def trend_body(datas):
         dots = "".join(f"<circle cx='{x:.1f}' cy='{H - PAD - v / mx * (H - 2 * PAD):.1f}' r='3' fill='{color}'/>" for x, v in zip(xs, vals))
         return f"<polyline fill='none' stroke='{color}' stroke-width='2' points='{pts}'/>{dots}"
 
-    g, b = line(gv, "#d1322f"), line(bv, "#15803d")
+    g, b = line(gv, "#ff5a5f"), line(bv, "#2fd27a")
     labels = "".join(f"<text x='{xs[i]:.0f}' y='{H - 10}' font-size='10' text-anchor='middle' fill='#6b7280'>{ds[i]['data_date'][5:]}</text>"
                      for i in range(0, n, max(1, n // 8)))
     yl = "".join(f"<text x='{PAD - 6}' y='{H - PAD - k / 4 * (H - 2 * PAD) + 4:.0f}' font-size='10' text-anchor='end' fill='#6b7280'>{mx * k / 4:.0f}</text>"
-                 f"<line x1='{PAD}' x2='{W - PAD}' y1='{H - PAD - k / 4 * (H - 2 * PAD):.0f}' y2='{H - PAD - k / 4 * (H - 2 * PAD):.0f}' stroke='#eee'/>" for k in range(5))
+                 f"<line x1='{PAD}' x2='{W - PAD}' y1='{H - PAD - k / 4 * (H - 2 * PAD):.0f}' y2='{H - PAD - k / 4 * (H - 2 * PAD):.0f}' stroke='#1b2636'/>" for k in range(5))
     svg1 = f"<svg viewBox='0 0 {W} {H}' width='100%' style='max-width:{W}px'>{yl}{g}{b}{labels}</svg>"
 
     # 上涨家数占比 + 市场环境
@@ -431,9 +453,9 @@ def trend_body(datas):
     pts = " ".join(f"{x:.1f},{H - PAD - ratio(d) / 100 * (H - 2 * PAD):.1f}" for x, d in zip(xs, ds))
     mid = H - PAD - 0.5 * (H - 2 * PAD)
     yl2 = "".join(f"<text x='{PAD - 6}' y='{H - PAD - k / 4 * (H - 2 * PAD) + 4:.0f}' font-size='10' text-anchor='end' fill='#6b7280'>{k * 25}%</text>" for k in range(5))
-    regime_marks = "".join(f"<rect x='{x - 3:.0f}' y='{H - PAD + 2}' width='6' height='5' fill='{'#15803d' if (d.get('market') or {}).get('regime') == '弱势' else '#d1322f'}'/>" for x, d in zip(xs, ds))
-    svg2 = (f"<svg viewBox='0 0 {W} {H}' width='100%' style='max-width:{W}px'>{yl2}<line x1='{PAD}' x2='{W - PAD}' y1='{mid}' y2='{mid}' stroke='#d1d5db' stroke-dasharray='4 4'/>"
-            f"<polyline fill='none' stroke='#1d4ed8' stroke-width='2' points='{pts}'/>{regime_marks}{labels}</svg>")
+    regime_marks = "".join(f"<rect x='{x - 3:.0f}' y='{H - PAD + 2}' width='6' height='5' fill='{'#2fd27a' if (d.get('market') or {}).get('regime') == '弱势' else '#ff5a5f'}'/>" for x, d in zip(xs, ds))
+    svg2 = (f"<svg viewBox='0 0 {W} {H}' width='100%' style='max-width:{W}px'>{yl2}<line x1='{PAD}' x2='{W - PAD}' y1='{mid}' y2='{mid}' stroke='#55627a' stroke-dasharray='4 4'/>"
+            f"<polyline fill='none' stroke='#4cc9f0' stroke-width='2' points='{pts}'/>{regime_marks}{labels}</svg>")
 
     # 最近连续出现高富帅的品种
     streak = {}
