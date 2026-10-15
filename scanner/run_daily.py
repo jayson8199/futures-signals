@@ -58,10 +58,13 @@ def main():
         except Exception as e:
             print(f"扫描异常：{e}")
             data = None
-        if data and data["valid_count"] >= 40 and (data["data_date"] == today or args.force):
+        # 新浪收盘后按品种陆续更新：必须等到几乎全部品种（≥50/54）都已是今天的日线，才算数据到位，
+        # 否则会把一半品种的昨日数据和另一半的今日数据混在一起
+        n_today = sum(1 for r in data["all_results"] if r["date"] == today) if data else 0
+        if data and data["valid_count"] >= 40 and (n_today >= 50 or args.force):
             break
         if data:
-            print(f"数据日期 {data['data_date']}（有效 {data['valid_count']}）≠ 今天 {today}，{args.interval // 60} 分钟后重试")
+            print(f"今日({today})数据已更新品种 {n_today}/{data['valid_count']}，未达门槛，{args.interval // 60} 分钟后重试")
         if rnd < args.max_rounds:
             time.sleep(args.interval)
 
@@ -69,8 +72,9 @@ def main():
         print("❌ 数据获取失败或有效品种过少，本次不更新")
         gh_output(updated="false", data_date="")
         return 0
-    if data["data_date"] != today and not args.force:
-        print(f"⏸ 今日休市或新浪数据未更新（最新 {data['data_date']}），跳过")
+    n_today = sum(1 for r in data["all_results"] if r["date"] == today)
+    if n_today < 50 and not args.force:
+        print(f"⏸ 今日休市或新浪数据未更新完全（今日已更新 {n_today} 个，最新数据日期 {data['data_date']}），跳过")
         gh_output(updated="false", data_date=data["data_date"])
         return 0
 

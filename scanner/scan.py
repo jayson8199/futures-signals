@@ -177,7 +177,17 @@ def analyze_symbol(symbol, name, exchange):
 
 
 def summarize(all_results: list, errors: list, scan_date: str) -> dict:
-    """由单品种结果列表组装完整 data.json（与 Kimi 版字段一致）"""
+    """由单品种结果列表组装完整 data.json（与 Kimi 版字段一致）
+    日期不是多数日期的滞后品种会被剔除并计入 errors（避免新旧数据混排）"""
+    if all_results:
+        cnt = {}
+        for r in all_results:
+            cnt[r["date"]] = cnt.get(r["date"], 0) + 1
+        major = max(cnt.items(), key=lambda kv: kv[1])[0]
+        stale = [r["symbol"] for r in all_results if r["date"] != major]
+        if stale:
+            errors = list(errors) + [f"{s}(滞后)" for s in stale]
+            all_results = [r for r in all_results if r["date"] == major]
     all_results = sorted(all_results, key=lambda x: x["hold_change_pct"], reverse=True)
     pattern_groups = {n: [] for n in PATTERNS}
     for r in all_results:
