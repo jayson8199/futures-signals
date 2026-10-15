@@ -1,0 +1,31 @@
+name: 二区定律回测（实验）
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        default: "20230101"
+      end:
+        default: "20261015"
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scanner/requirements.txt
+      - run: python scanner/erqu_backtest.py --start "${{ github.event.inputs.start }}" --end "${{ github.event.inputs.end }}"
+      - run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add experiments/erqu_result.json experiments/sse_5min.csv
+          git commit -m "experiment: 二区定律回测" || exit 0
+          git pull --rebase origin main || true
+          git push
