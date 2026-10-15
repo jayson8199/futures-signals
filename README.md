@@ -22,11 +22,15 @@ scanner/stats.py       历史回算：形态/买卖点的 1/3/5 日胜率、连�
 scanner/history.py     长期日线库 data/history/<SYM>.csv 的读写与每日合并
 scanner/backfill.py    用日线库回填历史每日快照（归档页）
 scanner/run_daily.py   每日流水线：重试、数据完整性门槛、写数据、合并日线库
-scanner/build_site.py  静态网站生成（首页/历史/趋势/买卖点/战绩/方法说明/公开 JSON）
+scanner/build_site.py  静态网站生成（首页/历史/趋势/买卖点/战绩/K线形态图/方法说明/公开 JSON）
+scanner/chart.py       K线形态图数据：按《王刚期货交易体系手册》规则标注蜡烛形态/包线/量仓/趋势状态
+scanner/chart_page.py  K线形态图页面（本地 echarts，支持 主力连续/加权 切换）
+scanner/weighted.py    加权指数：全部在市合约按持仓量加权（文华口径，2020 年起），--full 重建 / --update 每日续接
 scanner/events_cal.py  财经事件日历（离线硬编码，每年需更新 FOMC 日期）
 scanner/probe_sources.py 数据源可用性探测（实验，结果在 experiments/）
 data/YYYY-MM-DD.json   每日扫描快照（当日实时抓取；标 backfilled 的为回填）
 data/history/*.csv     54 品种长期日线（初始来自 Kimi 交接包，之后每日续接）
+data/weighted/*.csv    54 品种加权指数日线（Actions「加权指数全量重建」生成，每日续接）
 .github/workflows/     定时任务
 ```
 

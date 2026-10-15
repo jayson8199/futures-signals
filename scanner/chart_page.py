@@ -28,12 +28,14 @@ def body(avail: list[dict], sector: dict) -> str:
             continue
         opts += f"<optgroup label='{sec}'>" + "".join(
             f"<option value='{a['symbol']}'{' selected' if a['symbol'] == 'P0' else ''}>{a['name']} {a['symbol']}</option>" for a in groups[sec]) + "</optgroup>"
+    avail_js = "AVAIL=" + json.dumps({a["symbol"]: bool(a.get("weighted")) for a in avail}, ensure_ascii=False) + ";"
     return f"""<style>{CSS}</style>
 <div class="hd"><h1>K 线形态图 <span id="ttl" class="sub"></span></h1>
 <div class="sub">按《王刚期货交易体系手册（第二版）》规则逐根自动标注：蜡烛形态 · 包线 · 量仓价 · 趋势状态 · 摆动高低点</div></div>
 <div class="card">
 <div class="ck">
  <select id="sym">{opts}</select>
+ <select id="kind"><option value="w">加权指数</option><option value="m">主力连续</option></select>
  <span id="meta" class="sub"></span>
  <label><input type="checkbox" id="ck_candle" checked><span class="sw" style="background:var(--up)"></span>蜡烛形态</label>
  <label><input type="checkbox" id="ck_bao" checked><span class="sw" style="background:var(--cyan)"></span>包线（2包/3包）</label>
@@ -58,6 +60,7 @@ def body(avail: list[dict], sector: dict) -> str:
 <div><b>增仓/减仓 20%</b>：一两天内增减仓 20% 会有大行情；高位减仓 20% 到顶、底部减仓 20% 到底（2.3）</div>
 <div><b>趋势多头 / 空头 / 震荡观望</b>：MA5&gt;MA20&gt;MA60、收盘在 MA20 上、DIF&gt;DEA 为多头（反之空头），连续 3 日才切换（4.1、4.5）</div>
 <div><b>H / L</b>：左右各 5 根内的最高 / 最低点，供数浪与三步判断顶底参考（4.3）</div>
+<div><b>加权指数</b>：全部在市合约按持仓量加权（文华"加权"口径，2020 年起），无换月跳空，适合画线与数浪；<b>主力连续</b>为新浪主力合约拼接，换月日有跳空</div>
 <div><b>MACD</b>：参数 8、21、6（5.2 一堵）；<b>RSI</b> 14，80 以上 / 20 以下为过滤区（1.2）</div>
 </div></div>
 <script src="assets/echarts.min.js"></script>
@@ -68,16 +71,19 @@ function v(n){{return css.getPropertyValue(n).trim();}}
 var C={{up:v('--up'),down:v('--down'),cyan:v('--cyan'),amber:v('--amber'),ink:v('--ink'),muted:v('--muted'),dim:v('--dim'),line:v('--line'),panel:v('--panel')}};
 var MA={{ma5:'#e0a100',ma10:'#3f8ff5',ma20:'#b85cff',ma60:'#8d6a3a'}};
 var chart=echarts.init(document.getElementById('chart'),null,{{renderer:'canvas'}});
-var D=null, sym=document.getElementById('sym');
+var D=null, sym=document.getElementById('sym'), kind=document.getElementById('kind');
+var AVAIL={{}}; {avail_js}
+function kindFor(s){{var w=AVAIL[s]; kind.querySelector('[value=w]').disabled=!w; if(!w)kind.value='m'; return kind.value;}}
 var ck=function(id){{return document.getElementById(id).checked;}};
 function load(s){{
-  fetch('chart/'+s+'.json').then(function(r){{return r.json();}}).then(function(d){{D=d;render();}});
+  var k=kindFor(s);
+  fetch('chart/'+s+(k==='w'?'_w':'')+'.json').then(function(r){{return r.json();}}).then(function(d){{D=d;render();}});
 }}
 function fmt(x){{return x==null?'-':(Math.abs(x)>=10000?x.toLocaleString('en-US'):(+x).toFixed(Math.abs(x)<10?2:1));}}
 function render(){{
   if(!D)return;
   var n=D.dates.length, last=n-1;
-  document.getElementById('ttl').textContent=D.name+' '+D.symbol+'（'+D.exchange+' 主力连续）';
+  document.getElementById('ttl').textContent=D.name+' '+D.symbol+'（'+D.exchange+' '+D.kind+'）';
   var rg=D.regime[last]; var cls=rg==='趋势多头'?'bull':rg==='趋势空头'?'bear':'flat';
   document.getElementById('meta').innerHTML=D.dates[0]+' ~ '+D.dates[last]+' · '+n+' 根 · 最新 '+fmt(D.ohlc[last][1])+' · <span class="chip '+cls+'">'+rg+'</span>';
   var byDay={{}}; D.marks.forEach(function(m){{(byDay[m.i]=byDay[m.i]||[]).push(m);}});
@@ -142,6 +148,7 @@ function render(){{
   chart.setOption(opt,true);
 }}
 sym.addEventListener('change',function(){{load(sym.value);}});
+kind.addEventListener('change',function(){{load(sym.value);}});
 ['ck_candle','ck_bao','ck_voloi','ck_regime','ck_swing','ck_ma60'].forEach(function(id){{document.getElementById(id).addEventListener('change',render);}});
 window.addEventListener('resize',function(){{chart.resize();}});
 document.getElementById('themeBtn').addEventListener('click',function(){{setTimeout(function(){{css=getComputedStyle(document.documentElement);C={{up:v('--up'),down:v('--down'),cyan:v('--cyan'),amber:v('--amber'),ink:v('--ink'),muted:v('--muted'),dim:v('--dim'),line:v('--line'),panel:v('--panel')}};render();}},30);}});

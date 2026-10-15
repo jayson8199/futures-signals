@@ -261,14 +261,26 @@ def build(out_dir: Path, symbols: dict):
     d = out_dir / "chart"
     d.mkdir(parents=True, exist_ok=True)
     avail = []
+    import csv as _csv
     for sym, (name, exch) in symbols.items():
         res = analyze(sym, history.load(sym))
         if not res:
             continue
-        res["name"] = name; res["exchange"] = exch
+        res["name"] = name; res["exchange"] = exch; res["kind"] = "主力连续"
         (d / f"{sym}.json").write_text(json.dumps(res, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        has_w = False
+        wp = history.ROOT / "data" / "weighted" / f"{sym}.csv"
+        if wp.exists():
+            with wp.open(encoding="utf-8") as f:
+                rows = [{"date": r["date"], "open": float(r["open"]), "high": float(r["high"]), "low": float(r["low"]),
+                         "close": float(r["close"]), "volume": int(float(r["volume"])), "oi": int(float(r["oi"]))} for r in _csv.DictReader(f)]
+            resw = analyze(sym, rows)
+            if resw:
+                resw["name"] = name; resw["exchange"] = exch; resw["kind"] = "加权"
+                (d / f"{sym}_w.json").write_text(json.dumps(resw, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+                has_w = True
         avail.append({"symbol": sym, "name": name, "exchange": exch, "last": res["dates"][-1],
-                      "regime": res["regime"][-1], "n": len(res["dates"])})
+                      "regime": res["regime"][-1], "n": len(res["dates"]), "weighted": has_w})
     (d / "index.json").write_text(json.dumps(avail, ensure_ascii=False), encoding="utf-8")
     return avail
 

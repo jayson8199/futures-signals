@@ -56,6 +56,10 @@ jobs:
             --max-rounds "${{ github.event.inputs.rounds || '10' }}" \
             ${{ github.event.inputs.force == 'true' && '--force' || '' }}
 
+      - name: 续接加权指数（只拉在市合约）
+        if: steps.scan.outputs.updated == 'true'
+        run: python scanner/weighted.py --update || echo "::warning::加权指数更新失败，沿用旧数据"
+
       - name: 提交新数据
         if: steps.scan.outputs.updated == 'true'
         run: |
