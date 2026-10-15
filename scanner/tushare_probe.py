@@ -99,15 +99,22 @@ def main():
               raise RuntimeError(f"{c} 多次失败")
           os.makedirs("experiments/tushare_cache/P", exist_ok=True)
           frames = {}
+          done_file = "experiments/tushare_cache/P/_empty.txt"
+          empty = set(open(done_file).read().split()) if os.path.exists(done_file) else set()
           for c in codes:
+              cache = f"experiments/tushare_cache/P/{c}.csv"
+              if os.path.exists(cache):
+                  frames[c] = pd.read_csv(cache); continue
+              if c in empty:
+                  continue
               try:
                   df = pull(c)
                   time.sleep(0.5)
               except Exception as e:
                   md.append(f"- {c} 拉取失败：{str(e)[:80]}"); continue
               if df is None or len(df) == 0:
-                  continue
-              df.to_csv(f"experiments/tushare_cache/P/{c}.csv", index=False)
+                  empty.add(c); open(done_file, "w").write("\n".join(sorted(empty))); continue
+              df.to_csv(cache, index=False)
               frames[c] = df
           md.append(f"\n## 棕榈油全合约拉取：{len(frames)}/{len(codes)} 个合约")
           if frames:
