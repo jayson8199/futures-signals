@@ -1,0 +1,35 @@
+name: tushare 数据包接口探测
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull:
+        description: "单合约可用时顺便拉取棕榈油全合约并算加权"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scanner/requirements.txt tushare
+      - name: 探测
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+        run: python scanner/tushare_probe.py --out experiments/tushare_probe.md ${{ github.event.inputs.pull == 'true' && '--pull' || '' }}
+      - name: 提交结果
+        run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add experiments/tushare_probe.md data/weighted_tushare/ 2>/dev/null || true
+          git commit -m "experiment: tushare 数据包接口探测" || echo "无变化"
+          git pull --rebase origin main || true
+          git push
