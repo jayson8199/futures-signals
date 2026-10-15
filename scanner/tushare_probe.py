@@ -83,16 +83,26 @@ def main():
     single_ok = any(r[0].startswith("fut_daily P2601") and r[1] == "通" for r in rows)
     if a.pull and single_ok:
       try:
-          basic = pro.fut_basic(exchange="DCE", fut_type="1")
-          codes = sorted(c for c in basic["ts_code"] if c.startswith("P") and c[1].isdigit() and c.endswith(".DCE"))
-          basic = basic.set_index("ts_code")
-          codes = [c for c in codes if str(basic.loc[c].get("delist_date", "99999999") or "99999999") >= "20150101"]
+          # fut_basic 在该代理上报参数错误：改为按年月枚举合约（P0801..P2712），空的自动跳过
+          codes = [f"P{yy:02d}{m:02d}.DCE" for yy in range(8, 28) for m in range(1, 13)]
+          def pull(c, tries=4):
+              for i in range(tries):
+                  try:
+                      return pro.fut_daily(ts_code=c)
+                  except Exception as e:
+                      msg = str(e)
+                      if "upstream_pool_exhausted" in msg or "稍后重试" in msg:
+                          time.sleep(31); continue
+                      if "invalid_params" in msg:
+                          return None
+                      time.sleep(2 + 3 * i)
+              raise RuntimeError(f"{c} 多次失败")
           os.makedirs("experiments/tushare_cache/P", exist_ok=True)
           frames = {}
           for c in codes:
               try:
-                  df = pro.fut_daily(ts_code=c)
-                  time.sleep(0.3)
+                  df = pull(c)
+                  time.sleep(0.5)
               except Exception as e:
                   md.append(f"- {c} 拉取失败：{str(e)[:80]}"); continue
               if df is None or len(df) == 0:
@@ -109,7 +119,7 @@ def main():
                   d["date"] = pd.to_datetime(d["date"], format="%Y%m%d")
                   conv[c] = d[["date", "open", "high", "low", "close", "volume", "hold"]]
               allidx = pd.DatetimeIndex(sorted(set(pd.concat([d["date"] for d in conv.values()]))))
-              out = W.weighted(conv, allidx, "2015-01-01")
+              out = W.weighted(conv, allidx, "2008-01-01")
               os.makedirs("data/weighted_tushare", exist_ok=True)
               out.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv("data/weighted_tushare/P0.csv", index=False)
               md.append(f"- 加权指数 data/weighted_tushare/P0.csv：{len(out)} 行，{out.index.min().date()} ~ {out.index.max().date()}")
