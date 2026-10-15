@@ -1,5 +1,5 @@
 {
- "time": "2026-10-15T15:55:07.385713+08:00",
+ "time": "2026-10-15T23:11:40.059050+08:00",
  "results": [
   {
    "source": "official:SHFE:20261014",
@@ -19,13 +19,13 @@
     "settle",
     "pre_settle"
    ],
-   "secs": 3.7
+   "secs": 1.9
   },
   {
    "source": "official:DCE:20261014",
    "ok": false,
    "error": "Expecting value: line 1 column 1 (char 0)",
-   "secs": 2.8
+   "secs": 1.9
   },
   {
    "source": "official:CZCE:20261014",
@@ -45,7 +45,7 @@
     "pre_settle",
     "variety"
    ],
-   "secs": 2.5
+   "secs": 5.8
   },
   {
    "source": "official:CFFEX:20261014",
@@ -65,7 +65,7 @@
     "pre_settle",
     "variety"
    ],
-   "secs": 1.5
+   "secs": 22.5
   },
   {
    "source": "official:GFEX:20261014",
@@ -85,12 +85,12 @@
     "pre_settle",
     "variety"
    ],
-   "secs": 1.4
+   "secs": 3.2
   },
   {
    "source": "sina:RB0",
    "ok": true,
-   "rows": 26,
+   "rows": 27,
    "cols": [
     "日期",
     "开盘价",
@@ -101,7 +101,7 @@
     "持仓量",
     "动态结算价"
    ],
-   "secs": 1.9
+   "secs": 1.8
   },
   {
    "source": "sina:main_contract_list",
@@ -112,7 +112,7 @@
     "exchange",
     "name"
    ],
-   "secs": 56.8
+   "secs": 58.0
   }
  ]
 }
