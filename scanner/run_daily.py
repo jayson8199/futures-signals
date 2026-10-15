@@ -48,6 +48,11 @@ def main():
     args = ap.parse_args()
 
     today = datetime.now(CN_TZ).strftime("%Y-%m-%d")
+    done = ROOT / "data" / f"{today}.json"
+    if done.exists() and not args.force:
+        print(f"✅ 今日 {today} 数据已存在（{done.name}），本次为备用触发，跳过扫描")
+        gh_output(updated="false", data_date=today)
+        return 0
     tmp = ROOT / ".scan_tmp"
     tmp.mkdir(exist_ok=True)
     data = None
