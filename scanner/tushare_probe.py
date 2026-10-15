@@ -22,7 +22,7 @@ def connect():
     if not token:
         raise SystemExit("缺少 TUSHARE_TOKEN")
     for url in URLS:
-        pro = ts.pro_api(token)
+        pro = ts.pro_api(token, timeout=120)
         pro._DataApi__http_url = url
         try:
             df = pro.daily(ts_code="000001.SZ", trade_date="20260930")
@@ -76,46 +76,52 @@ def main():
     for r in rows:
         md.append("| " + " | ".join(str(x) for x in r) + " |")
 
+    def flush():
+        os.makedirs(os.path.dirname(a.out), exist_ok=True)
+        open(a.out, "w", encoding="utf-8").write("\n".join(md) + "\n")
+    flush()
     single_ok = any(r[0].startswith("fut_daily P2601") and r[1] == "通" for r in rows)
     if a.pull and single_ok:
-        basic = pro.fut_basic(exchange="DCE", fut_type="1")
-        codes = sorted(c for c in basic["ts_code"] if c.startswith("P") and c[1].isdigit() and c.endswith(".DCE"))
-        basic = basic.set_index("ts_code")
-        codes = [c for c in codes if str(basic.loc[c].get("delist_date", "99999999") or "99999999") >= "20150101"]
-        os.makedirs("experiments/tushare_cache/P", exist_ok=True)
-        frames = {}
-        for c in codes:
-            try:
-                df = pro.fut_daily(ts_code=c)
-                time.sleep(0.3)
-            except Exception as e:
-                md.append(f"- {c} 拉取失败：{str(e)[:80]}"); continue
-            if df is None or len(df) == 0:
-                continue
-            df.to_csv(f"experiments/tushare_cache/P/{c}.csv", index=False)
-            frames[c] = df
-        md.append(f"\n## 棕榈油全合约拉取：{len(frames)}/{len(codes)} 个合约")
-        if frames:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-            import weighted as W
-            conv = {}
-            for c, df in frames.items():
-                d = df.rename(columns={"trade_date": "date", "vol": "volume", "oi": "hold"})
-                d["date"] = pd.to_datetime(d["date"], format="%Y%m%d")
-                conv[c] = d[["date", "open", "high", "low", "close", "volume", "hold"]]
-            allidx = pd.DatetimeIndex(sorted(set(pd.concat([d["date"] for d in conv.values()]))))
-            out = W.weighted(conv, allidx, "2015-01-01")
-            os.makedirs("data/weighted_tushare", exist_ok=True)
-            out.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv("data/weighted_tushare/P0.csv", index=False)
-            md.append(f"- 加权指数 data/weighted_tushare/P0.csv：{len(out)} 行，{out.index.min().date()} ~ {out.index.max().date()}")
-            sina = "data/weighted/P0.csv"
-            if os.path.exists(sina):
-                s = pd.read_csv(sina, parse_dates=["date"]).set_index("date")["close"]
-                both = pd.concat([out["close"].rename("ts"), s.rename("sina")], axis=1).dropna()
-                err = ((both["ts"] - both["sina"]).abs() / both["sina"]).mean() * 100
-                md.append(f"- 与新浪版加权对比（{len(both)} 个共同交易日）：平均相对误差 {err:.3f}%")
-    os.makedirs(os.path.dirname(a.out), exist_ok=True)
-    open(a.out, "w", encoding="utf-8").write("\n".join(md) + "\n")
+      try:
+          basic = pro.fut_basic(exchange="DCE", fut_type="1")
+          codes = sorted(c for c in basic["ts_code"] if c.startswith("P") and c[1].isdigit() and c.endswith(".DCE"))
+          basic = basic.set_index("ts_code")
+          codes = [c for c in codes if str(basic.loc[c].get("delist_date", "99999999") or "99999999") >= "20150101"]
+          os.makedirs("experiments/tushare_cache/P", exist_ok=True)
+          frames = {}
+          for c in codes:
+              try:
+                  df = pro.fut_daily(ts_code=c)
+                  time.sleep(0.3)
+              except Exception as e:
+                  md.append(f"- {c} 拉取失败：{str(e)[:80]}"); continue
+              if df is None or len(df) == 0:
+                  continue
+              df.to_csv(f"experiments/tushare_cache/P/{c}.csv", index=False)
+              frames[c] = df
+          md.append(f"\n## 棕榈油全合约拉取：{len(frames)}/{len(codes)} 个合约")
+          if frames:
+              sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+              import weighted as W
+              conv = {}
+              for c, df in frames.items():
+                  d = df.rename(columns={"trade_date": "date", "vol": "volume", "oi": "hold"})
+                  d["date"] = pd.to_datetime(d["date"], format="%Y%m%d")
+                  conv[c] = d[["date", "open", "high", "low", "close", "volume", "hold"]]
+              allidx = pd.DatetimeIndex(sorted(set(pd.concat([d["date"] for d in conv.values()]))))
+              out = W.weighted(conv, allidx, "2015-01-01")
+              os.makedirs("data/weighted_tushare", exist_ok=True)
+              out.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv("data/weighted_tushare/P0.csv", index=False)
+              md.append(f"- 加权指数 data/weighted_tushare/P0.csv：{len(out)} 行，{out.index.min().date()} ~ {out.index.max().date()}")
+              sina = "data/weighted/P0.csv"
+              if os.path.exists(sina):
+                  s = pd.read_csv(sina, parse_dates=["date"]).set_index("date")["close"]
+                  both = pd.concat([out["close"].rename("ts"), s.rename("sina")], axis=1).dropna()
+                  err = ((both["ts"] - both["sina"]).abs() / both["sina"]).mean() * 100
+                  md.append(f"- 与新浪版加权对比（{len(both)} 个共同交易日）：平均相对误差 {err:.3f}%")
+      except Exception as e:
+          md.append(f"\n- 拉取阶段出错：{str(e)[:300]}")
+    flush()
     print("\n".join(md))
 
 
