@@ -2,21 +2,10 @@
 
 | 接口 | 状态 | 行数 | 最早 | 最晚 | 字段 / 报错 |
 |---|---|---|---|---|---|
-| fut_daily RB2601.SHF | 通 | 242 | 20250116 | 20260115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily rb2601.SHF | 通 | 242 | 20250116 | 20260115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily CU2601.SHF | 通 | 242 | 20250116 | 20260115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily cu2601.SHF | 通 | 242 | 20250116 | 20260115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily SC2601.INE | 通 | 243 | 20250102 | 20251231 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily sc2601.INE | 通 | 243 | 20250102 | 20251231 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily CF2601.ZCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily CF601.ZCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily cf2601.ZCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily IF2601.CFX | 通 | 38 | 20251124 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily SI2601.GFX | 通 | 239 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily si2601.GFX | 通 | 239 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily P2601.DCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily p2601.DCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily M2601.DCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily m2601.DCE | 通 | 243 | 20250116 | 20260116 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily RB1601.SHF | 通 | 245 | 20150116 | 20160115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
-| fut_daily rb1601.SHF | 通 | 245 | 20150116 | 20160115 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
+| fut_basic exchange only | 错 | 0 |  |  | [invalid_params] 业务参数缺失或格式不合法；request_id=fb8946331e0f4b4987dea9f623b6802b |
+| fut_basic +fields | 通 | 3286 | 19990104 | 20261008 | ts_code,symbol,name,list_date,delist_date |
+| fut_basic fut_code | 错 | 0 |  |  | [invalid_params] 业务参数缺失或格式不合法；request_id=63496771f9e9463aaab7de78a622ab31 |
+| fut_basic no args | 错 | 0 |  |  | [invalid_params] 业务参数缺失或格式不合法；request_id=9c11c2fe0e1e427da61787fe5c813529 |
+| fut_basic fut_type=2 | 错 | 0 |  |  | [invalid_params] 业务参数缺失或格式不合法；request_id=be58a6108b914b078685e91b9fcd4631 |
+| fut_daily trade_date DCE | 通 | 302 | 20261014 | 20261014 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
+| fut_daily trade_date only | 通 | 1017 | 20261014 | 20261014 | ts_code,trade_date,pre_close,pre_settle,open,high,low,close,settle,change1,change2,vol… |
