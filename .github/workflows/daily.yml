@@ -66,6 +66,15 @@ jobs:
       - name: 生成网站
         run: python scanner/build_site.py --data data --out site
 
+      - name: 推送邮件/微信
+        if: steps.scan.outputs.updated == 'true'
+        env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python scanner/notify.py --date "${{ steps.scan.outputs.data_date }}"
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
