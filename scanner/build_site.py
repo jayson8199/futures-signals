@@ -13,6 +13,9 @@ from zoneinfo import ZoneInfo
 import events_cal
 import stats as stats_mod
 import macd8
+import chart as chart_mod
+import chart_page
+from scan import SYMBOLS
 
 CN_TZ = ZoneInfo("Asia/Shanghai")
 SITE_TITLE = "期货八种形态日报"
@@ -163,7 +166,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -626,6 +629,12 @@ def main():
     (out / "macd.html").write_text(layout(f"MACD买卖点 · {SITE_TITLE}", macd_body(st, latest["data_date"]), "macd"), encoding="utf-8")
     (out / "stats.html").write_text(layout(f"历史战绩 · {SITE_TITLE}", stats_body(st), "stats"), encoding="utf-8")
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
+    # K 线形态图：逐品种 JSON + 页面 + 本地 echarts
+    avail = chart_mod.build(out, SYMBOLS)
+    (out / "assets").mkdir(exist_ok=True)
+    shutil.copy(Path(__file__).resolve().parent / "assets" / "echarts.min.js", out / "assets" / "echarts.min.js")
+    (out / "chart.html").write_text(layout(f"K线形态图 · {SITE_TITLE}", chart_page.body(avail, SECTOR), "chart",
+                                           desc="按王刚期货交易体系手册规则自动标注蜡烛形态、包线、量仓信号与趋势状态的交互 K 线图"), encoding="utf-8")
     (out / ".nojekyll").write_text("")
     print(f"网站已生成：{out}  共 {len(datas)} 天，最新 {latest['data_date']}")
     # 事件日历年度维护提醒：FOMC 日期按年硬编码，11 月起若下一年缺失则在日志中警告
