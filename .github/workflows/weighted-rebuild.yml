@@ -6,6 +6,9 @@ on:
       symbols:
         description: "品种列表（逗号分隔，留空=全部 54 个）"
         default: ""
+      source:
+        description: "数据源：auto（有 token 用 tushare）/ tushare / sina"
+        default: "auto"
 
 permissions:
   contents: write
@@ -17,7 +20,7 @@ concurrency:
 jobs:
   rebuild:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,10 +28,24 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: scanner/requirements.txt
-      - run: pip install -r scanner/requirements.txt
-      - name: 全量计算加权指数（新浪逐合约，2020 年起）
-        run: python scanner/weighted.py --full --symbols "${{ github.event.inputs.symbols }}"
+      - run: pip install -r scanner/requirements.txt tushare
+      - name: 恢复合约缓存（已摘牌合约永不变化，断点续跑）
+        uses: actions/cache@v4
+        with:
+          path: .cache/contracts
+          key: contracts-${{ github.run_id }}
+          restore-keys: contracts-
+      - name: 用仓库里的棕榈油样例预热缓存
+        run: |
+          mkdir -p .cache/contracts/tushare/P
+          if [ -d experiments/tushare_cache/P ]; then cp -n experiments/tushare_cache/P/*.csv .cache/contracts/tushare/P/ 2>/dev/null || true; fi
+          echo "缓存中合约数：$(find .cache/contracts -name '*.csv' | wc -l)"
+      - name: 全量计算加权指数
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+        run: python scanner/weighted.py --full --source "${{ github.event.inputs.source || 'auto' }}" --symbols "${{ github.event.inputs.symbols }}"
       - name: 提交
+        if: always()
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"

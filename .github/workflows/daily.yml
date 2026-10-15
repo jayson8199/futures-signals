@@ -46,7 +46,7 @@ jobs:
           cache-dependency-path: scanner/requirements.txt
 
       - name: 安装依赖
-        run: pip install -r scanner/requirements.txt
+        run: pip install -r scanner/requirements.txt tushare
 
       - name: 扫描（仅定时/手动触发）
         id: scan
@@ -56,8 +56,18 @@ jobs:
             --max-rounds "${{ github.event.inputs.rounds || '10' }}" \
             ${{ github.event.inputs.force == 'true' && '--force' || '' }}
 
-      - name: 续接加权指数（只拉在市合约）
+      - name: 恢复合约缓存
         if: steps.scan.outputs.updated == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .cache/contracts
+          key: contracts-${{ github.run_id }}
+          restore-keys: contracts-
+
+      - name: 续接加权指数（只拉在市合约；有 token 用 tushare，否则新浪）
+        if: steps.scan.outputs.updated == 'true'
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
         run: python scanner/weighted.py --update || echo "::warning::加权指数更新失败，沿用旧数据"
 
       - name: 提交新数据
