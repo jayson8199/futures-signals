@@ -50,7 +50,7 @@ def connect():
 
 def trade_days(pro, start: str, end: str) -> list[str]:
     """交易日历：用棕榈油主力映射的日期（2007-10 起连续）"""
-    m = pro.fut_mapping(ts_code="P.DCE", start_date=start.replace("-", ""), end_date=end.replace("-", ""))
+    m = pro.fut_mapping(ts_code="P.DCE")  # 代理不接受起止日期参数，取全量后本地筛选
     days = sorted(set(m["trade_date"].astype(str)))
     return [d for d in days if start.replace("-", "") <= d <= end.replace("-", "")]
 
@@ -186,4 +186,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import traceback
+    try:
+        main()
+    except BaseException:
+        tok = os.environ.get("TUSHARE_TOKEN", "").strip()
+        msg = traceback.format_exc().replace(tok, "***") if tok else traceback.format_exc()
+        print(msg, file=sys.stderr)
+        logd = ROOT / "experiments"; logd.mkdir(exist_ok=True)
+        (logd / "bydate_error.log").write_text(msg[-4000:], encoding="utf-8")
+        raise

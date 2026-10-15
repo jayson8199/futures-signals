@@ -31,8 +31,18 @@ jobs:
         env:
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
         run: |
-          R="${{ matrix.range }}"; python scanner/weighted_bydate.py --fetch "${R%%:*}" "${R##*:}"
-          echo "缓存天数：$(find .cache/bydate -name '*.csv' | wc -l)"
+          R="${{ matrix.range }}"; python scanner/weighted_bydate.py --fetch "${R%%:*}" "${R##*:}" 2>&1 | tee fetch.log || true
+          echo "缓存天数：$(find .cache/bydate -name '*.csv' 2>/dev/null | wc -l)"
+      - name: 上传日志（脱敏）
+        if: always()
+        run: |
+          sed -i -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' fetch.log || true
+          mkdir -p logs && cp fetch.log "logs/fetch_${{ strategy.job-index }}.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fetch-log-${{ strategy.job-index }}
+          path: logs/
 
   assemble:
     name: 汇总并提交
@@ -61,6 +71,8 @@ jobs:
         with: { path: .cache/bydate, key: x, restore-keys: "bydate-2020-01-01:2022-12-31-" }
       - uses: actions/cache/restore@v4
         with: { path: .cache/bydate, key: x, restore-keys: "bydate-2023-01-01:2026-12-31-" }
+      - uses: actions/download-artifact@v4
+        with: { pattern: fetch-log-*, path: experiments/bydate_logs, merge-multiple: true }
       - name: 汇总
         run: |
           echo "缓存天数：$(find .cache/bydate -name '*.csv' 2>/dev/null | wc -l)"
@@ -69,7 +81,7 @@ jobs:
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/weighted/
+          git add data/weighted/ experiments/bydate_logs/ 2>/dev/null || git add data/weighted/
           git commit -m "data: 加权指数全量重建（按日全市场）" || echo "无变化"
           git pull --rebase origin main || true
           git push
