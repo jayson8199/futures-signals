@@ -1,0 +1,25 @@
+name: 推送测试
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "用哪一天的数据发送（YYYY-MM-DD）"
+        default: "2026-10-14"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scanner/requirements.txt
+      - env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python scanner/notify.py --date "${{ github.event.inputs.date }}"
