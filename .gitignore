@@ -1,0 +1,4 @@
+.scan_tmp/
+site/
+__pycache__/
+*.pyc

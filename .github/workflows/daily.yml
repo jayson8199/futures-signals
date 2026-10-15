@@ -1,0 +1,74 @@
+name: 每日扫描并发布
+
+on:
+  schedule:
+    # 北京时间 工作日 16:40（UTC 08:40）启动；数据未更新会在任务内每 10 分钟重试
+    - cron: "40 8 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "强制保存（即使数据日期不是今天）"
+        type: boolean
+        default: false
+      rounds:
+        description: "最多重试轮数"
+        default: "10"
+  push:
+    branches: [main]
+    paths: ["scanner/**", "data/**", ".github/workflows/daily.yml"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  scan-build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scanner/requirements.txt
+
+      - name: 安装依赖
+        run: pip install -r scanner/requirements.txt
+
+      - name: 扫描（仅定时/手动触发）
+        id: scan
+        if: github.event_name != 'push'
+        run: |
+          python scanner/run_daily.py \
+            --max-rounds "${{ github.event.inputs.rounds || '10' }}" \
+            ${{ github.event.inputs.force == 'true' && '--force' || '' }}
+
+      - name: 提交新数据
+        if: steps.scan.outputs.updated == 'true'
+        run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/*.json
+          git commit -m "data: ${{ steps.scan.outputs.data_date }}" || echo "无变化"
+          git pull --rebase origin main || true
+          git push
+
+      - name: 生成网站
+        run: python scanner/build_site.py --data data --out site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
