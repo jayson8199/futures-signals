@@ -56,9 +56,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="experiments/tushare_probe.md")
     ap.add_argument("--pull", action="store_true", help="若单合约可用，拉取棕榈油 2015 年起全部合约并算加权")
+    ap.add_argument("--codes", default="", help="只探测这些 ts_code（逗号分隔），用于验证代码格式")
     a = ap.parse_args()
     pro, url = connect()
     rows = []
+    if a.codes:
+        for code in a.codes.split(","):
+            rows.append(probe(pro, f"fut_daily {code}", lambda c=code: pro.fut_daily(ts_code=c)))
+        md = ["# 代码格式探测\n", "| 接口 | 状态 | 行数 | 最早 | 最晚 | 字段 / 报错 |", "|---|---|---|---|---|---|"] + ["| " + " | ".join(str(x) for x in r) + " |" for r in rows]
+        os.makedirs(os.path.dirname(a.out), exist_ok=True)
+        open(a.out, "w", encoding="utf-8").write("\n".join(md) + "\n"); print("\n".join(md)); return
     for ex in ["DCE", "CZCE", "SHFE", "CFFEX", "GFEX", "INE"]:
         rows.append(probe(pro, f"fut_basic {ex}", lambda ex=ex: pro.fut_basic(exchange=ex, fut_type="1")))
     for code in ["P.DCE", "PL.DCE", "P9999.DCE", "P8888.DCE"]:
