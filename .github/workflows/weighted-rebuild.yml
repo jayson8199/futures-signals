@@ -80,9 +80,14 @@ jobs:
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/weighted/ || true
-          git add data/weighted/_trade_days.txt 2>/dev/null || true
-          git add experiments/bydate_logs/ || true
-          git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
-          git pull --rebase origin main || true
-          git push
+          for i in 1 2 3 4 5; do
+            git add -A data/weighted/ experiments/bydate_logs/
+            git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
+            git push && exit 0
+            echo "推送失败，重取远端后重新汇总（第 $i 次）"
+            git fetch origin main && git reset --hard origin/main
+            python scanner/weighted_bydate.py --assemble > /dev/null 2>&1 || true
+            for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null || true; done
+            sleep 20
+          done
+          exit 1

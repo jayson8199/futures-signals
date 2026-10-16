@@ -54,8 +54,10 @@ CAL_FILE = ROOT / "data" / "weighted" / "_trade_days.txt"
 def trade_days(pro, start: str, end: str) -> list[str]:
     """交易日历：优先本地 data/weighted/_trade_days.txt；否则取棕榈油主力映射的日期（2007-10 起连续），
     并写回本地；接口持续失败时退化为按工作日枚举（空响应按节假日处理）"""
+    global CAL_IS_REAL
     s0, e0 = start.replace("-", ""), end.replace("-", "")
     days = None
+    CAL_IS_REAL = True
     if CAL_FILE.exists():
         days = CAL_FILE.read_text().split()
         if days and days[-1] >= min(e0, pd.Timestamp.today().strftime("%Y%m%d")):
@@ -73,14 +75,18 @@ def trade_days(pro, start: str, end: str) -> list[str]:
         time.sleep(20 + 5 * i)
     if not days:
         print("  交易日历接口不可用，退化为工作日枚举", flush=True)
+        CAL_IS_REAL = False
         days = [d.strftime("%Y%m%d") for d in pd.bdate_range(start, end)]
     return [d for d in days if s0 <= d <= e0]
 
 
+CAL_IS_REAL = False  # 日历来自 fut_mapping 真实交易日时为 True：空响应视为失败而非节假日
+
+
 def fetch_day(pro, d: str, cache: Path) -> pd.DataFrame | None:
     f = cache / "bydate" / d[:4] / f"{d}.csv"
-    if f.exists():
-        return pd.read_csv(f, dtype={"trade_date": str})
+    if f.exists() and (f.stat().st_size > 0 or not CAL_IS_REAL):
+        return pd.read_csv(f, dtype={"trade_date": str}) if f.stat().st_size else None
     t0 = time.time()
     for i in range(4):
         try:
@@ -101,8 +107,11 @@ def fetch_day(pro, d: str, cache: Path) -> pd.DataFrame | None:
     if dt > 5 or os.environ.get("BYDATE_VERBOSE"):
         print(f"  {d}: {0 if df is None else len(df)} 行, {dt:.1f}s", flush=True)
     if df is None or len(df) == 0:
+        if CAL_IS_REAL:
+            print(f"  ! {d} 是交易日但返回空，不缓存", flush=True)
+            return None
         f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_text("")  # 非交易日/无数据：记空文件避免重拉
+        f.write_text("")  # 工作日枚举模式：空=节假日，记空文件避免重拉
         return None
     f.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(f, index=False)
@@ -180,12 +189,13 @@ def main():
         n_new = 0
         for i, d in enumerate(days, 1):
             f = cache / "bydate" / d[:4] / f"{d}.csv"
-            if f.exists():
+            if f.exists() and (f.stat().st_size > 0 or not CAL_IS_REAL):
                 continue
             fetch_day(pro, d, cache); n_new += 1
             if n_new % 50 == 0:
                 print(f"  {i}/{len(days)} {d}", flush=True)
-        print(f"拉取完成：新增 {n_new} 天")
+        have = sum(1 for d in days if (cache / "bydate" / d[:4] / f"{d}.csv").exists() and (cache / "bydate" / d[:4] / f"{d}.csv").stat().st_size > 0)
+        print(f"拉取完成：本次新增 {n_new} 天，区间已有 {have}/{len(days)} 天")
 
     if a.assemble:
         res = assemble(cache, SYMBOLS)
