@@ -196,7 +196,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -781,6 +781,71 @@ def erqu_body():
 {detail}"""
 
 
+def cta_body():
+    import json as _json
+    exp = Path(__file__).resolve().parent.parent / "experiments"
+    files = [("pattern", "形态信号（高富帅/白富美 + 20日线）", exp / "trend_result.json"), ("best", "优选信号", exp / "trend_result.json"),
+             ("donchian", "20日突破（基准）", exp / "trend_result.json"), ("d55", "55日突破 / 20日线离场", exp / "trend_d_55_20.json"),
+             ("d100", "100日突破 / 50日线离场", exp / "trend_d_100_50.json")]
+    res = []
+    for key, label, f in files:
+        if not f.exists():
+            continue
+        j = _json.loads(f.read_text(encoding="utf-8"))
+        r = j.get(key) or j.get("donchian")
+        if r:
+            res.append((label, r))
+    if not res:
+        return "<div class='card'>趋势回测结果尚未生成。</div>"
+
+    def kpi(v, k, cls=""):
+        return f"<div class='kpi'><div class='v {cls}'>{v}</div><div class='k'>{k}</div></div>"
+    head = ("<div class='hd'><div><h1>趋势跟踪 · 组合回测</h1><div class='sub'>54 个品种主力连续日线 2018-01 ~ 今 ｜ 多空对称 ｜ 2×ATR 跟踪止损 + 均线离场 ｜ 波动率配仓、单品种 15%、板块 45%、总名义 150% ｜ 每边成本 0.02%</div></div></div>")
+    rows = "".join(f"<tr><td style='text-align:left'>{lb}</td><td class='{'up' if r['cagr_pct'] > 0 else 'down'}'>{r['cagr_pct']:+.2f}%</td><td>{r['ann_vol_pct']:.1f}%</td><td class='b'>{r['sharpe']}</td>"
+                   f"<td class='down'>{r['max_dd_pct']:.1f}%</td><td>{r['max_dd_span'][0][:7]}~{r['max_dd_span'][1][:7]}</td><td>{r['longest_underwater_days']}</td><td>{r['trades']}</td><td>{r['win_rate']}%</td><td>{r['payoff']}</td><td>{r['avg_hold_days']}</td><td>{r['longest_losing_streak']}</td></tr>" for lb, r in res)
+    table = ("<div class='card'><h3>五种配置对比（全样本）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>配置</th><th>年化</th><th>年化波动</th><th>夏普</th><th>最大回撤</th><th>回撤区间</th><th>水下最长(天)</th><th>笔数</th><th>胜率</th><th>盈亏比</th><th>均持(天)</th><th>最长连亏</th></tr></thead>"
+             f"<tbody>{rows}</tbody></table></div></div>")
+    years = sorted({y for _, r in res for y in r["by_year"]})
+    yrows = "".join(f"<tr><td style='text-align:left'>{lb}</td>" + "".join(f"<td class='{'up' if r['by_year'].get(y, 0) > 0 else 'down'}'>{r['by_year'].get(y, 0):+.1f}%</td>" for y in years) + "</tr>" for lb, r in res)
+    ytable = (f"<div class='card'><h3>分年收益</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>配置</th>{''.join(f'<th>{y}</th>' for y in years)}</tr></thead><tbody>{yrows}</tbody></table></div></div>")
+    # 净值曲线
+    W, H, L, R, T, B = 900, 300, 50, 12, 14, 28
+    colors = ["var(--cyan)", "var(--amber)", "var(--dim)", "var(--up)", "var(--down)"]
+    allv = [v for _, r in res for _, v, *_ in r["curve"]]
+    lo, hi = min(allv) * 0.98, max(allv) * 1.02
+    base = res[0][1]["curve"]
+    n = len(base)
+    px = lambda i: L + i * (W - L - R) / (n - 1)
+    py = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
+    lines, legend = "", ""
+    for (lb, r), col in zip(res, colors):
+        c = r["curve"]
+        m = len(c)
+        pts = " ".join(f"{L + i * (W - L - R) / (m - 1):.1f},{py(v):.1f}" for i, (_, v, *_) in enumerate(c))
+        lines += f"<polyline points='{pts}' fill='none' stroke='{col}' stroke-width='1.6'/>"
+        legend += f"<span style='display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:12px'><i style='width:14px;height:3px;background:{col};display:inline-block'></i>{lb}</span>"
+    grid = "".join(f"<line x1='{L}' x2='{W - R}' y1='{py(g):.1f}' y2='{py(g):.1f}' stroke='var(--line)' stroke-dasharray='2 3'/><text x='{L - 6}' y='{py(g) + 3:.1f}' font-size='10' text-anchor='end' fill='var(--muted)'>{g:.2f}</text>" for g in [round(lo + (hi - lo) * k / 5, 2) for k in range(6)])
+    xl = "".join(f"<text x='{px(i):.1f}' y='{H - 8}' font-size='10' text-anchor='middle' fill='var(--muted)'>{d[:4]}</text>" for i, (d, *_) in enumerate(base) if i == 0 or d[:4] != base[i - 1][0][:4])
+    curve = f"<div class='card'><h3>净值曲线（起点 1.00）</h3><div style='margin-bottom:6px'>{legend}</div><svg viewBox='0 0 {W} {H}' width='100%' style='display:block'>{grid}<line x1='{L}' x2='{W - R}' y1='{py(1):.1f}' y2='{py(1):.1f}' stroke='var(--muted)'/>{lines}{xl}</svg></div>"
+    # 板块 / 品种（基准配置）
+    bench = next((r for lb, r in res if "20日突破" in lb), res[0][1])
+    sec = sorted(bench["by_sector"].items(), key=lambda kv: -kv[1]["pnl"])
+    srows = "".join(f"<tr><td style='text-align:left'>{k}</td><td>{v['n']}</td><td>{round(v['wins'] / v['n'] * 100, 1) if v['n'] else 0}%</td><td class='{'up' if v['pnl'] > 0 else 'down'}'>{v['pnl']:+.1f}%</td></tr>" for k, v in sec)
+    syms = sorted(bench["by_symbol"].items(), key=lambda kv: -kv[1]["pnl"])
+    top = "".join(f"<tr><td style='text-align:left'>{v['name']} {k[:-1]}</td><td>{v['n']}</td><td class='{'up' if v['pnl'] > 0 else 'down'}'>{v['pnl']:+.1f}%</td></tr>" for k, v in syms[:8])
+    bot = "".join(f"<tr><td style='text-align:left'>{v['name']} {k[:-1]}</td><td>{v['n']}</td><td class='{'up' if v['pnl'] > 0 else 'down'}'>{v['pnl']:+.1f}%</td></tr>" for k, v in syms[-8:])
+    brk = (f"<div class='grid2'><div class='card'><h3>按板块（20日突破基准，累计贡献）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>板块</th><th>笔数</th><th>胜率</th><th>累计贡献</th></tr></thead><tbody>{srows}</tbody></table></div></div>"
+           f"<div class='card'><h3>贡献最大 / 最小的品种</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>品种</th><th>笔数</th><th>累计贡献</th></tr></thead><tbody>{top}<tr><td colspan=3 class='muted'>···</td></tr>{bot}</tbody></table></div></div></div>")
+    verdict = ("<div class='card' style='border-left:4px solid var(--amber)'><h3>结论（研究记录，不构成投资建议）</h3>"
+               "<p>1. 五种配置 2018 年以来年化都在 -1% ~ +3% 之间，夏普 0.0~0.3，<b>达不到「夏普 0.8、回撤 20% 以内」的门槛</b>。</p>"
+               "<p>2. 所有配置都在 <b>2022 年 7 月见顶后进入长达约三年的回撤</b>，水下最长 1029 天——这与国内商品 CTA 行业 2022 下半年至 2024 年的普遍低迷一致，是趋势类策略的共同经历，不是某个信号的问题。</p>"
+               "<p>3. 形态信号（高富帅/白富美）作为趋势进场<b>并不优于</b>最朴素的 20 日突破；优选过滤降低了波动和回撤，但收益同样薄。</p>"
+               "<p>4. 典型形态：胜率 30~37%，盈亏比约 2，最长连亏 18~29 笔，平均持仓 7~20 天。即便在好年份（2020、2026），也要先熬过大量小亏。</p>"
+               "<p>5. 数据局限：主力连续合约在换月时有价格跳空，未做复权，会产生虚假信号和止损，<b>对结果有一定负面偏差</b>；真实合约级数据下表现可能略好，但不足以改变量级。</p>"
+               "<p class='muted' style='font-size:12px'>回测脚本 scanner/trend_backtest.py，数据 data/long/，结果 experiments/trend_result*.json，可复现。</p></div>")
+    return head + table + curve + ytable + brk + verdict
+
+
 def method_body():
     rows = "".join(
         f"<tr><td>{PAT_ICON[p]} {p}</td><td>{PAT_DESC[p].split('｜')[0]}</td><td style='white-space:normal;text-align:left'>{PAT_DESC[p].split('｜')[1]}</td></tr>" for p in PATTERNS)
@@ -852,6 +917,7 @@ def main():
     (out / "stats.html").write_text(layout(f"历史战绩 · {SITE_TITLE}", stats_body(st), "stats"), encoding="utf-8")
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
+    (out / "cta.html").write_text(layout(f"趋势回测 · {SITE_TITLE}", cta_body(), "cta"), encoding="utf-8")
     # K 线形态图：逐品种 JSON + 页面 + 本地 echarts
     avail = chart_mod.build(out, SYMBOLS)
     (out / "assets").mkdir(exist_ok=True)
