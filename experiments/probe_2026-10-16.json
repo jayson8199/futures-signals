@@ -1,0 +1,118 @@
+{
+ "time": "2026-10-16T22:57:13.524397+08:00",
+ "results": [
+  {
+   "source": "official:SHFE:20261015",
+   "ok": true,
+   "rows": 305,
+   "cols": [
+    "index",
+    "symbol",
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "open_interest",
+    "turnover",
+    "settle",
+    "pre_settle"
+   ],
+   "secs": 4.3
+  },
+  {
+   "source": "official:DCE:20261015",
+   "ok": false,
+   "error": "Expecting value: line 1 column 1 (char 0)",
+   "secs": 1.3
+  },
+  {
+   "source": "official:CZCE:20261015",
+   "ok": true,
+   "rows": 243,
+   "cols": [
+    "symbol",
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "open_interest",
+    "turnover",
+    "settle",
+    "pre_settle",
+    "variety"
+   ],
+   "secs": 3.3
+  },
+  {
+   "source": "official:CFFEX:20261015",
+   "ok": true,
+   "rows": 28,
+   "cols": [
+    "symbol",
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "open_interest",
+    "turnover",
+    "settle",
+    "pre_settle",
+    "variety"
+   ],
+   "secs": 12.8
+  },
+  {
+   "source": "official:GFEX:20261015",
+   "ok": true,
+   "rows": 48,
+   "cols": [
+    "symbol",
+    "date",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "open_interest",
+    "turnover",
+    "settle",
+    "pre_settle",
+    "variety"
+   ],
+   "secs": 1.4
+  },
+  {
+   "source": "sina:RB0",
+   "ok": true,
+   "rows": 28,
+   "cols": [
+    "日期",
+    "开盘价",
+    "最高价",
+    "最低价",
+    "收盘价",
+    "成交量",
+    "持仓量",
+    "动态结算价"
+   ],
+   "secs": 4.3
+  },
+  {
+   "source": "sina:main_contract_list",
+   "ok": true,
+   "rows": 82,
+   "cols": [
+    "symbol",
+    "exchange",
+    "name"
+   ],
+   "secs": 46.2
+  }
+ ]
+}
