@@ -166,7 +166,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -559,6 +559,52 @@ def macd_body(st, latest_date):
 <div class='card'><h3>最近 20 个交易日的全部首发信号（{len(recent)} 条）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>方向</th><th>品种</th><th style='text-align:left'>策略</th><th>收盘</th><th>DIF偏离</th><th>后1日</th><th>后3日</th><th>后5日</th></tr></thead><tbody>{rows or "<tr><td colspan=9 class=muted>暂无</td></tr>"}</tbody></table></div></div>"""
 
 
+def erqu_body():
+    import erqu_live
+    s = erqu_live.summarize()
+    recs = sorted(s["records"], key=lambda r: r["day"], reverse=True)
+
+    def pct(t):
+        return f"{t[0]}%<span class='muted' style='font-size:11px'> /{t[1]}天</span>" if t[0] is not None else "<span class='muted'>—</span>"
+    kpis = f"""<div class='kpis'>
+<div class='kpi'><div class='v'>{pct(s['z2'])}</div><div class='k'>二区判定（10:30）正确率</div></div>
+<div class='kpi'><div class='v'>{pct(s['final'])}</div><div class='k'>二区+五区修正 正确率</div></div>
+<div class='kpi'><div class='v'>{pct(s['b1030'])}</div><div class='k'>对照：10:30价位相对开盘</div></div>
+<div class='kpi'><div class='v'>{pct(s['b1330'])}</div><div class='k'>对照：13:30价位相对开盘</div></div>
+<div class='kpi'><div class='v'>{pct(s['always_up'])}</div><div class='k'>对照：永远说"不会跌"</div></div></div>"""
+
+    def mark(v):
+        return "<span class='up'>✅</span>" if v is True else ("<span class='down'>❌</span>" if v is False else "<span class='muted'>—</span>")
+    from datetime import datetime as _dt
+    cur_m = _dt.now(CN_TZ).strftime("%Y-%m")
+    cm = s["months"].get(cur_m)
+    month_html = (f"<div class='card'><h3 class='blue'>本月（{cur_m}）截至今天</h3><div style='font-size:15px'>"
+                  f"已结算 <b>{cm['days']}</b> 天 ｜ 二区+五区修正：对 <b class='up'>{cm['final_ok']}</b> 错 <b class='down'>{cm['final_bad']}</b> ｜ "
+                  f"二区单独：对 <b class='up'>{cm['z2_ok']}</b> 错 <b class='down'>{cm['z2_bad']}</b> ｜ 对照 13:30 价位：对 {cm['b1330_ok']}</div></div>"
+                  if cm else f"<div class='card'><h3 class='blue'>本月（{cur_m}）截至今天</h3><div class='muted'>本月尚无已结算记录</div></div>")
+    mrows = "".join(f"<tr><td>{m}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
+                    f"<td>{round(v['final_ok'] / v['days'] * 100, 1) if v['days'] else '—'}%</td><td class='up'>{v['z2_ok']}</td><td class='down'>{v['z2_bad']}</td>"
+                    f"<td>{v['b1030_ok']}</td><td>{v['b1330_ok']}</td></tr>" for m, v in sorted(s["months"].items(), reverse=True))
+    month_table = (f"<div class='card'><h3>按月统计</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>月份</th><th>天数</th><th>修正后 对</th><th>修正后 错</th><th>修正后 正确率</th>"
+                   f"<th>二区 对</th><th>二区 错</th><th>对照10:30 对</th><th>对照13:30 对</th></tr></thead><tbody>{mrows}</tbody></table></div></div>" if mrows else "")
+    rows = ""
+    for r in recs:
+        rows += (f"<tr><td>{r['day']}</td><td class='b'>{r.get('z2', '')}</td><td class='muted' style='text-align:left;white-space:normal'>{r.get('z2_reason', '')}</td>"
+                 f"<td>{'是' if r.get('fixed') else ('否' if 'fixed' in r else '待')}</td><td class='b'>{r.get('final', r.get('z2', ''))}</td>"
+                 f"<td style='text-align:left'>{r.get('prediction_final', r.get('prediction', ''))}</td>"
+                 f"<td>{(str(round(r['open_official'], 2)) + ' / ' + str(round(r['close_official'], 2))) if r.get('settled') else '待收盘'}</td>"
+                 f"<td class='{'up' if r.get('actual') == '涨' else 'down' if r.get('actual') == '跌' else ''}'>{r.get('actual', '')}</td>"
+                 f"<td>{mark(r.get('correct_z2'))}</td><td>{mark(r.get('correct_final'))}</td><td>{mark(r.get('correct_b1030'))}</td><td>{mark(r.get('correct_b1330'))}</td>"
+                 f"<td class='muted' style='font-size:11px'>{r.get('judged_at', '')[11:]}/{r.get('fixed_at', '')[11:]}/{r.get('settled_at', '')[11:]}</td></tr>")
+    return f"""<div class='hd'><div><h1>二区定律 · 前瞻实盘记录</h1><div class='sub'>上证指数 ｜ 每个交易日 10:30 当场判定并推送、13:30 五区修正、收盘结算 ｜ 判定只用截止时刻之前的 K 线，事后不改</div></div></div>
+<div class='view'><b>规则：</b>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:30）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。</div>
+{kpis}
+{month_html}
+{month_table}
+<div class='card'><h3>回测参考（2023-01 ~ 2026-10，914 个交易日）</h3><p style='font-size:13px'>二区单独 63.4%，二区+五区修正 73.3%；对照组 10:30 价位 71.2%、13:30 价位 82.4%、永远说不会跌 54.4%。课程宣称 2024 年 87.96%，同期回测为 73.5%。详见 <code>experiments/erqu_result.json</code>。</p></div>
+<div class='card'><h3>逐日记录（{len(recs)} 天）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区对错</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>判定/修正/结算时间</th></tr></thead><tbody>{rows or "<tr><td colspan=13 class=muted>尚无记录，首个交易日 10:30 后出现</td></tr>"}</tbody></table></div></div>"""
+
+
 def method_body():
     rows = "".join(
         f"<tr><td>{PAT_ICON[p]} {p}</td><td>{PAT_DESC[p].split('｜')[0]}</td><td style='white-space:normal;text-align:left'>{PAT_DESC[p].split('｜')[1]}</td></tr>" for p in PATTERNS)
@@ -629,6 +675,7 @@ def main():
     (out / "macd.html").write_text(layout(f"MACD买卖点 · {SITE_TITLE}", macd_body(st, latest["data_date"]), "macd"), encoding="utf-8")
     (out / "stats.html").write_text(layout(f"历史战绩 · {SITE_TITLE}", stats_body(st), "stats"), encoding="utf-8")
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
+    (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
     # K 线形态图：逐品种 JSON + 页面 + 本地 echarts
     avail = chart_mod.build(out, SYMBOLS)
     (out / "assets").mkdir(exist_ok=True)

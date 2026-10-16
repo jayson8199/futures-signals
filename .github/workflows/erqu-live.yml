@@ -1,0 +1,66 @@
+name: 二区定律实盘记录
+
+on:
+  schedule:
+    # 北京时间 10:36 / 13:36 / 15:12（UTC +8），另有备用槽；脚本按当前时间自动决定执行到哪个阶段
+    - cron: "36 2 * * 1-5"
+    - cron: "50 2 * * 1-5"
+    - cron: "36 5 * * 1-5"
+    - cron: "50 5 * * 1-5"
+    - cron: "12 7 * * 1-5"
+    - cron: "40 7 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: "judge / fix / settle / auto"
+        default: "auto"
+      day:
+        description: "日期 YYYY-MM-DD（默认今天）"
+        default: ""
+      force:
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: erqu-live
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scanner/requirements.txt
+      - run: pip install -r scanner/requirements.txt
+      - id: live
+        env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: |
+          python scanner/erqu_live.py "${{ github.event.inputs.phase || 'auto' }}" \
+            ${{ github.event.inputs.day != '' && format('--day {0}', github.event.inputs.day) || '' }} \
+            ${{ github.event.inputs.force == 'true' && '--force' || '' }}
+      - name: 提交记录并重建网站
+        if: steps.live.outputs.changed == 'true'
+        run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/erqu/
+          git commit -m "erqu: $(date -u +%F) 记录" || exit 0
+          git pull --rebase origin main || true
+          git push
+      - name: 触发网站重建
+        if: steps.live.outputs.changed == 'true'
+        run: gh workflow run daily.yml -R ${{ github.repository }} --ref main || curl -sS -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily.yml/dispatches -d '{"ref":"main","inputs":{"rounds":"1"}}'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
