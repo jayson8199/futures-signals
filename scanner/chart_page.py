@@ -31,11 +31,10 @@ def body(avail: list[dict], sector: dict) -> str:
     avail_js = "AVAIL=" + json.dumps({a["symbol"]: bool(a.get("weighted")) for a in avail}, ensure_ascii=False) + ";"
     return f"""<style>{CSS}</style>
 <div class="hd"><h1>K 线形态图 <span id="ttl" class="sub"></span></h1>
-<div class="sub">按《王刚期货交易体系手册（第二版）》规则逐根自动标注：蜡烛形态 · 包线 · 量仓价 · 趋势状态 · 摆动高低点</div></div>
+<div class="sub">加权指数（全部在市合约按持仓量加权，文华口径）· 按《王刚期货交易体系手册（第二版）》规则逐根自动标注：蜡烛形态 · 包线 · 量仓价 · 趋势状态 · 摆动高低点</div></div>
 <div class="card">
 <div class="ck">
  <select id="sym">{opts}</select>
- <select id="kind"><option value="w">加权指数</option><option value="m">主力连续</option></select>
  <span id="meta" class="sub"></span>
  <label><input type="checkbox" id="ck_candle" checked><span class="sw" style="background:var(--up)"></span>蜡烛形态</label>
  <label><input type="checkbox" id="ck_bao" checked><span class="sw" style="background:var(--cyan)"></span>包线（2包/3包）</label>
@@ -71,9 +70,9 @@ function v(n){{return css.getPropertyValue(n).trim();}}
 var C={{up:v('--up'),down:v('--down'),cyan:v('--cyan'),amber:v('--amber'),ink:v('--ink'),muted:v('--muted'),dim:v('--dim'),line:v('--line'),panel:v('--panel')}};
 var MA={{ma5:'#e0a100',ma10:'#3f8ff5',ma20:'#b85cff',ma60:'#8d6a3a'}};
 var chart=echarts.init(document.getElementById('chart'),null,{{renderer:'canvas'}});
-var D=null, sym=document.getElementById('sym'), kind=document.getElementById('kind');
+var D=null, sym=document.getElementById('sym');
 var AVAIL={{}}; {avail_js}
-function kindFor(s){{var w=AVAIL[s]; kind.querySelector('[value=w]').disabled=!w; if(!w)kind.value='m'; return kind.value;}}
+function kindFor(s){{return AVAIL[s]?'w':'m';}}  // 统一用加权指数；无加权数据的品种回退主力连续
 var ck=function(id){{return document.getElementById(id).checked;}};
 function load(s){{
   var k=kindFor(s);
@@ -148,7 +147,6 @@ function render(){{
   chart.setOption(opt,true);
 }}
 sym.addEventListener('change',function(){{load(sym.value);}});
-kind.addEventListener('change',function(){{load(sym.value);}});
 ['ck_candle','ck_bao','ck_voloi','ck_regime','ck_swing','ck_ma60'].forEach(function(id){{document.getElementById(id).addEventListener('change',render);}});
 window.addEventListener('resize',function(){{chart.resize();}});
 document.getElementById('themeBtn').addEventListener('click',function(){{setTimeout(function(){{css=getComputedStyle(document.documentElement);C={{up:v('--up'),down:v('--down'),cyan:v('--cyan'),amber:v('--amber'),ink:v('--ink'),muted:v('--muted'),dim:v('--dim'),line:v('--line'),panel:v('--panel')}};render();}},30);}});
