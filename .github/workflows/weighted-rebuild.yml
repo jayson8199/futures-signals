@@ -88,18 +88,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set +e
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
-          for i in 1 2 3 4 5; do
-            git add -A data/weighted/ experiments/bydate_logs/
-            git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
-            git push 2>&1 | sed -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' | tee push.log; test ${PIPESTATUS[0]} -eq 0 && exit 0
-            echo "推送失败，重取远端后重新汇总（第 $i 次）"
-            git fetch origin main && git reset --hard origin/main
-            python scanner/weighted_bydate.py --assemble > /dev/null 2>&1 || true
-            for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null || true; done
+          note() { echo "::error::$1: $(echo "$2" | sed -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' | tr '\n' ' ' | tail -c 900)"; }
+          for i in 1 2 3; do
+            out=$(git add -A data/weighted/ experiments/bydate_logs/ 2>&1) || note "git add 失败(第$i次)" "$out"
+            out=$(git commit -m "data: 加权指数（按日全市场，只增不减）" 2>&1) || note "git commit(第$i次)" "$out"
+            out=$(git push 2>&1) && { echo "推送成功"; exit 0; }
+            note "git push 失败(第$i次)" "$out"
+            out=$(git fetch origin main 2>&1 && git reset --hard origin/main 2>&1) || note "fetch/reset 失败(第$i次)" "$out"
+            python scanner/weighted_bydate.py --assemble > /dev/null 2>&1
+            for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null; done
             sleep 20
           done
-          { echo "run ${{ github.run_id }} 汇总提交 5 次均失败。push 输出："; echo '```'; tail -40 push.log; echo '```'; echo "git status："; echo '```'; git status --short | head -20; git log --oneline -3; echo '```'; } > issue.md
-          gh issue create --title "加权重建提交失败 run ${{ github.run_id }}" --body-file issue.md || true
+          note "git status" "$(git status --short | head -15; git log --oneline -3)"
           exit 1
