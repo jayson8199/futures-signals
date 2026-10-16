@@ -685,8 +685,7 @@ def erqu_body():
     cmp_html = ("<div class='card'><h3>累计正确率（前瞻实盘，自 " + (recs[-1]["day"] if recs else "—") + f" 起 {s['days']} 天）</h3>"
                 + bar("二区判定（10:30）", s["z2"], "var(--cyan)") + bar("二区 + 五区修正", s["final"], "var(--amber)")
                 + bar("对照：10:30 价位 vs 开盘", s["b1030"], "var(--dim)") + bar("对照：13:30 价位 vs 开盘", s["b1330"], "var(--dim)")
-                + bar("对照：永远说不会跌", s["always_up"], "var(--dim)")
-                + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天）：二区 63.4%，二区+修正 73.3%；对照 10:30 价位 71.2%、13:30 价位 82.4%、永远不会跌 54.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
+                + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天）：二区 63.4%，二区+修正 73.3%；对照 10:30 价位 71.2%、13:30 价位 82.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
 
     # ---- 按月 + 逐日 ----
     mrows = "".join(f"<tr><td>{mm}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
