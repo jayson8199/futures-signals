@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p experiments
           echo "缓存已有：$(find .cache/bydate -type f 2>/dev/null | wc -l) 天" > experiments/bydate_debug.log
-          python -u scanner/weighted_bydate.py --fetch "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" >> experiments/bydate_debug.log 2>&1 || echo "EXIT=$?" >> experiments/bydate_debug.log
+          BYDATE_VERBOSE=1 python -u scanner/weighted_bydate.py --fetch "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" >> experiments/bydate_debug.log 2>&1 || echo "EXIT=$?" >> experiments/bydate_debug.log
           sed -i -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' experiments/bydate_debug.log
           echo "缓存现有：$(find .cache/bydate -type f | wc -l) 天；非空 $(find .cache/bydate -type f -size +0 | wc -l) 天" >> experiments/bydate_debug.log
           tail -5 experiments/bydate_debug.log

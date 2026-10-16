@@ -66,20 +66,25 @@ def fetch_day(pro, d: str, cache: Path) -> pd.DataFrame | None:
     f = cache / "bydate" / d[:4] / f"{d}.csv"
     if f.exists():
         return pd.read_csv(f, dtype={"trade_date": str})
+    t0 = time.time()
     for i in range(4):
         try:
             df = pro.fut_daily(trade_date=d)
             break
         except Exception as e:
             msg = str(e)
+            print(f"  {d} 第{i+1}次失败 {time.time()-t0:.0f}s: {msg[:100]}", flush=True)
             if "upstream_pool_exhausted" in msg or "稍后重试" in msg:
                 time.sleep(31); continue
             if "invalid_params" in msg:
                 df = None; break
             time.sleep(3 + 3 * i)
     else:
-        print(f"  ! {d} 多次失败，跳过", file=sys.stderr)
+        print(f"  ! {d} 多次失败，跳过", flush=True)
         return None
+    dt = time.time() - t0
+    if dt > 5 or os.environ.get("BYDATE_VERBOSE"):
+        print(f"  {d}: {0 if df is None else len(df)} 行, {dt:.1f}s", flush=True)
     if df is None or len(df) == 0:
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text("")  # 非交易日/无数据：记空文件避免重拉
