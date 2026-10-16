@@ -135,6 +135,9 @@ code{background:var(--panel2);padding:1px 6px;border-radius:3px;font-size:12px;f
 .today-cell{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
 .today-k{font-size:11px;color:var(--muted);font-family:var(--mono)}.today-v{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0}.today-s{font-size:12.5px;color:var(--ink)}
 @media (max-width:720px){.today-grid{grid-template-columns:1fr}}
+.pnl-row{border-top:1px dashed var(--line2);padding-top:8px;margin-top:4px}
+.pnl-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}.pnl-kpis>div{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 10px}.pnl-kpis .k{display:block;font-size:11px;color:var(--muted);font-family:var(--mono)}.pnl-kpis b{font-size:20px;font-family:var(--mono)}
+@media (max-width:720px){.pnl-kpis{grid-template-columns:repeat(2,1fr)}}
 .score{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .score-l,.score-r{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
 .score-t{color:var(--muted);font-size:12px;font-family:var(--mono)}
@@ -595,7 +598,8 @@ def erqu_body():
     by_day = {r["day"]: r for r in recs}
     today = _dt.now(CN_TZ)
     cur_m = today.strftime("%Y-%m")
-    cm = s["months"].get(cur_m, {"days": 0, "final_ok": 0, "final_bad": 0, "z2_ok": 0, "z2_bad": 0, "b1330_ok": 0, "b1030_ok": 0})
+    cm = s["months"].get(cur_m, {"days": 0, "final_ok": 0, "final_bad": 0, "z2_ok": 0, "z2_bad": 0, "b1330_ok": 0, "b1030_ok": 0, "trades": 0, "trade_wins": 0, "pnl_net": 0.0, "pnl_gross": 0.0})
+    pn = s.get("pnl", {"trades": 0, "wins": 0, "net": 0.0, "gross": 0.0, "max_dd": 0.0, "curve": [], "cost": 0.027})
 
     # ---- 本月记分牌 + 日历格 ----
     y, m = today.year, today.month
@@ -634,7 +638,8 @@ def erqu_body():
 <div class='score-sub'>二区+五区修正 ｜ 正确率 {rate_m} ｜ 已结算 {cm['days']} 个交易日{f"（含回填 {n_bf} 天，虚线框）" if n_bf else ""}</div>
 <div class='score-row'><span>二区单独</span><b class='up'>{cm['z2_ok']}</b> 对 <b class='down'>{cm['z2_bad']}</b> 错</div>
 <div class='score-row'><span>对照 13:30 价位</span><b>{cm['b1330_ok']}</b> 对 <b>{cm['days'] - cm['b1330_ok']}</b> 错</div>
-<div class='score-row'><span>对照 10:30 价位</span><b>{cm['b1030_ok']}</b> 对 <b>{cm['days'] - cm['b1030_ok']}</b> 错</div></div>
+<div class='score-row'><span>对照 10:30 价位</span><b>{cm['b1030_ok']}</b> 对 <b>{cm['days'] - cm['b1030_ok']}</b> 错</div>
+<div class='score-row pnl-row'><span>虚拟仓位本月净收益</span><b class='{'up' if cm['pnl_net'] > 0 else 'down' if cm['pnl_net'] < 0 else ''}'>{cm['pnl_net']:+.2f}%</b> <span class='muted'>{cm['trades']} 笔 · 赢 {cm['trade_wins']}</span></div></div>
 <div class='score-r'>{cal_html}<div class='cal-legend'><i class='ok'></i>判对 <i class='bad'></i>判错 <i class='pend'></i>进行中 <i class='none'></i>无记录 <i class='bf'></i>回填（用历史数据按同一规则重算，非当场判定）</div></div></div>"""
 
     # ---- 今日/最新一天：分时图 + 阶段时间线 ----
@@ -693,12 +698,42 @@ def erqu_body():
                 + bar("对照：10:30 价位 vs 开盘", s["b1030"], "var(--dim)") + bar("对照：13:30 价位 vs 开盘", s["b1330"], "var(--dim)")
                 + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天，五区到 13:35）：二区 63.4%，二区+修正 73.7%；对照 10:30 价位 71.2%、13:30 价位 82.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
 
+    # ---- 虚拟仓位卡片 ----
+    curve = pn.get("curve", [])
+    if len(curve) >= 2:
+        W, H, L, R, T, B = 900, 150, 50, 12, 12, 24
+        vals = [v for _, v in curve]
+        lo, hi = min(vals + [0]), max(vals + [0])
+        pad = (hi - lo) * 0.2 or 0.5
+        lo, hi = lo - pad, hi + pad
+        n = len(curve)
+        px = lambda i: L + i * (W - L - R) / (n - 1)
+        py = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
+        pts = " ".join(f"{px(i):.1f},{py(v):.1f}" for i, (_, v) in enumerate(curve))
+        area = f"{px(0):.1f},{py(0):.1f} " + pts + f" {px(n - 1):.1f},{py(0):.1f}"
+        last = curve[-1][1]
+        grid = "".join(f"<line x1='{L}' x2='{W - R}' y1='{py(g):.1f}' y2='{py(g):.1f}' stroke='var(--line)' stroke-dasharray='2 3'/><text x='{L - 6}' y='{py(g) + 3:.1f}' font-size='10' text-anchor='end' fill='var(--muted)'>{g:+.1f}%</text>"
+                       for g in sorted({round(lo + (hi - lo) * k / 4, 2) for k in range(5)} | {0.0}) if abs(g) < 1e-9 or abs(py(g) - py(0)) > 12)
+        xl = "".join(f"<text x='{px(i):.1f}' y='{H - 6}' font-size='10' text-anchor='middle' fill='var(--muted)'>{d[5:]}</text>" for i, (d, _) in enumerate(curve) if i % max(1, n // 8) == 0 or i == n - 1)
+        col = "var(--up)" if last >= 0 else "var(--down)"
+        curve_svg = (f"<svg viewBox='0 0 {W} {H}' width='100%' style='display:block'>{grid}<line x1='{L}' x2='{W - R}' y1='{py(0):.1f}' y2='{py(0):.1f}' stroke='var(--muted)'/>"
+                     f"<polygon points='{area}' fill='{col}' opacity='.12'/><polyline points='{pts}' fill='none' stroke='{col}' stroke-width='2'/>"
+                     f"<circle cx='{px(n - 1):.1f}' cy='{py(last):.1f}' r='3.5' fill='{col}'/>{xl}</svg>")
+    else:
+        curve_svg = "<div class='muted'>结算满两天后显示净值曲线</div>"
+    wr = f"{pn['wins'] / pn['trades'] * 100:.0f}%" if pn.get("trades") else "—"
+    pnl_html = (f"<div class='card'><h3>虚拟仓位 · 只做多、锁仓次日平（累计 {pn.get('trades', 0)} 笔）</h3>"
+                f"<div class='pnl-kpis'><div><span class='k'>累计净收益</span><b class='{'up' if pn.get('net', 0) > 0 else 'down' if pn.get('net', 0) < 0 else ''}'>{pn.get('net', 0):+.2f}%</b></div>"
+                f"<div><span class='k'>毛收益</span><b>{pn.get('gross', 0):+.2f}%</b></div><div><span class='k'>胜率</span><b>{wr}</b></div><div><span class='k'>最大回撤</span><b class='down'>{pn.get('max_dd', 0):.2f}%</b></div></div>"
+                f"{curve_svg}"
+                f"<div class='muted' style='font-size:11.5px;margin-top:8px'>规则：最终判「好」的日子 13:35 以当时价做多 1 份上证指数，收盘锁仓、次日平仓；判「坏」空仓（回测显示做空没有优势）。每笔扣成本 {pn.get('cost', 0.027)}%（股指期货 4 腿手续费 + 滑点估算），不加杠杆。回测 2023-01~2026-10：471 笔，平均每笔 +0.047%，胜率 58%，净累计约 +9.5%。这是纸面记录，不是交易建议。</div></div>")
+
     # ---- 按月 + 逐日 ----
     mrows = "".join(f"<tr><td>{mm}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
                     f"<td class='b'>{round(v['final_ok'] / v['days'] * 100, 1) if v['days'] else '—'}%</td><td class='up'>{v['z2_ok']}</td><td class='down'>{v['z2_bad']}</td>"
-                    f"<td>{v['b1030_ok']}</td><td>{v['b1330_ok']}</td></tr>" for mm, v in sorted(s["months"].items(), reverse=True))
+                    f"<td>{v['b1030_ok']}</td><td>{v['b1330_ok']}</td><td class='{'up' if v.get('pnl_net', 0) > 0 else 'down' if v.get('pnl_net', 0) < 0 else ''}'>{v.get('pnl_net', 0):+.2f}%</td><td>{v.get('trades', 0)}</td></tr>" for mm, v in sorted(s["months"].items(), reverse=True))
     month_table = (f"<div class='card'><h3>按月统计</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>月份</th><th>天数</th><th>修正后 对</th><th>修正后 错</th><th>修正后 正确率</th>"
-                   f"<th>二区 对</th><th>二区 错</th><th>对照10:30 对</th><th>对照13:30 对</th></tr></thead><tbody>{mrows}</tbody></table></div></div>" if mrows else "")
+                   f"<th>二区 对</th><th>二区 错</th><th>对照10:30 对</th><th>对照13:30 对</th><th>虚拟净收益</th><th>笔数</th></tr></thead><tbody>{mrows}</tbody></table></div></div>" if mrows else "")
 
     def mark(v):
         return "<span class='up'>✅</span>" if v is True else ("<span class='down'>❌</span>" if v is False else "<span class='muted'>—</span>")
@@ -711,7 +746,7 @@ def erqu_body():
                  f"<td class='{'up' if r.get('actual') == '涨' else 'down' if r.get('actual') == '跌' else ''}'>{r.get('actual', '')}</td>"
                  f"<td>{mark(r.get('correct_z2'))}</td><td>{mark(r.get('correct_final'))}</td><td>{mark(r.get('correct_b1030'))}</td><td>{mark(r.get('correct_b1330'))}</td>"
                  f"<td class='muted' style='font-size:11px'>{r.get('judged_at', '')[11:]}/{r.get('fixed_at', '')[11:]}/{r.get('settled_at', '')[11:]}</td></tr>")
-    detail = (f"<details><summary>逐日记录（{len(recs)} 天）</summary><div class='tbl'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>判定/修正/结算</th></tr></thead><tbody>{rows or '<tr><td colspan=13 class=muted>尚无记录</td></tr>'}</tbody></table></div></details>")
+    detail = (f"<details><summary>逐日记录（{len(recs)} 天）</summary><div class='tbl'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>虚拟盈亏</th><th>判定/修正/结算</th></tr></thead><tbody>{rows or '<tr><td colspan=14 class=muted>尚无记录</td></tr>'}</tbody></table></div></details>")
 
     # ---- 今日判定（页面最上方的实盘状态牌）----
     tstr = today.strftime("%Y-%m-%d")
@@ -740,6 +775,7 @@ def erqu_body():
 {score_html}
 {chart_html}
 {cmp_html}
+{pnl_html}
 {month_table}
 <details><summary>规则说明</summary><div class='card' style='border-radius:0 0 8px 8px'>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:35，比课程口径多看 5 分钟）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。全部判定自动执行，数据来源新浪财经。</div></details>
 {detail}"""

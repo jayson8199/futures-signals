@@ -365,5 +365,9 @@
  "correct_always_up": false,
  "settled": true,
  "settled_at": "回填",
- "backfilled": true
+ "backfilled": true,
+ "trade": "多",
+ "pnl_gross_pct": -0.2473,
+ "pnl_net_pct": -0.2743,
+ "short_ref_pct": null
 }

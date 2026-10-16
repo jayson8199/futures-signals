@@ -245,5 +245,9 @@
    3715.2
   ]
  ],
- "z5_window": "13:00-13:35"
+ "z5_window": "13:00-13:35",
+ "trade": "空仓",
+ "pnl_gross_pct": 0.0,
+ "pnl_net_pct": 0.0,
+ "short_ref_pct": -0.0561
 }

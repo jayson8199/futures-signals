@@ -143,6 +143,22 @@ def fix(day, force=False):
     return rec, True
 
 
+LOCK_COST_PCT = 0.027  # 虚拟仓位成本：IF/IH 开仓+收盘锁仓+次日双平（4 腿×万0.23）+4 次滑点，合计约 0.027%
+
+
+def virtual_pnl(rec):
+    """虚拟仓位：仅判「好」日 13:35 做多 1 份指数，收盘锁仓、次日平；判「坏」日空仓（做空仅作参考）。
+    收益按 13:35 价 → 官方收盘价 计算，净值扣 LOCK_COST_PCT。"""
+    e, c = rec.get("price_1330"), rec.get("close_official")
+    if not e or not c or not rec.get("final"):
+        return {}
+    chg = (c / e - 1) * 100
+    if rec["final"] == "好":
+        gross = chg
+        return {"trade": "多", "pnl_gross_pct": round(gross, 4), "pnl_net_pct": round(gross - LOCK_COST_PCT, 4), "short_ref_pct": None}
+    return {"trade": "空仓", "pnl_gross_pct": 0.0, "pnl_net_pct": 0.0, "short_ref_pct": round(-chg - LOCK_COST_PCT, 4)}
+
+
 def verdict(p, o, c):
     if p == "好":
         return c >= o
@@ -181,6 +197,7 @@ def settle(day, force=False):
         "correct_always_up": c >= o,
         "settled": True, "settled_at": now_cn().strftime("%Y-%m-%d %H:%M"),
     })
+    rec.update(virtual_pnl(rec))
     save(rec)
     return rec, True
 
@@ -194,8 +211,14 @@ def summarize():
         return (round(sum(v) / len(v) * 100, 1), len(v)) if v else (None, 0)
     months = {}
     for r in done:
-        m = months.setdefault(r["day"][:7], {"days": 0, "final_ok": 0, "final_bad": 0, "z2_ok": 0, "z2_bad": 0, "b1330_ok": 0, "b1030_ok": 0})
+        m = months.setdefault(r["day"][:7], {"days": 0, "final_ok": 0, "final_bad": 0, "z2_ok": 0, "z2_bad": 0, "b1330_ok": 0, "b1030_ok": 0,
+                                             "trades": 0, "trade_wins": 0, "pnl_net": 0.0, "pnl_gross": 0.0})
         m["days"] += 1
+        if r.get("trade") == "多":
+            m["trades"] += 1
+            m["trade_wins"] += 1 if r["pnl_net_pct"] > 0 else 0
+            m["pnl_net"] = round(m["pnl_net"] + r["pnl_net_pct"], 4)
+            m["pnl_gross"] = round(m["pnl_gross"] + r["pnl_gross_pct"], 4)
         for k, ok, bad in (("correct_final", "final_ok", "final_bad"), ("correct_z2", "z2_ok", "z2_bad")):
             if r.get(k) is True:
                 m[ok] += 1
@@ -203,9 +226,21 @@ def summarize():
                 m[bad] += 1
         m["b1330_ok"] += 1 if r.get("correct_b1330") else 0
         m["b1030_ok"] += 1 if r.get("correct_b1030") else 0
+    trades = [r for r in done if r.get("trade") == "多"]
+    curve, cum = [], 0.0
+    for r in done:
+        cum += r.get("pnl_net_pct", 0.0) or 0.0
+        curve.append((r["day"], round(cum, 4)))
+    peak, mdd = 0.0, 0.0
+    for _, v in curve:
+        peak = max(peak, v)
+        mdd = min(mdd, v - peak)
+    pnl = {"trades": len(trades), "wins": sum(1 for r in trades if r["pnl_net_pct"] > 0),
+           "net": round(sum(r["pnl_net_pct"] for r in trades), 4), "gross": round(sum(r["pnl_gross_pct"] for r in trades), 4),
+           "max_dd": round(mdd, 4), "curve": curve, "cost": LOCK_COST_PCT}
     return {"days": len(done), "z2": rate("correct_z2"), "final": rate("correct_final"),
             "b1030": rate("correct_b1030"), "b1330": rate("correct_b1330"), "always_up": rate("correct_always_up"),
-            "months": months, "records": recs}
+            "months": months, "pnl": pnl, "records": recs}
 
 
 def push(title, body):
@@ -232,9 +267,15 @@ def fmt_msg(rec, phase, site):
         return (f"【二区定律·{rec['day']}】13:35 五区检查：新高 {'是' if rec['z5_new_high'] else '否'} / 新低 {'是' if rec['z5_new_low'] else '否'}，{chg}\n"
                 f"最终预测：{rec['prediction_final']}\n13:30 价 {rec['price_1330']:.2f}{tail}\n记录：{site}erqu.html")
     ok = rec["correct_final"]
+    if rec.get("trade") == "多":
+        pl = f"\n虚拟仓位：13:35 做多 {rec['price_1330']:.2f} → 收 {rec['close_official']:.2f}，净 {rec['pnl_net_pct']:+.3f}%（已扣锁仓成本）"
+    else:
+        pl = "\n虚拟仓位：判坏，空仓"
+    pn = s.get("pnl", {})
+    pl += f"\n本月虚拟净收益 {cur['pnl_net']:+.2f}%（{cur['trades']} 笔）｜累计 {pn.get('net', 0):+.2f}%" if cur else ""
     return (f"【二区定律·{rec['day']}】结算：开 {rec['open_official']:.2f} 收 {rec['close_official']:.2f}（{rec['actual']}）\n"
             f"预测「{rec.get('prediction_final', rec['prediction'])}」→ {'✅ 对' if ok else '❌ 错' if ok is not None else '— 未预测'}"
-            f"{tail}\n记录：{site}erqu.html")
+            f"{pl}{tail}\n记录：{site}erqu.html")
 
 
 def main():
