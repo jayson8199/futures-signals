@@ -47,13 +47,40 @@ P = dict(
     ATR_N=14, ATR_K=2.0,  # 吊灯止损
     MA_N=20,
     ENTRY_N=20,           # 突破周期（donchian）
-    EXIT_MA=20,           # 离场均线周期
+    EXIT_MA=20,           # 离场均线周期（0=不用）
+    STOP_MODE="atr",      # atr=吊灯 ATR 止损；lowN=跟踪最近 N 日最低/最高点；two=两段式（进场前 5 日低点→创 20 日新高后切 N 日低点）
+    LOW_N=3,
     TIME_STOP=0,          # 0=不用；N 天未创持仓极值则离场
     MAX_SYM=0.15,         # 单品种名义/权益
     MAX_SECTOR=0.45,
     MAX_GROSS=1.5,        # 总名义/权益（杠杆上限）
     COST_SIDE=0.0002,     # 每边 0.02%（手续费约万0.5~1 + 1 跳滑点）
+    ENSO_FILTER=False,
+    HOLD_DAYS=0,          # >0：持仓满 N 天强制离场（均值回归用）
+    OS_Q=0.10,            # 超跌阈值：60 日收益处于自身历史最低分位    # 厄尔尼诺/拉尼娜方向过滤：相位内相关品种只接多头信号
 )
+# ENSO 传导链（课堂与常识口径）：厄尔尼诺→东南亚/印度干旱：棕榈油、豆油、菜油、白糖、橡胶、棉花偏多；
+# 拉尼娜→南美干旱、澳洲多雨：豆粕、菜粕、豆油、焦煤、焦炭偏多
+ENSO_LONG_ONLY = {"nino": ["P0", "Y0", "OI0", "SR0", "RU0", "CF0"], "nina": ["M0", "RM0", "Y0", "JM0", "J0"]}
+
+
+def load_oni():
+    f = ROOT / "data" / "oni.csv"
+    if not f.exists():
+        return {}
+    import csv
+    phase = {}
+    rows = list(csv.DictReader(open(f, encoding="utf-8")))
+    # 用上个月的 ONI（当月初才公布上月值），避免偷看
+    prev = None
+    for r in rows:
+        v = float(r["oni"]) if r["oni"] not in ("", "None") else None
+        ph = "neutral"
+        if prev is not None:
+            ph = "nino" if prev >= 0.5 else ("nina" if prev <= -0.5 else "neutral")
+        phase[r["month"]] = ph
+        prev = v
+    return phase
 
 
 def load(data_dir):
@@ -75,7 +102,16 @@ def load(data_dir):
 def indicators(df):
     d = df.copy()
     d["ma20"] = d["close"].rolling(P["MA_N"]).mean()
-    d["ma_exit"] = d["close"].rolling(P["EXIT_MA"]).mean()
+    d["ma_exit"] = d["close"].rolling(max(P["EXIT_MA"], 1)).mean()
+    n_ = max(P["LOW_N"], 1)
+    d["lowN_incl"] = d["low"].rolling(n_).min()
+    d["highN_incl"] = d["high"].rolling(n_).max()
+    d["lowN_prev"] = d["lowN_incl"].shift()
+    d["highN_prev"] = d["highN_incl"].shift()
+    d["low5_prev"] = d["low"].rolling(5).min().shift()
+    d["high5_prev"] = d["high"].rolling(5).max().shift()
+    d["hh20p"] = d["high"].rolling(20).max().shift()
+    d["ll20p"] = d["low"].rolling(20).min().shift()
     d["vma5"] = d["volume"].rolling(5).mean()
     d["vma20"] = d["volume"].rolling(20).mean()
     d["chg"] = d["close"].pct_change() * 100
@@ -115,6 +151,12 @@ def indicators(df):
     except Exception as e:  # noqa
         d["sig_macd"] = 0
         d["sig_macd_pat"] = 0
+    # 超跌均值回归：60 日收益 ≤ 自身历史（扩展窗口，至少 250 天）最低 OS_Q 分位 → 做多；只在跨过阈值当天触发一次
+    r60 = d["close"].pct_change(60)
+    thr = r60.expanding(min_periods=250).quantile(P["OS_Q"]).shift()
+    cond = r60 <= thr
+    d["sig_oversold"] = 0
+    d.loc[cond & ~cond.shift(fill_value=False), "sig_oversold"] = 1
     d["sig_donchian"] = 0
     d.loc[d["close"] > d["hh20"], "sig_donchian"] = 1
     d.loc[d["close"] < d["ll20"], "sig_donchian"] = -1
@@ -137,6 +179,7 @@ def run(data, signal, start=None, end=None, params=None):
     trades, curve = [], []
     sig_col = f"sig_{signal}"
     prev_close = {}
+    oni_phase = load_oni() if P["ENSO_FILTER"] else {}
     for dt in dates:
         day_pnl = 0.0
         # 1) 开盘：执行昨日挂单（离场 / 进场）
@@ -154,7 +197,19 @@ def run(data, signal, start=None, end=None, params=None):
                 atr = float(r["atr"]) if not math.isnan(r["atr"]) else None
                 if not atr or atr <= 0:
                     continue
-                stop_dist = P["ATR_K"] * atr / o
+                mode = P["STOP_MODE"]
+                if mode == "atr":
+                    init_stop = o - act * P["ATR_K"] * atr
+                elif mode == "lowN":
+                    init_stop = float(r["lowN_prev"]) if act == 1 else float(r["highN_prev"])
+                else:  # two
+                    init_stop = float(r["low5_prev"]) if act == 1 else float(r["high5_prev"])
+                if math.isnan(init_stop):
+                    continue
+                # 结构止损离得太近时，至少留 0.5 ATR，避免仓位算出天文数字
+                if act * (o - init_stop) < 0.5 * atr:
+                    init_stop = o - act * 0.5 * atr
+                stop_dist = act * (o - init_stop) / o
                 w = P["RISK_PCT"] / stop_dist
                 w = min(w, P["MAX_SYM"])
                 sec = SECTOR_OF.get(sym, "其他")
@@ -163,8 +218,8 @@ def run(data, signal, start=None, end=None, params=None):
                 w = min(w, max(0.0, P["MAX_SECTOR"] - sec_w), max(0.0, P["MAX_GROSS"] - gross))
                 if w < 0.005:
                     continue
-                pos[sym] = {"sym": sym, "side": act, "w": w, "entry": o, "entry_date": dt, "stop": o - act * P["ATR_K"] * atr,
-                            "extreme": o, "bars": 0, "since_ext": 0, "pnl": -w * P["COST_SIDE"]}
+                pos[sym] = {"sym": sym, "side": act, "w": w, "entry": o, "entry_date": dt, "stop": init_stop,
+                            "extreme": o, "bars": 0, "since_ext": 0, "pnl": -w * P["COST_SIDE"], "stage2": mode != "two"}
                 day_pnl -= w * P["COST_SIDE"]
                 prev_close[sym] = o  # 当日从开盘价起算
         pending.clear()
@@ -195,16 +250,31 @@ def run(data, signal, start=None, end=None, params=None):
             else:
                 p["since_ext"] += 1
             atr = float(r["atr"])
-            new_stop = p["extreme"] - p["side"] * P["ATR_K"] * atr
+            mode = P["STOP_MODE"]
+            if mode == "two" and not p["stage2"]:
+                # 第一段：止损固定在进场前低点，直到收盘突破进场前 20 日高点（"颈线"）
+                if (p["side"] == 1 and c > float(r["hh20p"])) or (p["side"] == -1 and c < float(r["ll20p"])):
+                    p["stage2"] = True
+            if mode == "atr":
+                new_stop = p["extreme"] - p["side"] * P["ATR_K"] * atr
+            elif p["stage2"]:
+                new_stop = float(r["lowN_incl"]) if p["side"] == 1 else float(r["highN_incl"])
+            else:
+                new_stop = p["stop"]
             p["stop"] = max(p["stop"], new_stop) if p["side"] == 1 else min(p["stop"], new_stop)
             ma = float(r["ma_exit"])
-            if (p["side"] == 1 and c < ma) or (p["side"] == -1 and c > ma) or (P["TIME_STOP"] and p["since_ext"] >= P["TIME_STOP"]):
+            ma_exit = P["EXIT_MA"] > 0 and ((p["side"] == 1 and c < ma) or (p["side"] == -1 and c > ma))
+            if ma_exit or (P["TIME_STOP"] and p["since_ext"] >= P["TIME_STOP"]) or (P["HOLD_DAYS"] and p["bars"] >= P["HOLD_DAYS"]):
                 pending[sym] = "exit"
         # 3) 收盘：新信号 → 次日开盘进场
         for sym, d in rows.items():
             if dt not in d.index or sym in pos or sym in pending:
                 continue
             s = int(d.loc[dt][sig_col]) if not math.isnan(d.loc[dt][sig_col]) else 0
+            if s and P["ENSO_FILTER"]:
+                ph = oni_phase.get(dt[:7], "neutral")
+                if ph != "neutral" and sym in ENSO_LONG_ONLY[ph] and s == -1:
+                    s = 0
             if s:
                 pending[sym] = s
         for sym, d in rows.items():
@@ -294,15 +364,24 @@ def main():
     ap.add_argument("--entry-n", type=int, default=20)
     ap.add_argument("--ma-n", type=int, default=20)
     ap.add_argument("--exit-ma", type=int, default=20)
+    ap.add_argument("--stop-mode", default="atr")
+    ap.add_argument("--enso", action="store_true")
+    ap.add_argument("--hold-days", type=int, default=0)
+    ap.add_argument("--os-q", type=float, default=0.10)
+    ap.add_argument("--symbols", help="只回测这些品种，逗号分隔")
+    ap.add_argument("--low-n", type=int, default=3)
     ap.add_argument("--atr-k", type=float, default=2.0)
     ap.add_argument("--out", default="experiments/trend_result.json")
     args = ap.parse_args()
     data = load(ROOT / args.data)
+    if args.symbols:
+        keep = set(args.symbols.split(","))
+        data = {k: v for k, v in data.items() if k in keep}
     print(f"载入 {len(data)} 个品种")
     sigs = ["pattern", "best", "donchian", "macd", "macd_pat"] if args.signal == "all" else args.signal.split(",")
     res = {}
     for s in sigs:
-        r = run(data, s, args.start, args.end, {"TIME_STOP": args.time_stop, "ENTRY_N": args.entry_n, "MA_N": args.ma_n, "ATR_K": args.atr_k, "EXIT_MA": args.exit_ma})
+        r = run(data, s, args.start, args.end, {"TIME_STOP": args.time_stop, "ENTRY_N": args.entry_n, "MA_N": args.ma_n, "ATR_K": args.atr_k, "EXIT_MA": args.exit_ma, "STOP_MODE": args.stop_mode, "LOW_N": args.low_n, "ENSO_FILTER": args.enso, "HOLD_DAYS": args.hold_days, "OS_Q": args.os_q})
         res[s] = r
         print(f"[{s}] {r['span'][0]}~{r['span'][1]} 年化 {r['cagr_pct']}% 波动 {r['ann_vol_pct']}% 夏普 {r['sharpe']} 最大回撤 {r['max_dd_pct']}%（{r['max_dd_span'][0]}~{r['max_dd_span'][1]}）"
               f" 水下最长 {r['longest_underwater_days']} 天 | {r['trades']} 笔 胜率 {r['win_rate']}% 盈亏比 {r['payoff']} 均持 {r['avg_hold_days']} 天 连亏 {r['longest_losing_streak']} | 分年 {r['by_year']}")

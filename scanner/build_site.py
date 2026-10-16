@@ -855,7 +855,56 @@ def cta_body():
         erows = "".join(f"<tr><td style='text-align:left'>{sid}. {v['name']}</td><td>{v['dir']}</td><td>{v['n']}</td>{cell(v['fwd5'], 0.116 if v['dir'] == '多' else -0.116)}{cell(v['fwd10'], 0.234 if v['dir'] == '多' else -0.234)}{cell(v['fwd20'], 0.478 if v['dir'] == '多' else -0.478)}</tr>" for sid, v in sorted(ev.items(), key=lambda kv: int(kv[0])))
         ev_html = ("<div class='card'><h3>MACD 八策略 · 单独看每一个（2018 年起，信号后 N 日方向收益 / 胜率）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>策略</th><th>方向</th><th>次数</th><th>5 日</th><th>10 日</th><th>20 日</th></tr></thead>"
                    f"<tbody>{erows}</tbody></table></div><div class='muted' style='font-size:11.5px;margin-top:8px'>对照：同期随便挑一天做多，5/10/20 日平均 +0.12% / +0.23% / +0.48%，胜率约 51%（商品整体上行漂移）；做空则取负。红色 = 好于对照，绿色 = 差于对照。只有 4 号「双绿柱底背离」略好于无条件做多；四个空头策略都没有跑赢「什么都不做」。</div></div>")
-    return head + table + curve + ytable + ev_html + brk + verdict
+    night_html = night_section(exp)
+    return head + table + curve + ytable + ev_html + night_html + brk + verdict
+
+
+def night_section(exp):
+    """2026-10-17 夜间补充：结构止损 / 超跌均值回归 / ENSO 过滤 / 季节性"""
+    import json as _json
+    f = exp / "night_results.json"
+    if not f.exists():
+        return ""
+    R = _json.loads(f.read_text(encoding="utf-8"))
+
+    def trow(label, r, first=None):
+        c = f"<td style='text-align:left'>{first}</td>" if first is not None else ""
+        return (f"<tr>{c}<td style='text-align:left'>{label}</td><td class='{'up' if r['cagr_pct'] > 0 else 'down'}'>{r['cagr_pct']:+.2f}%</td><td>{r['ann_vol_pct']:.1f}%</td><td class='b'>{r['sharpe']}</td>"
+                f"<td class='down'>{r['max_dd_pct']:.1f}%</td><td>{r['longest_underwater_days']}</td><td>{r['trades']}</td><td>{r['win_rate']}%</td><td>{r['payoff']}</td><td>{r['avg_hold_days']}</td></tr>")
+    th = "<th>年化</th><th>波动</th><th>夏普</th><th>最大回撤</th><th>水下最长(天)</th><th>笔数</th><th>胜率</th><th>盈亏比</th><th>均持(天)</th>"
+    # 1 结构止损
+    rows = "".join(trow(r["stop"], r, r["signal"]) for r in R["stops"])
+    stops = (f"<div class='card'><h3>止损方式对比：ATR 吊灯 vs 结构止损（跟踪 N 日低点 / 两段式）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>信号</th><th style='text-align:left'>止损方式</th>{th}</tr></thead><tbody>{rows}</tbody></table></div>"
+             "<div class='muted' style='font-size:11.5px;margin-top:8px'>均不用均线离场，只比止损。「跟踪 1 日低点」= 止损上移到昨天最低价：笔数翻倍、年化 -5%，是所有方式里最差的；N=10 与 2×ATR 吊灯基本等价。两段式（第一段固定在进场前 5 日低点，收盘创 20 日新高后切换为跟踪 N 日低点）与 ATR 相当，没有额外优势。结论：止损留的空间要和品种波动匹配，太紧会把趋势单震出去；用哪种结构差别不大。</div></div>")
+    # 2 跌够久
+    rows = "".join(trow(r["cfg"], r) for r in R["oversold"])
+    oby = R["oversold_by_year"]
+    yrows = "".join(f"<tr><td>{y}</td><td>{v['n']}</td><td class='{'up' if v['cond_avg'] > v['base_avg'] else 'down'}'>{v['cond_avg']:+.2f}% / {v['cond_win']:.0f}%</td><td>{v['base_avg']:+.2f}% / {v['base_win']:.0f}%</td><td class='b'>{v['cond_avg'] - v['base_avg']:+.2f}</td></tr>" for y, v in oby.items())
+    os_ = R["season"]["oversold"]
+    dm = R["season"]["down_months"]
+    dmrows = "".join(f"<tr><td style='text-align:left'>{k}</td><td>{v['下月']['n']}</td><td class='{'up' if v['下月']['avg'] > 0.45 else ''}'>{v['下月']['avg']:+.2f}% / {v['下月']['win']}%</td><td class='{'up' if v.get('后3月') and v['后3月']['avg'] > 1.4 else ''}'>{(str(v['后3月']['avg']) + '% / ' + str(v['后3月']['win']) + '%') if v.get('后3月') else '—'}</td></tr>" for k, v in dm.items())
+    over = (f"<div class='card' style='border-left:4px solid var(--up)'><h3>「跌够久」均值回归 —— 今晚唯一在每一年都成立的东西</h3>"
+            f"<div class='grid2'><div><h4 style='margin:4px 0 6px'>事件统计：60 日跌幅处于该品种自身历史最低 10% 之后</h4><div class='tbl' style='border-radius:8px'><table><thead><tr><th>条件</th><th>后 20 日</th><th>后 60 日</th></tr></thead><tbody>"
+            f"<tr><td style='text-align:left'>超跌后</td><td class='up'>{os_['60日跌幅处于历史最低10%']['后20日']['avg']:+.2f}% / 胜率 {os_['60日跌幅处于历史最低10%']['后20日']['win']}%</td><td class='up'>{os_['60日跌幅处于历史最低10%']['后60日']['avg']:+.2f}% / 胜率 {os_['60日跌幅处于历史最低10%']['后60日']['win']}%</td></tr>"
+            f"<tr><td style='text-align:left'>无条件（任意一天）</td><td>{os_['无条件']['后20日']['avg']:+.2f}% / {os_['无条件']['后20日']['win']}%</td><td>{os_['无条件']['后60日']['avg']:+.2f}% / {os_['无条件']['后60日']['win']}%</td></tr></tbody></table></div>"
+            f"<h4 style='margin:12px 0 6px'>连续下跌 N 个月之后</h4><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>条件</th><th>次数</th><th>下月 均值/胜率</th><th>后 3 月</th></tr></thead><tbody>{dmrows}</tbody></table></div></div>"
+            f"<div><h4 style='margin:4px 0 6px'>分年检验（超跌后 60 日 vs 无条件 60 日）</h4><div class='tbl' style='border-radius:8px'><table><thead><tr><th>年</th><th>事件数</th><th>超跌后</th><th>无条件</th><th>差</th></tr></thead><tbody>{yrows}</tbody></table></div>"
+            "<div class='muted' style='font-size:11.5px;margin-top:6px'>事件按天统计、高度重叠（一次超跌会连续多天满足条件），真实独立样本远少于表中数字；但 2019–2026 每一年超跌后都好于无条件，这是今晚所有检验里最一致的结果。</div></div></div>"
+            f"<h4 style='margin:14px 0 6px'>做成策略：只做多，超跌当天触发一次，次日开盘进场，持有满 N 天离场</h4><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>配置</th>{th}</tr></thead><tbody>{rows}</tbody></table></div>"
+            "<div class='muted' style='font-size:11.5px;margin-top:8px'>关键发现：止损越紧越差。3×ATR 止损把近半数单子在反弹前打掉（均持仅 22 天）；放宽到 6×ATR，夏普 0.68、回撤 -13.7%、胜率 54%、九年里只有 2022 年小亏——是今晚所有配置里最好的，也是唯一一个在震荡年份（2023–2024）仍为正的。这类策略的本质是接下跌中的品种，必须用小仓位（波动率配仓已把单品种权重压得很低）、靠时间而不是靠止损来控制风险。年化看起来只有 4% 是因为仓位很轻（年化波动 6%），按风险等比例放大到 12% 波动约对应年化 8%、回撤 -27%。</div></div>")
+    # 3 ENSO
+    rows = "".join(trow(r["cfg"], r) for r in R["enso"])
+    enso = (f"<div class='card'><h3>厄尔尼诺 / 拉尼娜方向过滤（NOAA ONI，用上月值，±0.5℃ 阈值）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>配置</th>{th}</tr></thead><tbody>{rows}</tbody></table></div>"
+            "<div class='muted' style='font-size:11.5px;margin-top:8px'>规则：厄尔尼诺期间 棕榈油/豆油/菜油/白糖/橡胶/棉花 只接多头信号；拉尼娜期间 豆粕/菜粕/豆油/焦煤/焦炭 只接多头信号；其余不变。结果：对 20 日突破有改善（相关品种年化 -1.9% → -0.1%，回撤 -21% → -15%；全组合 2.7% → 4.8%），对优选信号无改善。2018 年以来只经历了 5 段厄尔尼诺/拉尼娜，样本极少，只能说「方向上支持」，不能算证据。2026 年 6 月后 ONI 尚未发布，按 5 月值（+1.0，厄尔尼诺）顺延。</div></div>")
+    # 4 季节性
+    so = R["season"]["season_oos"]
+    cal = R["season"]["seasonality"]["calendar_avg_all"]
+    calrow = "".join(f"<td class='{'up' if v > 0 else 'down'}'>{v:+.1f}%</td>" for m, v in sorted(cal.items(), key=lambda kv: int(kv[0])))
+    season = (f"<div class='card'><h3>季节性：样本外基本不成立</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>检验（2018–2022 选月份，2023 起检验）</th><th>月数</th><th>月均收益</th><th>胜率</th></tr></thead><tbody>"
+              + "".join(f"<tr><td style='text-align:left'>{k}</td><td>{v['n']}</td><td class='{'up' if v['avg'] > 0 else 'down'}'>{v['avg']:+.2f}%</td><td>{v['win']}%</td></tr>" for k, v in so.items())
+              + f"</tbody></table></div><div class='tbl' style='border-radius:8px;margin-top:8px'><table><thead><tr><th>全品种自然月平均</th>{''.join(f'<th>{m}月</th>' for m in range(1, 13))}</tr></thead><tbody><tr><td></td>{calrow}</tr></tbody></table></div>"
+              "<div class='muted' style='font-size:11.5px;margin-top:8px'>用前五年每个品种最好的两个月做多、最差的两个月做空，之后三年多：做多月平均 +0.51%（和无条件 +0.26% 差别不大），做空月反而亏。单个品种 9 年只有 9 个样本，季节性在这个数据量上分不清是规律还是巧合。全品种看，1 月、7 月、12 月偏强，10 月偏弱，与春节前备货、国庆后去库的常识一致，但幅度不足以单独交易。</div></div>")
+    return "<div class='hd' style='margin-top:18px'><div><h2 style='margin:0;font-size:18px'>补充检验（2026-10-17 夜）：止损结构 · 跌够久 · 厄尔尼诺 · 季节性</h2></div></div>" + over + stops + enso + season
 
 
 def method_body():
