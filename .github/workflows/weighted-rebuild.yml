@@ -14,12 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        range: ["2008-01-01:2010-12-31", "2011-01-01:2013-12-31", "2014-01-01:2016-12-31", "2017-01-01:2019-12-31", "2020-01-01:2022-12-31", "2023-01-01:2026-12-31"]
+        range: ["2008-01-01:2012-12-31", "2013-01-01:2016-12-31", "2017-01-01:2020-12-31", "2021-01-01:2026-12-31"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        with: { python-version: "3.12" }
       - run: pip install -r scanner/requirements.txt tushare
       - name: 恢复按日缓存
         uses: actions/cache@v4
@@ -27,22 +26,19 @@ jobs:
           path: .cache/bydate
           key: bydate-${{ matrix.range }}-${{ github.run_id }}
           restore-keys: bydate-${{ matrix.range }}-
-      - name: 按交易日拉取全市场合约
+      - name: 按交易日拉取（290 分钟后主动停止以便保存缓存）
         env:
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
         run: |
-          R="${{ matrix.range }}"; python scanner/weighted_bydate.py --fetch "${R%%:*}" "${R##*:}" 2>&1 | tee fetch.log || true
-          echo "缓存天数：$(find .cache/bydate -name '*.csv' 2>/dev/null | wc -l)"
-      - name: 上传日志（脱敏）
-        if: always()
-        run: |
-          sed -i -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' fetch.log || true
-          mkdir -p logs && cp fetch.log "logs/fetch_${{ strategy.job-index }}.log"
+          R="${{ matrix.range }}"
+          echo "缓存已有：$(find .cache/bydate -type f 2>/dev/null | wc -l) 天"
+          timeout 17400 python -u scanner/weighted_bydate.py --fetch "${R%%:*}" "${R##*:}" 2>&1 | sed -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' | tee fetch.log || true
+          echo "缓存现有：$(find .cache/bydate -type f | wc -l) 天"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: fetch-log-${{ strategy.job-index }}
-          path: logs/
+          path: fetch.log
 
   assemble:
     name: 汇总并提交
@@ -56,32 +52,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        with: { python-version: "3.12" }
       - run: pip install -r scanner/requirements.txt
       - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2008-01-01:2010-12-31-" }
+        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2008-01-01:2012-12-31-" }
       - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2011-01-01:2013-12-31-" }
+        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2013-01-01:2016-12-31-" }
       - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2014-01-01:2016-12-31-" }
+        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2017-01-01:2020-12-31-" }
       - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2017-01-01:2019-12-31-" }
-      - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2020-01-01:2022-12-31-" }
-      - uses: actions/cache/restore@v4
-        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2023-01-01:2026-12-31-" }
+        with: { path: .cache/bydate, key: x, restore-keys: "bydate-2021-01-01:2026-12-31-" }
       - uses: actions/download-artifact@v4
-        with: { pattern: fetch-log-*, path: experiments/bydate_logs, merge-multiple: true }
-      - name: 汇总
+        with: { pattern: fetch-log-*, path: fetchlogs }
+      - name: 汇总（只增不减）
         run: |
-          echo "缓存天数：$(find .cache/bydate -name '*.csv' 2>/dev/null | wc -l)"
-          python scanner/weighted_bydate.py --assemble
+          mkdir -p experiments/bydate_logs
+          for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null || true; done
+          echo "缓存天数：$(find .cache/bydate -type f 2>/dev/null | wc -l)" | tee experiments/bydate_logs/assemble.log
+          python scanner/weighted_bydate.py --assemble 2>&1 | tee -a experiments/bydate_logs/assemble.log
       - name: 提交
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/weighted/ experiments/bydate_logs/ 2>/dev/null || git add data/weighted/
-          git commit -m "data: 加权指数全量重建（按日全市场）" || echo "无变化"
+          git add data/weighted/ || true
+          git add experiments/bydate_logs/ || true
+          git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
           git pull --rebase origin main || true
           git push

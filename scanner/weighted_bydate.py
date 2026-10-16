@@ -175,7 +175,7 @@ def main():
     if a.assemble:
         res = assemble(cache, SYMBOLS)
         for sym, df in res.items():
-            write(sym, df, append=False)
+            write(sym, df, append=True)  # 只增不减：新日期覆盖，缓存未覆盖的日期保留旧数据
             print(f"{sym}: {len(df)} 行 {df['date'].min()}~{df['date'].max()}")
         print(f"已写出 {len(res)} 个品种")
 
