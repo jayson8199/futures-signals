@@ -48,18 +48,33 @@ def connect():
     raise SystemExit("tushare 两个服务器都连不上")
 
 
+CAL_FILE = ROOT / "data" / "weighted" / "_trade_days.txt"
+
+
 def trade_days(pro, start: str, end: str) -> list[str]:
-    """交易日历：用棕榈油主力映射的日期（2007-10 起连续）"""
-    m = None
-    for i in range(6):  # 代理不接受起止日期参数，取全量后本地筛选；限流时等待重试
+    """交易日历：优先本地 data/weighted/_trade_days.txt；否则取棕榈油主力映射的日期（2007-10 起连续），
+    并写回本地；接口持续失败时退化为按工作日枚举（空响应按节假日处理）"""
+    s0, e0 = start.replace("-", ""), end.replace("-", "")
+    days = None
+    if CAL_FILE.exists():
+        days = CAL_FILE.read_text().split()
+        if days and days[-1] >= min(e0, pd.Timestamp.today().strftime("%Y%m%d")):
+            return [d for d in days if s0 <= d <= e0]
+    for i in range(12):
         try:
-            m = pro.fut_mapping(ts_code="P.DCE"); break
+            m = pro.fut_mapping(ts_code="P.DCE")
+            if m is not None and len(m):
+                days = sorted(set(m["trade_date"].astype(str)))
+                CAL_FILE.parent.mkdir(parents=True, exist_ok=True)
+                CAL_FILE.write_text("\n".join(days))
+                break
         except Exception as e:
-            print(f"  交易日历获取失败({i+1}/6): {str(e)[:120]}", file=sys.stderr); time.sleep(31)
-    if m is None or len(m) == 0:
-        raise RuntimeError("交易日历获取失败")
-    days = sorted(set(m["trade_date"].astype(str)))
-    return [d for d in days if start.replace("-", "") <= d <= end.replace("-", "")]
+            print(f"  交易日历获取失败({i+1}/12): {str(e)[:120]}", flush=True)
+        time.sleep(20 + 5 * i)
+    if not days:
+        print("  交易日历接口不可用，退化为工作日枚举", flush=True)
+        days = [d.strftime("%Y%m%d") for d in pd.bdate_range(start, end)]
+    return [d for d in days if s0 <= d <= e0]
 
 
 def fetch_day(pro, d: str, cache: Path) -> pd.DataFrame | None:

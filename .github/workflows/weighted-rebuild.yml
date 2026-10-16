@@ -34,11 +34,16 @@ jobs:
           echo "缓存已有：$(find .cache/bydate -type f 2>/dev/null | wc -l) 天"
           timeout 17400 python -u scanner/weighted_bydate.py --fetch "${R%%:*}" "${R##*:}" 2>&1 | sed -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' | tee fetch.log || true
           echo "缓存现有：$(find .cache/bydate -type f | wc -l) 天"
+      - run: cp data/weighted/_trade_days.txt trade_days_${{ strategy.job-index }}.txt 2>/dev/null || true
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: fetch-log-${{ strategy.job-index }}
-          path: fetch.log
+          path: |
+            fetch.log
+            trade_days_*.txt
+          if-no-files-found: ignore
 
   assemble:
     name: 汇总并提交
@@ -68,6 +73,7 @@ jobs:
         run: |
           mkdir -p experiments/bydate_logs
           for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null || true; done
+          for f in fetchlogs/*/trade_days_*.txt; do [ -s "$f" ] && cp "$f" data/weighted/_trade_days.txt && break; done || true
           echo "缓存天数：$(find .cache/bydate -type f 2>/dev/null | wc -l)" | tee experiments/bydate_logs/assemble.log
           python scanner/weighted_bydate.py --assemble 2>&1 | tee -a experiments/bydate_logs/assemble.log
       - name: 提交
@@ -75,6 +81,7 @@ jobs:
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/weighted/ || true
+          git add data/weighted/_trade_days.txt 2>/dev/null || true
           git add experiments/bydate_logs/ || true
           git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
           git pull --rebase origin main || true
