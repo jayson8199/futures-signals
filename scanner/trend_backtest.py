@@ -47,6 +47,7 @@ P = dict(
     ATR_N=14, ATR_K=2.0,  # 吊灯止损
     MA_N=20,
     ENTRY_N=20,           # 突破周期（donchian）
+    EXIT_MA=20,           # 离场均线周期
     TIME_STOP=0,          # 0=不用；N 天未创持仓极值则离场
     MAX_SYM=0.15,         # 单品种名义/权益
     MAX_SECTOR=0.45,
@@ -74,6 +75,7 @@ def load(data_dir):
 def indicators(df):
     d = df.copy()
     d["ma20"] = d["close"].rolling(P["MA_N"]).mean()
+    d["ma_exit"] = d["close"].rolling(P["EXIT_MA"]).mean()
     d["vma5"] = d["volume"].rolling(5).mean()
     d["vma20"] = d["volume"].rolling(20).mean()
     d["chg"] = d["close"].pct_change() * 100
@@ -173,7 +175,7 @@ def run(data, signal, start=None, end=None, params=None):
             atr = float(r["atr"])
             new_stop = p["extreme"] - p["side"] * P["ATR_K"] * atr
             p["stop"] = max(p["stop"], new_stop) if p["side"] == 1 else min(p["stop"], new_stop)
-            ma = float(r["ma20"])
+            ma = float(r["ma_exit"])
             if (p["side"] == 1 and c < ma) or (p["side"] == -1 and c > ma) or (P["TIME_STOP"] and p["since_ext"] >= P["TIME_STOP"]):
                 pending[sym] = "exit"
         # 3) 收盘：新信号 → 次日开盘进场
@@ -269,6 +271,7 @@ def main():
     ap.add_argument("--time-stop", type=int, default=0)
     ap.add_argument("--entry-n", type=int, default=20)
     ap.add_argument("--ma-n", type=int, default=20)
+    ap.add_argument("--exit-ma", type=int, default=20)
     ap.add_argument("--atr-k", type=float, default=2.0)
     ap.add_argument("--out", default="experiments/trend_result.json")
     args = ap.parse_args()
@@ -277,7 +280,7 @@ def main():
     sigs = ["pattern", "best", "donchian"] if args.signal == "all" else [args.signal]
     res = {}
     for s in sigs:
-        r = run(data, s, args.start, args.end, {"TIME_STOP": args.time_stop, "ENTRY_N": args.entry_n, "MA_N": args.ma_n, "ATR_K": args.atr_k})
+        r = run(data, s, args.start, args.end, {"TIME_STOP": args.time_stop, "ENTRY_N": args.entry_n, "MA_N": args.ma_n, "ATR_K": args.atr_k, "EXIT_MA": args.exit_ma})
         res[s] = r
         print(f"[{s}] {r['span'][0]}~{r['span'][1]} 年化 {r['cagr_pct']}% 波动 {r['ann_vol_pct']}% 夏普 {r['sharpe']} 最大回撤 {r['max_dd_pct']}%（{r['max_dd_span'][0]}~{r['max_dd_span'][1]}）"
               f" 水下最长 {r['longest_underwater_days']} 天 | {r['trades']} 笔 胜率 {r['win_rate']}% 盈亏比 {r['payoff']} 均持 {r['avg_hold_days']} 天 连亏 {r['longest_losing_streak']} | 分年 {r['by_year']}")
