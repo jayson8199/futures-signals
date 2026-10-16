@@ -129,6 +129,27 @@ details .tbl{border-radius:0 0 6px 6px}
 .rule{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:10px}
 .rule h4{font-size:14px;margin-bottom:6px;color:var(--cyan);font-family:var(--mono)}
 code{background:var(--panel2);padding:1px 6px;border-radius:3px;font-size:12px;font-family:var(--mono);color:var(--amber)}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.score-l,.score-r{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+.score-t{color:var(--muted);font-size:12px;font-family:var(--mono)}
+.score-big{font-family:var(--mono);font-size:56px;font-weight:700;line-height:1.1;margin:6px 0 2px;letter-spacing:-1px}
+.score-sep{font-size:18px;color:var(--muted);margin:0 14px 0 6px;font-weight:500}
+.score-sub{color:var(--muted);font-size:12px;margin-bottom:12px}
+.score-row{display:flex;gap:8px;align-items:baseline;font-size:13px;padding:5px 0;border-top:1px solid var(--line)}.score-row span{color:var(--muted);width:120px}.score-row b{font-family:var(--mono);font-size:15px}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center;margin-bottom:4px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{aspect-ratio:1.3;border-radius:5px;background:var(--panel2);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.cal-cell .m{font-size:15px;font-weight:700;line-height:1}
+.cal-cell.ok{background:var(--down-dim);border-color:rgba(47,210,122,.5);color:var(--down)}.cal-cell.bad{background:var(--up-dim);border-color:rgba(255,90,95,.5);color:var(--up)}
+.cal-cell.pend{border-color:var(--amber);color:var(--amber)}.cal-cell.bf{border-style:dashed}.cal-legend i.bf{border-style:dashed;border-color:var(--muted)}.cal-cell.wk{opacity:.35}.cal-cell.future{opacity:.5;border-style:dashed}.cal-cell.empty{border:0;background:transparent}
+.cal-legend{font-size:11px;color:var(--muted);margin-top:8px}.cal-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 10px;vertical-align:-1px;border:1px solid var(--line)}
+.cal-legend i.ok{background:var(--down)}.cal-legend i.bad{background:var(--up)}.cal-legend i.pend{border-color:var(--amber)}.cal-legend i.none{background:var(--panel2)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.step{position:relative;padding:10px 12px 10px 26px;border:1px solid var(--line);border-radius:6px;background:var(--panel2);font-size:12.5px;line-height:1.6}
+.step-dot{position:absolute;left:10px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.step.done .step-dot{background:var(--cyan);box-shadow:var(--glow-cyan)}.step.ok .step-dot{background:var(--down)}.step.bad .step-dot{background:var(--up)}
+.step-t{font-weight:600;margin-bottom:2px}.step.wait{opacity:.6}
+@media (max-width:720px){.score{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.score-big{font-size:44px}}
 .gauge{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
 .gauge .track{position:relative;flex:1;max-width:260px;height:6px;background:linear-gradient(90deg,var(--down) 0,var(--panel2) 50%,var(--up) 100%);border-radius:3px;opacity:.9}
 .gauge .mark{position:absolute;top:-4px;width:2px;height:14px;background:var(--mark);box-shadow:var(--glow-cyan);transform:translateX(-1px)}
@@ -560,33 +581,122 @@ def macd_body(st, latest_date):
 
 
 def erqu_body():
+    import calendar as _cal
+    from datetime import datetime as _dt
     import erqu_live
     s = erqu_live.summarize()
     recs = sorted(s["records"], key=lambda r: r["day"], reverse=True)
+    by_day = {r["day"]: r for r in recs}
+    today = _dt.now(CN_TZ)
+    cur_m = today.strftime("%Y-%m")
+    cm = s["months"].get(cur_m, {"days": 0, "final_ok": 0, "final_bad": 0, "z2_ok": 0, "z2_bad": 0, "b1330_ok": 0, "b1030_ok": 0})
 
-    def pct(t):
-        return f"{t[0]}%<span class='muted' style='font-size:11px'> /{t[1]}天</span>" if t[0] is not None else "<span class='muted'>—</span>"
-    kpis = f"""<div class='kpis'>
-<div class='kpi'><div class='v'>{pct(s['z2'])}</div><div class='k'>二区判定（10:30）正确率</div></div>
-<div class='kpi'><div class='v'>{pct(s['final'])}</div><div class='k'>二区+五区修正 正确率</div></div>
-<div class='kpi'><div class='v'>{pct(s['b1030'])}</div><div class='k'>对照：10:30价位相对开盘</div></div>
-<div class='kpi'><div class='v'>{pct(s['b1330'])}</div><div class='k'>对照：13:30价位相对开盘</div></div>
-<div class='kpi'><div class='v'>{pct(s['always_up'])}</div><div class='k'>对照：永远说"不会跌"</div></div></div>"""
+    # ---- 本月记分牌 + 日历格 ----
+    y, m = today.year, today.month
+    first_wd, ndays = _cal.monthrange(y, m)
+    cells = ""
+    for _ in range(first_wd):
+        cells += "<div class='cal-cell empty'></div>"
+    for dnum in range(1, ndays + 1):
+        ds = f"{y:04d}-{m:02d}-{dnum:02d}"
+        wd = (first_wd + dnum - 1) % 7
+        r = by_day.get(ds)
+        if wd >= 5:
+            cls_ = "wk"
+            txt = ""
+        elif r and r.get("settled"):
+            cls_ = ("ok" if r["correct_final"] else "bad") + (" bf" if r.get("backfilled") else "")
+            txt = "✓" if r["correct_final"] else "✗"
+        elif r:
+            cls_ = "pend"
+            txt = "…"
+        elif ds <= today.strftime("%Y-%m-%d"):
+            cls_ = "none"
+            txt = ""
+        else:
+            cls_ = "future"
+            txt = ""
+        cells += f"<div class='cal-cell {cls_}' title='{ds}'><span class='d'>{dnum}</span><span class='m'>{txt}</span></div>"
+    cal_html = ("<div class='cal'><div class='cal-head'>" + "".join(f"<span>{w}</span>" for w in "一二三四五六日") + "</div>"
+                f"<div class='cal-grid'>{cells}</div></div>")
+    n_bf = sum(1 for r in recs if r["day"].startswith(cur_m) and r.get("backfilled"))
+    total = cm["final_ok"] + cm["final_bad"]
+    rate_m = f"{cm['final_ok'] / total * 100:.0f}%" if total else "—"
+    score_html = f"""<div class='score'>
+<div class='score-l'><div class='score-t'>{y} 年 {m} 月 · 截至今天</div>
+<div class='score-big'><span class='up'>{cm['final_ok']}</span><span class='score-sep'>对</span><span class='down'>{cm['final_bad']}</span><span class='score-sep'>错</span></div>
+<div class='score-sub'>二区+五区修正 ｜ 正确率 {rate_m} ｜ 已结算 {cm['days']} 个交易日{f"（含回填 {n_bf} 天，虚线框）" if n_bf else ""}</div>
+<div class='score-row'><span>二区单独</span><b class='up'>{cm['z2_ok']}</b> 对 <b class='down'>{cm['z2_bad']}</b> 错</div>
+<div class='score-row'><span>对照 13:30 价位</span><b>{cm['b1330_ok']}</b> 对 <b>{cm['days'] - cm['b1330_ok']}</b> 错</div>
+<div class='score-row'><span>对照 10:30 价位</span><b>{cm['b1030_ok']}</b> 对 <b>{cm['days'] - cm['b1030_ok']}</b> 错</div></div>
+<div class='score-r'>{cal_html}<div class='cal-legend'><i class='ok'></i>判对 <i class='bad'></i>判错 <i class='pend'></i>进行中 <i class='none'></i>无记录 <i class='bf'></i>回填（用历史数据按同一规则重算，非当场判定）</div></div></div>"""
+
+    # ---- 今日/最新一天：分时图 + 阶段时间线 ----
+    latest = recs[0] if recs else None
+    chart_html = ""
+    if latest and latest.get("bars"):
+        bars = latest["bars"]
+        W, H, L, R, T, B = 900, 260, 46, 12, 14, 30
+        slots = [f"{h:02d}:{mm:02d}" for h in (9, 10, 11) for mm in range(0, 60, 5) if (h == 9 and mm >= 35) or h == 10 or (h == 11 and mm <= 30)]
+        slots += [f"{h:02d}:{mm:02d}" for h in (13, 14) for mm in range(5, 60, 5)] + ["14:00", "15:00"]
+        slots = sorted(set(slots))
+        xi = {hm: i for i, hm in enumerate(slots)}
+        n = len(slots)
+        xs = lambda hm: L + xi.get(hm, 0) * (W - L - R) / (n - 1)
+        op = latest.get("open_official", latest.get("open_provisional"))
+        vals = [b[4] for b in bars] + [op]
+        lo, hi = min(vals), max(vals)
+        pad = (hi - lo) * 0.15 or 1
+        lo, hi = lo - pad, hi + pad
+        ys = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
+        def zone(a, b, label, color):
+            return (f"<rect x='{xs(a):.1f}' y='{T}' width='{xs(b) - xs(a):.1f}' height='{H - T - B}' fill='{color}' opacity='.12'/>"
+                    f"<text x='{(xs(a) + xs(b)) / 2:.1f}' y='{T + 12}' font-size='10' text-anchor='middle' fill='{color}'>{label}</text>")
+        zones = zone("10:05", "10:30", "二区", "#4cc9f0") + zone("13:05", "13:30", "五区", "#f2b544")
+        pts = " ".join(f"{xs(b[0]):.1f},{ys(b[4]):.1f}" for b in bars)
+        line_color = "#ff5a5f" if bars[-1][4] >= op else "#2fd27a"
+        openline = f"<line x1='{L}' x2='{W - R}' y1='{ys(op):.1f}' y2='{ys(op):.1f}' stroke='#9aa4ae' stroke-dasharray='4 4'/><text x='{W - R}' y='{ys(op) - 4:.1f}' font-size='10' text-anchor='end' fill='#9aa4ae'>开盘 {op:.2f}</text>"
+        marks = ""
+        for hm, key, lab in (("10:30", "price_1030", "10:30 判定"), ("13:30", "price_1330", "13:30 修正")):
+            if latest.get(key):
+                marks += f"<circle cx='{xs(hm):.1f}' cy='{ys(latest[key]):.1f}' r='4' fill='#fff' stroke='#1c2230' stroke-width='1.5'/><text x='{xs(hm):.1f}' y='{ys(latest[key]) - 9:.1f}' font-size='10' text-anchor='middle' fill='var(--ink)'>{lab}</text>"
+        xlabels = "".join(f"<text x='{xs(hm):.1f}' y='{H - 10}' font-size='10' text-anchor='middle' fill='#6b7585'>{hm}</text>" for hm in ("09:35", "10:00", "10:30", "11:00", "11:30", "13:30", "14:00", "14:30", "15:00") if hm in xi)
+        ylabels = "".join(f"<text x='{L - 6}' y='{ys(v) + 4:.1f}' font-size='10' text-anchor='end' fill='#6b7585'>{v:.0f}</text>" for v in (lo + pad, (lo + hi) / 2, hi - pad))
+        svg = f"<svg viewBox='0 0 {W} {H}' width='100%' style='max-width:{W}px;display:block'>{zones}{openline}<polyline fill='none' stroke='{line_color}' stroke-width='2' points='{pts}'/>{marks}{xlabels}{ylabels}</svg>"
+        def step(done, title, body, state):
+            return f"<div class='step {state}'><div class='step-dot'></div><div class='step-t'>{title}</div><div class='step-b'>{body}</div></div>"
+        st1 = step(True, "10:30 判定", f"<b>{latest.get('z2', '')}二区</b> · {latest.get('z2_reason', '')}<br>预测：{latest.get('prediction', '')}<br><span class='muted'>{latest.get('judged_at', '')[11:]}</span>", "done" if latest.get("z2") else "wait")
+        if "fixed" in latest:
+            st2 = step(True, "13:30 五区", f"新高 {'是' if latest['z5_new_high'] else '否'} / 新低 {'是' if latest['z5_new_low'] else '否'} → <b>{'修正为 ' + latest['final'] if latest['fixed'] else '维持 ' + latest['final']}</b><br>最终预测：{latest['prediction_final']}<br><span class='muted'>{latest.get('fixed_at', '')[11:]}</span>", "done")
+        else:
+            st2 = step(False, "13:30 五区", "等待…", "wait")
+        if latest.get("settled"):
+            ok = latest["correct_final"]
+            st3 = step(True, "收盘结算", f"开 {latest['open_official']:.2f} → 收 {latest['close_official']:.2f}（{latest['actual']}）<br><b class='{'up' if ok else 'down'}'>{'✅ 判对' if ok else '❌ 判错' if ok is not None else '未预测'}</b>（二区单独：{'对' if latest['correct_z2'] else '错'}）<br><span class='muted'>{latest.get('settled_at', '')[11:]}</span>", "done " + ("ok" if ok else "bad"))
+        else:
+            st3 = step(False, "收盘结算", "等待 15:00 后…", "wait")
+        chart_html = f"<div class='card'><h3>最新交易日 {latest['day']} · 上证指数分时（5 分钟）</h3>{svg}<div class='steps'>{st1}{st2}{st3}</div></div>"
+
+    # ---- 累计对比条 ----
+    def bar(label, t, color):
+        v = t[0] or 0
+        return (f"<div class='bar-row'><span class='bar-label' style='width:150px'>{label}</span><span class='bar-track'><span class='bar-fill' style='width:{v:.0f}%;background:{color}'></span></span>"
+                f"<span class='bar-val'>{t[0] if t[0] is not None else '—'}%</span></div>")
+    cmp_html = ("<div class='card'><h3>累计正确率（前瞻实盘，自 " + (recs[-1]["day"] if recs else "—") + f" 起 {s['days']} 天）</h3>"
+                + bar("二区判定（10:30）", s["z2"], "var(--cyan)") + bar("二区 + 五区修正", s["final"], "var(--amber)")
+                + bar("对照：10:30 价位 vs 开盘", s["b1030"], "var(--dim)") + bar("对照：13:30 价位 vs 开盘", s["b1330"], "var(--dim)")
+                + bar("对照：永远说不会跌", s["always_up"], "var(--dim)")
+                + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天）：二区 63.4%，二区+修正 73.3%；对照 10:30 价位 71.2%、13:30 价位 82.4%、永远不会跌 54.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
+
+    # ---- 按月 + 逐日 ----
+    mrows = "".join(f"<tr><td>{mm}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
+                    f"<td class='b'>{round(v['final_ok'] / v['days'] * 100, 1) if v['days'] else '—'}%</td><td class='up'>{v['z2_ok']}</td><td class='down'>{v['z2_bad']}</td>"
+                    f"<td>{v['b1030_ok']}</td><td>{v['b1330_ok']}</td></tr>" for mm, v in sorted(s["months"].items(), reverse=True))
+    month_table = (f"<div class='card'><h3>按月统计</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>月份</th><th>天数</th><th>修正后 对</th><th>修正后 错</th><th>修正后 正确率</th>"
+                   f"<th>二区 对</th><th>二区 错</th><th>对照10:30 对</th><th>对照13:30 对</th></tr></thead><tbody>{mrows}</tbody></table></div></div>" if mrows else "")
 
     def mark(v):
         return "<span class='up'>✅</span>" if v is True else ("<span class='down'>❌</span>" if v is False else "<span class='muted'>—</span>")
-    from datetime import datetime as _dt
-    cur_m = _dt.now(CN_TZ).strftime("%Y-%m")
-    cm = s["months"].get(cur_m)
-    month_html = (f"<div class='card'><h3 class='blue'>本月（{cur_m}）截至今天</h3><div style='font-size:15px'>"
-                  f"已结算 <b>{cm['days']}</b> 天 ｜ 二区+五区修正：对 <b class='up'>{cm['final_ok']}</b> 错 <b class='down'>{cm['final_bad']}</b> ｜ "
-                  f"二区单独：对 <b class='up'>{cm['z2_ok']}</b> 错 <b class='down'>{cm['z2_bad']}</b> ｜ 对照 13:30 价位：对 {cm['b1330_ok']}</div></div>"
-                  if cm else f"<div class='card'><h3 class='blue'>本月（{cur_m}）截至今天</h3><div class='muted'>本月尚无已结算记录</div></div>")
-    mrows = "".join(f"<tr><td>{m}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
-                    f"<td>{round(v['final_ok'] / v['days'] * 100, 1) if v['days'] else '—'}%</td><td class='up'>{v['z2_ok']}</td><td class='down'>{v['z2_bad']}</td>"
-                    f"<td>{v['b1030_ok']}</td><td>{v['b1330_ok']}</td></tr>" for m, v in sorted(s["months"].items(), reverse=True))
-    month_table = (f"<div class='card'><h3>按月统计</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>月份</th><th>天数</th><th>修正后 对</th><th>修正后 错</th><th>修正后 正确率</th>"
-                   f"<th>二区 对</th><th>二区 错</th><th>对照10:30 对</th><th>对照13:30 对</th></tr></thead><tbody>{mrows}</tbody></table></div></div>" if mrows else "")
     rows = ""
     for r in recs:
         rows += (f"<tr><td>{r['day']}</td><td class='b'>{r.get('z2', '')}</td><td class='muted' style='text-align:left;white-space:normal'>{r.get('z2_reason', '')}</td>"
@@ -596,13 +706,15 @@ def erqu_body():
                  f"<td class='{'up' if r.get('actual') == '涨' else 'down' if r.get('actual') == '跌' else ''}'>{r.get('actual', '')}</td>"
                  f"<td>{mark(r.get('correct_z2'))}</td><td>{mark(r.get('correct_final'))}</td><td>{mark(r.get('correct_b1030'))}</td><td>{mark(r.get('correct_b1330'))}</td>"
                  f"<td class='muted' style='font-size:11px'>{r.get('judged_at', '')[11:]}/{r.get('fixed_at', '')[11:]}/{r.get('settled_at', '')[11:]}</td></tr>")
+    detail = (f"<details><summary>逐日记录（{len(recs)} 天）</summary><div class='tbl'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>判定/修正/结算</th></tr></thead><tbody>{rows or '<tr><td colspan=13 class=muted>尚无记录</td></tr>'}</tbody></table></div></details>")
+
     return f"""<div class='hd'><div><h1>二区定律 · 前瞻实盘记录</h1><div class='sub'>上证指数 ｜ 每个交易日 10:30 当场判定并推送、13:30 五区修正、收盘结算 ｜ 判定只用截止时刻之前的 K 线，事后不改</div></div></div>
-<div class='view'><b>规则：</b>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:30）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。</div>
-{kpis}
-{month_html}
+{score_html}
+{chart_html}
+{cmp_html}
 {month_table}
-<div class='card'><h3>回测参考（2023-01 ~ 2026-10，914 个交易日）</h3><p style='font-size:13px'>二区单独 63.4%，二区+五区修正 73.3%；对照组 10:30 价位 71.2%、13:30 价位 82.4%、永远说不会跌 54.4%。课程宣称 2024 年 87.96%，同期回测为 73.5%。详见 <code>experiments/erqu_result.json</code>。</p></div>
-<div class='card'><h3>逐日记录（{len(recs)} 天）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区对错</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>判定/修正/结算时间</th></tr></thead><tbody>{rows or "<tr><td colspan=13 class=muted>尚无记录，首个交易日 10:30 后出现</td></tr>"}</tbody></table></div></div>"""
+<details><summary>规则说明</summary><div class='card' style='border-radius:0 0 8px 8px'>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:30）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。全部判定自动执行，数据来源新浪财经。</div></details>
+{detail}"""
 
 
 def method_body():

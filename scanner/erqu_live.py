@@ -65,6 +65,11 @@ def classify_z2(d: pd.DataFrame):
     return loose, "形态模糊，按 10:30 收 vs 10:00 开 判定" if loose else "形态模糊且 10:30 与 10:00 持平，不预测"
 
 
+def bars_of(d: pd.DataFrame, upto: str):
+    x = d[d["hm"] <= upto]
+    return [[r["hm"], round(float(r["open"]), 2), round(float(r["high"]), 2), round(float(r["low"]), 2), round(float(r["close"]), 2)] for _, r in x.iterrows()]
+
+
 def load(day):
     p = OUT / f"{day}.json"
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"day": day}
@@ -94,6 +99,7 @@ def judge(day, force=False):
         "baseline_1030": "好" if at1030 > prov_open else ("坏" if at1030 < prov_open else "平"),
         "judged_at": now_cn().strftime("%Y-%m-%d %H:%M"),
         "bars_used_until": "10:30",
+        "bars": bars_of(d, "10:30"),
     })
     save(rec)
     return rec, True
@@ -129,6 +135,7 @@ def fix(day, force=False):
         "price_1330": at1330,
         "baseline_1330": "好" if at1330 > rec["open_provisional"] else ("坏" if at1330 < rec["open_provisional"] else "平"),
         "fixed_at": now_cn().strftime("%Y-%m-%d %H:%M"),
+        "bars": bars_of(d, "13:30"),
     })
     save(rec)
     return rec, True
@@ -156,6 +163,12 @@ def settle(day, force=False):
         return rec, False
     o, c = od
     final = rec.get("final", rec["z2"])
+    try:
+        d = fetch_5min_today(day)
+        if not d.empty:
+            rec["bars"] = bars_of(d, "15:00")
+    except Exception as e:
+        print(f"[警告] 收盘 K 线未能保存：{e}")
     rec.update({
         "open_official": o, "close_official": c,
         "actual": "涨" if c > o else ("跌" if c < o else "平"),
