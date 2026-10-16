@@ -212,9 +212,12 @@ def main():
             last = pd.read_csv(p)["date"].max().replace("-", "")
         start = last or "20080101"
         end = pd.Timestamp.today().strftime("%Y%m%d")
-        days = [d for d in trade_days(pro, start, end) if d > start]
-        print(f"续接：{start} 之后交易日 {len(days)} 个")
+        days = [d for d in trade_days(pro, start, end) if d >= start]  # 含最后一天：重拉一次以补齐当天未更新完的品种
+        print(f"续接：{start} 起交易日 {len(days)} 个")
         for d in days:
+            f = cache / "bydate" / d[:4] / f"{d}.csv"
+            if d == start and f.exists():
+                f.unlink()
             df = fetch_day(pro, d, cache)
             recs = day_weighted(df, SYMBOLS)
             for sym, rec in recs.items():
