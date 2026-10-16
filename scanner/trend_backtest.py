@@ -93,6 +93,28 @@ def indicators(df):
     d["sig_best"] = 0
     d.loc[gfs & (d["chg"] <= 2) & (d["oichg"].between(2, 5)), "sig_best"] = 1
     d.loc[bfm & (d["chg"] >= -2) & (d["oichg"].between(2, 5)), "sig_best"] = -1
+    # MACD 八策略：首发信号日，多=+1 空=-1；叠加形态：3 天内有同向 MACD 信号 且 当日同向 高富帅/白富美
+    try:
+        import macd8
+        rows_ = d[["date", "close"]].to_dict("records")
+        d["sig_macd"] = 0
+        d["macd_sid"] = 0
+        idx = {dt: i for i, dt in enumerate(d["date"])}
+        for sg in macd8.scan_series("X", "", "", rows_):
+            i = idx[sg["date"]]
+            v = 1 if sg["direction"] == "多" else -1
+            if d.at[i, "sig_macd"] == 0:
+                d.at[i, "sig_macd"] = v
+                d.at[i, "macd_sid"] = sg["sid"]
+        m = d["sig_macd"]
+        recent_long = (m.rolling(3).max() == 1)
+        recent_short = (m.rolling(3).min() == -1)
+        d["sig_macd_pat"] = 0
+        d.loc[recent_long & gfs, "sig_macd_pat"] = 1
+        d.loc[recent_short & bfm, "sig_macd_pat"] = -1
+    except Exception as e:  # noqa
+        d["sig_macd"] = 0
+        d["sig_macd_pat"] = 0
     d["sig_donchian"] = 0
     d.loc[d["close"] > d["hh20"], "sig_donchian"] = 1
     d.loc[d["close"] < d["ll20"], "sig_donchian"] = -1
@@ -277,7 +299,7 @@ def main():
     args = ap.parse_args()
     data = load(ROOT / args.data)
     print(f"载入 {len(data)} 个品种")
-    sigs = ["pattern", "best", "donchian"] if args.signal == "all" else [args.signal]
+    sigs = ["pattern", "best", "donchian", "macd", "macd_pat"] if args.signal == "all" else args.signal.split(",")
     res = {}
     for s in sigs:
         r = run(data, s, args.start, args.end, {"TIME_STOP": args.time_stop, "ENTRY_N": args.entry_n, "MA_N": args.ma_n, "ATR_K": args.atr_k, "EXIT_MA": args.exit_ma})

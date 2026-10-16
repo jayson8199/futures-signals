@@ -786,13 +786,14 @@ def cta_body():
     exp = Path(__file__).resolve().parent.parent / "experiments"
     files = [("pattern", "形态信号（高富帅/白富美 + 20日线）", exp / "trend_result.json"), ("best", "优选信号", exp / "trend_result.json"),
              ("donchian", "20日突破（基准）", exp / "trend_result.json"), ("d55", "55日突破 / 20日线离场", exp / "trend_d_55_20.json"),
-             ("d100", "100日突破 / 50日线离场", exp / "trend_d_100_50.json")]
+             ("d100", "100日突破 / 50日线离场", exp / "trend_d_100_50.json"),
+             ("macd", "MACD 八策略（任一首发信号）", exp / "trend_macd.json"), ("macd_pat", "MACD 信号 + 3 日内形态确认", exp / "trend_macd.json")]
     res = []
     for key, label, f in files:
         if not f.exists():
             continue
         j = _json.loads(f.read_text(encoding="utf-8"))
-        r = j.get(key) or j.get("donchian")
+        r = j.get(key) or (j.get("donchian") if key.startswith("d") else None)
         if r:
             res.append((label, r))
     if not res:
@@ -810,7 +811,7 @@ def cta_body():
     ytable = (f"<div class='card'><h3>分年收益</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>配置</th>{''.join(f'<th>{y}</th>' for y in years)}</tr></thead><tbody>{yrows}</tbody></table></div></div>")
     # 净值曲线
     W, H, L, R, T, B = 900, 300, 50, 12, 14, 28
-    colors = ["var(--cyan)", "var(--amber)", "var(--dim)", "var(--up)", "var(--down)"]
+    colors = ["var(--cyan)", "var(--amber)", "var(--dim)", "var(--up)", "var(--down)", "#8b5cf6", "#0ea5e9"]
     allv = [v for _, r in res for _, v, *_ in r["curve"]]
     lo, hi = min(allv) * 0.98, max(allv) * 1.02
     base = res[0][1]["curve"]
@@ -841,9 +842,20 @@ def cta_body():
                "<p>2. 所有配置都在 <b>2022 年 7 月见顶后进入长达约三年的回撤</b>，水下最长 1029 天——这与国内商品 CTA 行业 2022 下半年至 2024 年的普遍低迷一致，是趋势类策略的共同经历，不是某个信号的问题。</p>"
                "<p>3. 形态信号（高富帅/白富美）作为趋势进场<b>并不优于</b>最朴素的 20 日突破；优选过滤降低了波动和回撤，但收益同样薄。</p>"
                "<p>4. 典型形态：胜率 30~37%，盈亏比约 2，最长连亏 18~29 笔，平均持仓 7~20 天。即便在好年份（2020、2026），也要先熬过大量小亏。</p>"
-               "<p>5. 数据局限：主力连续合约在换月时有价格跳空，未做复权，会产生虚假信号和止损，<b>对结果有一定负面偏差</b>；真实合约级数据下表现可能略好，但不足以改变量级。</p>"
+               "<p>5. <b>MACD 八策略</b>：全部信号合起来做趋势进场，年化 -5.6%，是所有配置里最差的；叠加形态确认后笔数减四成、亏损减半（-2.1%），说明形态确实过滤掉了一部分坏信号，但没有把它变成正的。逐个看，只有「双绿柱底背离」略好于无条件做多，其余与随机无异。</p>"
+               "<p>6. 数据局限：主力连续合约在换月时有价格跳空，未做复权，会产生虚假信号和止损，<b>对结果有一定负面偏差</b>；真实合约级数据下表现可能略好，但不足以改变量级。</p>"
                "<p class='muted' style='font-size:12px'>回测脚本 scanner/trend_backtest.py，数据 data/long/，结果 experiments/trend_result*.json，可复现。</p></div>")
-    return head + table + curve + ytable + brk + verdict
+    ev_f = exp / "macd8_event.json"
+    ev_html = ""
+    if ev_f.exists():
+        ev = _json.loads(ev_f.read_text(encoding="utf-8"))
+        def cell(v, base):
+            m, w = v
+            return f"<td class='{'up' if m > base else 'down'}'>{m:+.2f}% / {w:.0f}%</td>"
+        erows = "".join(f"<tr><td style='text-align:left'>{sid}. {v['name']}</td><td>{v['dir']}</td><td>{v['n']}</td>{cell(v['fwd5'], 0.116 if v['dir'] == '多' else -0.116)}{cell(v['fwd10'], 0.234 if v['dir'] == '多' else -0.234)}{cell(v['fwd20'], 0.478 if v['dir'] == '多' else -0.478)}</tr>" for sid, v in sorted(ev.items(), key=lambda kv: int(kv[0])))
+        ev_html = ("<div class='card'><h3>MACD 八策略 · 单独看每一个（2018 年起，信号后 N 日方向收益 / 胜率）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th style='text-align:left'>策略</th><th>方向</th><th>次数</th><th>5 日</th><th>10 日</th><th>20 日</th></tr></thead>"
+                   f"<tbody>{erows}</tbody></table></div><div class='muted' style='font-size:11.5px;margin-top:8px'>对照：同期随便挑一天做多，5/10/20 日平均 +0.12% / +0.23% / +0.48%，胜率约 51%（商品整体上行漂移）；做空则取负。红色 = 好于对照，绿色 = 差于对照。只有 4 号「双绿柱底背离」略好于无条件做多；四个空头策略都没有跑赢「什么都不做」。</div></div>")
+    return head + table + curve + ytable + ev_html + brk + verdict
 
 
 def method_body():
