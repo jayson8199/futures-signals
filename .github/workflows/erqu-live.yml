@@ -61,6 +61,7 @@ jobs:
           git push
       - name: 触发网站重建
         if: steps.live.outputs.changed == 'true'
-        run: gh workflow run daily.yml -R ${{ github.repository }} --ref main || curl -sS -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" https://api.github.com/repos/${{ github.repository }}/actions/workflows/daily.yml/dispatches -d '{"ref":"main","inputs":{"rounds":"1"}}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST "repos/${{ github.repository }}/actions/workflows/daily.yml/dispatches" -f ref=main -f 'inputs[rounds]=1' -f 'inputs[force]=false'
