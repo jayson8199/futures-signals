@@ -1,0 +1,9363 @@
+{
+ "result": {
+  "days": 914,
+  "span": [
+   "2023-01-03",
+   "2026-10-15"
+  ],
+  "by_year": {
+   "2023": {
+    "strict": {
+     "n": 242,
+     "correct": 161,
+     "acc": 66.53,
+     "flat_days": 0
+    },
+    "strict+五区修正": {
+     "n": 242,
+     "correct": 184,
+     "acc": 76.03,
+     "flat_days": 0
+    },
+    "loose": {
+     "n": 242,
+     "correct": 159,
+     "acc": 65.7,
+     "flat_days": 0
+    },
+    "loose+五区修正": {
+     "n": 242,
+     "correct": 184,
+     "acc": 76.03,
+     "flat_days": 0
+    },
+    "基线A_10:30相对开盘同向": {
+     "n": 242,
+     "correct": 182,
+     "acc": 75.21
+    },
+    "基线B_永远说不会跌": {
+     "n": 242,
+     "correct": 121,
+     "acc": 50.0
+    },
+    "strict_硬判(平盘算错)": {
+     "n": 242,
+     "correct": 161,
+     "acc": 66.53
+    }
+   },
+   "2024": {
+    "strict": {
+     "n": 242,
+     "correct": 155,
+     "acc": 64.05,
+     "flat_days": 0
+    },
+    "strict+五区修正": {
+     "n": 242,
+     "correct": 178,
+     "acc": 73.55,
+     "flat_days": 0
+    },
+    "loose": {
+     "n": 242,
+     "correct": 157,
+     "acc": 64.88,
+     "flat_days": 0
+    },
+    "loose+五区修正": {
+     "n": 242,
+     "correct": 177,
+     "acc": 73.14,
+     "flat_days": 0
+    },
+    "基线A_10:30相对开盘同向": {
+     "n": 242,
+     "correct": 169,
+     "acc": 69.83
+    },
+    "基线B_永远说不会跌": {
+     "n": 242,
+     "correct": 122,
+     "acc": 50.41
+    },
+    "strict_硬判(平盘算错)": {
+     "n": 242,
+     "correct": 155,
+     "acc": 64.05
+    }
+   },
+   "2025": {
+    "strict": {
+     "n": 243,
+     "correct": 155,
+     "acc": 63.79,
+     "flat_days": 0
+    },
+    "strict+五区修正": {
+     "n": 243,
+     "correct": 173,
+     "acc": 71.19,
+     "flat_days": 0
+    },
+    "loose": {
+     "n": 243,
+     "correct": 154,
+     "acc": 63.37,
+     "flat_days": 0
+    },
+    "loose+五区修正": {
+     "n": 243,
+     "correct": 172,
+     "acc": 70.78,
+     "flat_days": 0
+    },
+    "基线A_10:30相对开盘同向": {
+     "n": 243,
+     "correct": 177,
+     "acc": 72.84
+    },
+    "基线B_永远说不会跌": {
+     "n": 243,
+     "correct": 146,
+     "acc": 60.08
+    },
+    "strict_硬判(平盘算错)": {
+     "n": 243,
+     "correct": 155,
+     "acc": 63.79
+    }
+   },
+   "2026": {
+    "strict": {
+     "n": 187,
+     "correct": 108,
+     "acc": 57.75,
+     "flat_days": 0
+    },
+    "strict+五区修正": {
+     "n": 187,
+     "correct": 135,
+     "acc": 72.19,
+     "flat_days": 0
+    },
+    "loose": {
+     "n": 187,
+     "correct": 104,
+     "acc": 55.61,
+     "flat_days": 0
+    },
+    "loose+五区修正": {
+     "n": 187,
+     "correct": 136,
+     "acc": 72.73,
+     "flat_days": 0
+    },
+    "基线A_10:30相对开盘同向": {
+     "n": 187,
+     "correct": 123,
+     "acc": 65.78
+    },
+    "基线B_永远说不会跌": {
+     "n": 187,
+     "correct": 108,
+     "acc": 57.75
+    },
+    "strict_硬判(平盘算错)": {
+     "n": 187,
+     "correct": 108,
+     "acc": 57.75
+    }
+   }
+  },
+  "all": {
+   "strict": {
+    "n": 914,
+    "correct": 579,
+    "acc": 63.35,
+    "flat_days": 0
+   },
+   "strict+五区修正": {
+    "n": 914,
+    "correct": 670,
+    "acc": 73.3,
+    "flat_days": 0
+   },
+   "loose": {
+    "n": 914,
+    "correct": 574,
+    "acc": 62.8,
+    "flat_days": 0
+   },
+   "loose+五区修正": {
+    "n": 914,
+    "correct": 669,
+    "acc": 73.19,
+    "flat_days": 0
+   },
+   "基线A_10:30相对开盘同向": {
+    "n": 914,
+    "correct": 651,
+    "acc": 71.23
+   },
+   "基线B_永远说不会跌": {
+    "n": 914,
+    "correct": 497,
+    "acc": 54.38
+   },
+   "strict_硬判(平盘算错)": {
+    "n": 914,
+    "correct": 579,
+    "acc": 63.35
+   }
+  },
+  "strict_distribution": {
+   "好": 368,
+   "坏": 336,
+   "模糊": 210
+  }
+ },
+ "rows": [
+  {
+   "open": 3087.513,
+   "close": 3116.5119,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3093.31,
+   "day": "2023-01-03"
+  },
+  {
+   "open": 3117.5711,
+   "close": 3123.5164,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3127.29,
+   "day": "2023-01-04"
+  },
+  {
+   "open": 3132.7614,
+   "close": 3155.2162,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3147.1,
+   "day": "2023-01-05"
+  },
+  {
+   "open": 3155.0747,
+   "close": 3157.6365,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3158.3,
+   "day": "2023-01-06"
+  },
+  {
+   "open": 3169.3737,
+   "close": 3176.0845,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3176.977,
+   "day": "2023-01-09"
+  },
+  {
+   "open": 3178.022,
+   "close": 3169.5072,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3166.532,
+   "day": "2023-01-10"
+  },
+  {
+   "open": 3172.3759,
+   "close": 3161.8376,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3183.229,
+   "day": "2023-01-11"
+  },
+  {
+   "open": 3167.273,
+   "close": 3163.4509,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3160.355,
+   "day": "2023-01-12"
+  },
+  {
+   "open": 3170.3548,
+   "close": 3195.3059,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3174.816,
+   "day": "2023-01-13"
+  },
+  {
+   "open": 3198.5189,
+   "close": 3227.5916,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3232.134,
+   "day": "2023-01-16"
+  },
+  {
+   "open": 3229.4354,
+   "close": 3224.2448,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3219.917,
+   "day": "2023-01-17"
+  },
+  {
+   "open": 3227.5947,
+   "close": 3224.406,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3226.511,
+   "day": "2023-01-18"
+  },
+  {
+   "open": 3221.5179,
+   "close": 3240.2794,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3217.316,
+   "day": "2023-01-19"
+  },
+  {
+   "open": 3247.2031,
+   "close": 3264.8138,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3260.111,
+   "day": "2023-01-20"
+  },
+  {
+   "open": 3308.8694,
+   "close": 3269.318,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3286.703,
+   "day": "2023-01-30"
+  },
+  {
+   "open": 3266.1442,
+   "close": 3255.6692,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3268.2,
+   "day": "2023-01-31"
+  },
+  {
+   "open": 3262.1961,
+   "close": 3284.9213,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3253.899,
+   "day": "2023-02-01"
+  },
+  {
+   "open": 3291.7828,
+   "close": 3285.6705,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3282.95,
+   "day": "2023-02-02"
+  },
+  {
+   "open": 3275.6578,
+   "close": 3263.4059,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3251.349,
+   "day": "2023-02-03"
+  },
+  {
+   "open": 3244.7007,
+   "close": 3238.6978,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3235.973,
+   "day": "2023-02-06"
+  },
+  {
+   "open": 3245.2297,
+   "close": 3248.094,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3246.199,
+   "day": "2023-02-07"
+  },
+  {
+   "open": 3251.5006,
+   "close": 3232.1063,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3245.559,
+   "day": "2023-02-08"
+  },
+  {
+   "open": 3227.7278,
+   "close": 3270.3826,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3259.82,
+   "day": "2023-02-09"
+  },
+  {
+   "open": 3266.4367,
+   "close": 3260.6734,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3266.349,
+   "day": "2023-02-10"
+  },
+  {
+   "open": 3256.9881,
+   "close": 3284.1599,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3268.904,
+   "day": "2023-02-13"
+  },
+  {
+   "open": 3288.9742,
+   "close": 3293.2825,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3288.047,
+   "day": "2023-02-14"
+  },
+  {
+   "open": 3294.015,
+   "close": 3280.4919,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3278.725,
+   "day": "2023-02-15"
+  },
+  {
+   "open": 3281.7352,
+   "close": 3249.0295,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3305.566,
+   "day": "2023-02-16"
+  },
+  {
+   "open": 3244.7325,
+   "close": 3224.0243,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3256.463,
+   "day": "2023-02-17"
+  },
+  {
+   "open": 3230.4728,
+   "close": 3290.3383,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3248.67,
+   "day": "2023-02-20"
+  },
+  {
+   "open": 3291.6312,
+   "close": 3306.5236,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3305.402,
+   "day": "2023-02-21"
+  },
+  {
+   "open": 3292.0489,
+   "close": 3291.1477,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3296.815,
+   "day": "2023-02-22"
+  },
+  {
+   "open": 3293.5219,
+   "close": 3287.477,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3290.139,
+   "day": "2023-02-23"
+  },
+  {
+   "open": 3287.2553,
+   "close": 3267.1597,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3270.069,
+   "day": "2023-02-24"
+  },
+  {
+   "open": 3256.9998,
+   "close": 3258.0344,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3267.083,
+   "day": "2023-02-27"
+  },
+  {
+   "open": 3265.742,
+   "close": 3279.6053,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3262.386,
+   "day": "2023-02-28"
+  },
+  {
+   "open": 3279.1364,
+   "close": 3312.3478,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3299.728,
+   "day": "2023-03-01"
+  },
+  {
+   "open": 3308.0113,
+   "close": 3310.6536,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3319.592,
+   "day": "2023-03-02"
+  },
+  {
+   "open": 3314.7727,
+   "close": 3328.3927,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3315.009,
+   "day": "2023-03-03"
+  },
+  {
+   "open": 3332.0235,
+   "close": 3322.0259,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3311.969,
+   "day": "2023-03-06"
+  },
+  {
+   "open": 3320.211,
+   "close": 3285.0988,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3336.34,
+   "day": "2023-03-07"
+  },
+  {
+   "open": 3271.8798,
+   "close": 3283.2479,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3279.712,
+   "day": "2023-03-08"
+  },
+  {
+   "open": 3285.9427,
+   "close": 3276.0937,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3278.654,
+   "day": "2023-03-09"
+  },
+  {
+   "open": 3255.5121,
+   "close": 3230.0766,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3246.574,
+   "day": "2023-03-10"
+  },
+  {
+   "open": 3228.1239,
+   "close": 3268.6955,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3244.095,
+   "day": "2023-03-13"
+  },
+  {
+   "open": 3261.9219,
+   "close": 3245.3123,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3249.55,
+   "day": "2023-03-14"
+  },
+  {
+   "open": 3261.0284,
+   "close": 3263.3148,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3266.796,
+   "day": "2023-03-15"
+  },
+  {
+   "open": 3244.4699,
+   "close": 3226.8912,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3247.901,
+   "day": "2023-03-16"
+  },
+  {
+   "open": 3245.2604,
+   "close": 3250.546,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3255.432,
+   "day": "2023-03-17"
+  },
+  {
+   "open": 3253.9302,
+   "close": 3234.9103,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3259.415,
+   "day": "2023-03-20"
+  },
+  {
+   "open": 3240.8388,
+   "close": 3255.6505,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3241.962,
+   "day": "2023-03-21"
+  },
+  {
+   "open": 3263.4129,
+   "close": 3265.7475,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3275.037,
+   "day": "2023-03-22"
+  },
+  {
+   "open": 3258.7791,
+   "close": 3286.6491,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3272.133,
+   "day": "2023-03-23"
+  },
+  {
+   "open": 3282.739,
+   "close": 3265.6537,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3271.104,
+   "day": "2023-03-24"
+  },
+  {
+   "open": 3261.8235,
+   "close": 3251.3971,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3245.69,
+   "day": "2023-03-27"
+  },
+  {
+   "open": 3256.6023,
+   "close": 3245.376,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3250.743,
+   "day": "2023-03-28"
+  },
+  {
+   "open": 3253.6212,
+   "close": 3240.0568,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3237.243,
+   "day": "2023-03-29"
+  },
+  {
+   "open": 3243.0683,
+   "close": 3261.2485,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3237.677,
+   "day": "2023-03-30"
+  },
+  {
+   "open": 3263.4061,
+   "close": 3272.8602,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3272.73,
+   "day": "2023-03-31"
+  },
+  {
+   "open": 3277.34,
+   "close": 3296.396,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3280.531,
+   "day": "2023-04-03"
+  },
+  {
+   "open": 3297.183,
+   "close": 3312.5578,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3305.808,
+   "day": "2023-04-04"
+  },
+  {
+   "open": 3302.751,
+   "close": 3312.628,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3312.755,
+   "day": "2023-04-06"
+  },
+  {
+   "open": 3312.4813,
+   "close": 3327.6457,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3326.432,
+   "day": "2023-04-07"
+  },
+  {
+   "open": 3331.5051,
+   "close": 3315.3578,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3326.756,
+   "day": "2023-04-10"
+  },
+  {
+   "open": 3317.0771,
+   "close": 3313.5705,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3311.907,
+   "day": "2023-04-11"
+  },
+  {
+   "open": 3316.8623,
+   "close": 3327.1816,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3327.447,
+   "day": "2023-04-12"
+  },
+  {
+   "open": 3321.2733,
+   "close": 3318.3638,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3322.859,
+   "day": "2023-04-13"
+  },
+  {
+   "open": 3326.3704,
+   "close": 3338.1525,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3322.289,
+   "day": "2023-04-14"
+  },
+  {
+   "open": 3337.0605,
+   "close": 3385.6095,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3363.238,
+   "day": "2023-04-17"
+  },
+  {
+   "open": 3379.2267,
+   "close": 3393.3312,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3383.595,
+   "day": "2023-04-18"
+  },
+  {
+   "open": 3391.3549,
+   "close": 3370.1283,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3383.997,
+   "day": "2023-04-19"
+  },
+  {
+   "open": 3367.0525,
+   "close": 3367.031,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3351.692,
+   "day": "2023-04-20"
+  },
+  {
+   "open": 3363.9987,
+   "close": 3301.2575,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3356.202,
+   "day": "2023-04-21"
+  },
+  {
+   "open": 3300.8125,
+   "close": 3275.413,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3294.929,
+   "day": "2023-04-24"
+  },
+  {
+   "open": 3276.403,
+   "close": 3264.8717,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3264.318,
+   "day": "2023-04-25"
+  },
+  {
+   "open": 3255.2171,
+   "close": 3264.1006,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3247.76,
+   "day": "2023-04-26"
+  },
+  {
+   "open": 3256.2278,
+   "close": 3285.8844,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3276.182,
+   "day": "2023-04-27"
+  },
+  {
+   "open": 3283.1224,
+   "close": 3323.2746,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3309.846,
+   "day": "2023-04-28"
+  },
+  {
+   "open": 3306.4827,
+   "close": 3350.4587,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3343.489,
+   "day": "2023-05-04"
+  },
+  {
+   "open": 3350.6538,
+   "close": 3334.5028,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3329.103,
+   "day": "2023-05-05"
+  },
+  {
+   "open": 3340.9904,
+   "close": 3395.0036,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3378.262,
+   "day": "2023-05-08"
+  },
+  {
+   "open": 3402.3938,
+   "close": 3357.6707,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3407.73,
+   "day": "2023-05-09"
+  },
+  {
+   "open": 3347.7015,
+   "close": 3319.1506,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3323.051,
+   "day": "2023-05-10"
+  },
+  {
+   "open": 3323.6583,
+   "close": 3309.5512,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3316.008,
+   "day": "2023-05-11"
+  },
+  {
+   "open": 3304.4582,
+   "close": 3272.3619,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3294.968,
+   "day": "2023-05-12"
+  },
+  {
+   "open": 3269.8781,
+   "close": 3310.7367,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3247.5615,
+   "day": "2023-05-15"
+  },
+  {
+   "open": 3310.1607,
+   "close": 3290.9874,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3310.1345,
+   "day": "2023-05-16"
+  },
+  {
+   "open": 3281.9664,
+   "close": 3284.232,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3286.824,
+   "day": "2023-05-17"
+  },
+  {
+   "open": 3288.4112,
+   "close": 3297.3199,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3302.9365,
+   "day": "2023-05-18"
+  },
+  {
+   "open": 3288.8911,
+   "close": 3283.5417,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3283.2744,
+   "day": "2023-05-19"
+  },
+  {
+   "open": 3278.596,
+   "close": 3296.4696,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3308.5325,
+   "day": "2023-05-22"
+  },
+  {
+   "open": 3294.7877,
+   "close": 3246.238,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3272.2393,
+   "day": "2023-05-23"
+  },
+  {
+   "open": 3237.7045,
+   "close": 3204.7494,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3210.9758,
+   "day": "2023-05-24"
+  },
+  {
+   "open": 3197.3644,
+   "close": 3201.2605,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3202.4922,
+   "day": "2023-05-25"
+  },
+  {
+   "open": 3198.8825,
+   "close": 3212.5038,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3184.8672,
+   "day": "2023-05-26"
+  },
+  {
+   "open": 3219.7553,
+   "close": 3221.4484,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3224.5056,
+   "day": "2023-05-29"
+  },
+  {
+   "open": 3214.6728,
+   "close": 3224.2133,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3215.0928,
+   "day": "2023-05-30"
+  },
+  {
+   "open": 3214.6551,
+   "close": 3204.5644,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3204.4102,
+   "day": "2023-05-31"
+  },
+  {
+   "open": 3196.1547,
+   "close": 3204.6345,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3210.5366,
+   "day": "2023-06-01"
+  },
+  {
+   "open": 3212.4489,
+   "close": 3230.0686,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3221.0637,
+   "day": "2023-06-02"
+  },
+  {
+   "open": 3231.8108,
+   "close": 3232.441,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3237.6235,
+   "day": "2023-06-05"
+  },
+  {
+   "open": 3228.4068,
+   "close": 3195.3404,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3239.3499,
+   "day": "2023-06-06"
+  },
+  {
+   "open": 3197.4677,
+   "close": 3197.7587,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3209.9082,
+   "day": "2023-06-07"
+  },
+  {
+   "open": 3194.8348,
+   "close": 3213.5855,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3201.856,
+   "day": "2023-06-08"
+  },
+  {
+   "open": 3213.033,
+   "close": 3231.4055,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3208.5686,
+   "day": "2023-06-09"
+  },
+  {
+   "open": 3225.3049,
+   "close": 3228.8336,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3224.5015,
+   "day": "2023-06-12"
+  },
+  {
+   "open": 3223.8958,
+   "close": 3233.6734,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3221.1504,
+   "day": "2023-06-13"
+  },
+  {
+   "open": 3238.1189,
+   "close": 3228.9887,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3240.5193,
+   "day": "2023-06-14"
+  },
+  {
+   "open": 3230.4512,
+   "close": 3252.9751,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3233.914,
+   "day": "2023-06-15"
+  },
+  {
+   "open": 3256.2989,
+   "close": 3273.3341,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3262.1018,
+   "day": "2023-06-16"
+  },
+  {
+   "open": 3271.1635,
+   "close": 3255.8057,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3255.937,
+   "day": "2023-06-19"
+  },
+  {
+   "open": 3252.5435,
+   "close": 3240.3648,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3243.6292,
+   "day": "2023-06-20"
+  },
+  {
+   "open": 3230.1142,
+   "close": 3197.9011,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3234.0996,
+   "day": "2023-06-21"
+  },
+  {
+   "open": 3177.2293,
+   "close": 3150.6189,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3157.6946,
+   "day": "2023-06-26"
+  },
+  {
+   "open": 3153.3132,
+   "close": 3189.4427,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3163.25,
+   "day": "2023-06-27"
+  },
+  {
+   "open": 3183.4865,
+   "close": 3189.3758,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3168.1113,
+   "day": "2023-06-28"
+  },
+  {
+   "open": 3185.4242,
+   "close": 3182.3812,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3188.0945,
+   "day": "2023-06-29"
+  },
+  {
+   "open": 3178.9242,
+   "close": 3202.0623,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3195.0332,
+   "day": "2023-06-30"
+  },
+  {
+   "open": 3209.1623,
+   "close": 3243.975,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3224.193,
+   "day": "2023-07-03"
+  },
+  {
+   "open": 3241.2305,
+   "close": 3245.3492,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3244.369,
+   "day": "2023-07-04"
+  },
+  {
+   "open": 3240.0486,
+   "close": 3222.9469,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3231.7996,
+   "day": "2023-07-05"
+  },
+  {
+   "open": 3215.8633,
+   "close": 3205.5748,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3228.3433,
+   "day": "2023-07-06"
+  },
+  {
+   "open": 3197.4716,
+   "close": 3196.6092,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3196.8877,
+   "day": "2023-07-07"
+  },
+  {
+   "open": 3208.7349,
+   "close": 3203.6958,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3208.2754,
+   "day": "2023-07-10"
+  },
+  {
+   "open": 3211.1222,
+   "close": 3221.3666,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3206.1235,
+   "day": "2023-07-11"
+  },
+  {
+   "open": 3220.3758,
+   "close": 3196.1337,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3218.2576,
+   "day": "2023-07-12"
+  },
+  {
+   "open": 3202.6992,
+   "close": 3236.48,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3221.485,
+   "day": "2023-07-13"
+  },
+  {
+   "open": 3240.9695,
+   "close": 3237.7012,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3241.4824,
+   "day": "2023-07-14"
+  },
+  {
+   "open": 3219.0162,
+   "close": 3209.6298,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3202.6426,
+   "day": "2023-07-17"
+  },
+  {
+   "open": 3206.786,
+   "close": 3197.8201,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3193.0608,
+   "day": "2023-07-18"
+  },
+  {
+   "open": 3195.0085,
+   "close": 3198.8358,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3192.6455,
+   "day": "2023-07-19"
+  },
+  {
+   "open": 3201.9111,
+   "close": 3169.522,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3197.7493,
+   "day": "2023-07-20"
+  },
+  {
+   "open": 3163.421,
+   "close": 3167.7452,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3182.0398,
+   "day": "2023-07-21"
+  },
+  {
+   "open": 3157.4694,
+   "close": 3164.1608,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3176.1626,
+   "day": "2023-07-24"
+  },
+  {
+   "open": 3201.4575,
+   "close": 3231.5213,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3212.1191,
+   "day": "2023-07-25"
+  },
+  {
+   "open": 3228.0873,
+   "close": 3223.0279,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3224.1467,
+   "day": "2023-07-26"
+  },
+  {
+   "open": 3225.4763,
+   "close": 3216.6709,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3240.5132,
+   "day": "2023-07-27"
+  },
+  {
+   "open": 3206.741,
+   "close": 3275.9257,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3214.8635,
+   "day": "2023-07-28"
+  },
+  {
+   "open": 3287.2089,
+   "close": 3291.0398,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3297.2068,
+   "day": "2023-07-31"
+  },
+  {
+   "open": 3288.7604,
+   "close": 3290.9493,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3298.4236,
+   "day": "2023-08-01"
+  },
+  {
+   "open": 3281.8583,
+   "close": 3261.6903,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3276.134,
+   "day": "2023-08-02"
+  },
+  {
+   "open": 3254.5651,
+   "close": 3280.4626,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3259.2375,
+   "day": "2023-08-03"
+  },
+  {
+   "open": 3296.0944,
+   "close": 3288.0842,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3297.7405,
+   "day": "2023-08-04"
+  },
+  {
+   "open": 3276.7756,
+   "close": 3268.8311,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3266.7861,
+   "day": "2023-08-07"
+  },
+  {
+   "open": 3260.7218,
+   "close": 3260.6196,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3252.6409,
+   "day": "2023-08-08"
+  },
+  {
+   "open": 3251.1521,
+   "close": 3244.4867,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3247.5247,
+   "day": "2023-08-09"
+  },
+  {
+   "open": 3242.2057,
+   "close": 3254.5597,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3254.559,
+   "day": "2023-08-10"
+  },
+  {
+   "open": 3254.4751,
+   "close": 3189.248,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3232.2751,
+   "day": "2023-08-11"
+  },
+  {
+   "open": 3159.7138,
+   "close": 3178.4272,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3160.709,
+   "day": "2023-08-14"
+  },
+  {
+   "open": 3180.5579,
+   "close": 3176.1758,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3177.349,
+   "day": "2023-08-15"
+  },
+  {
+   "open": 3164.7019,
+   "close": 3150.1277,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3154.1162,
+   "day": "2023-08-16"
+  },
+  {
+   "open": 3137.3514,
+   "close": 3163.7393,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3145.8323,
+   "day": "2023-08-17"
+  },
+  {
+   "open": 3165.0998,
+   "close": 3131.953,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3170.6982,
+   "day": "2023-08-18"
+  },
+  {
+   "open": 3125.9897,
+   "close": 3092.9777,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3130.4136,
+   "day": "2023-08-21"
+  },
+  {
+   "open": 3103.7807,
+   "close": 3120.3338,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3103.7163,
+   "day": "2023-08-22"
+  },
+  {
+   "open": 3116.2661,
+   "close": 3078.4021,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3100.5576,
+   "day": "2023-08-23"
+  },
+  {
+   "open": 3085.9107,
+   "close": 3082.2439,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3074.6665,
+   "day": "2023-08-24"
+  },
+  {
+   "open": 3068.615,
+   "close": 3064.0747,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3075.9568,
+   "day": "2023-08-25"
+  },
+  {
+   "open": 3219.0432,
+   "close": 3098.6363,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3135.7356,
+   "day": "2023-08-28"
+  },
+  {
+   "open": 3091.9379,
+   "close": 3135.8867,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3109.5583,
+   "day": "2023-08-29"
+  },
+  {
+   "open": 3144.4067,
+   "close": 3137.1375,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3143.1692,
+   "day": "2023-08-30"
+  },
+  {
+   "open": 3134.5529,
+   "close": 3119.8764,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3130.5498,
+   "day": "2023-08-31"
+  },
+  {
+   "open": 3126.0234,
+   "close": 3133.2467,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3140.7773,
+   "day": "2023-09-01"
+  },
+  {
+   "open": 3145.9435,
+   "close": 3177.0603,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3170.3557,
+   "day": "2023-09-04"
+  },
+  {
+   "open": 3169.7384,
+   "close": 3154.3693,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3156.5723,
+   "day": "2023-09-05"
+  },
+  {
+   "open": 3147.1363,
+   "close": 3158.0769,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3147.3867,
+   "day": "2023-09-06"
+  },
+  {
+   "open": 3152.2028,
+   "close": 3122.3523,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3149.3074,
+   "day": "2023-09-07"
+  },
+  {
+   "open": 3114.2296,
+   "close": 3116.7191,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3109.3467,
+   "day": "2023-09-08"
+  },
+  {
+   "open": 3119.6101,
+   "close": 3142.779,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3130.3506,
+   "day": "2023-09-11"
+  },
+  {
+   "open": 3140.3409,
+   "close": 3137.0593,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3137.9932,
+   "day": "2023-09-12"
+  },
+  {
+   "open": 3137.7718,
+   "close": 3123.0669,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3122.3408,
+   "day": "2023-09-13"
+  },
+  {
+   "open": 3124.8482,
+   "close": 3126.5511,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3121.4941,
+   "day": "2023-09-14"
+  },
+  {
+   "open": 3133.5883,
+   "close": 3117.7434,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3140.135,
+   "day": "2023-09-15"
+  },
+  {
+   "open": 3110.4404,
+   "close": 3125.9319,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3122.4187,
+   "day": "2023-09-18"
+  },
+  {
+   "open": 3123.9862,
+   "close": 3124.9567,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3121.2954,
+   "day": "2023-09-19"
+  },
+  {
+   "open": 3118.6671,
+   "close": 3108.5679,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3116.5908,
+   "day": "2023-09-20"
+  },
+  {
+   "open": 3103.1754,
+   "close": 3084.701,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3094.8064,
+   "day": "2023-09-21"
+  },
+  {
+   "open": 3084.7567,
+   "close": 3132.4316,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3095.387,
+   "day": "2023-09-22"
+  },
+  {
+   "open": 3131.2079,
+   "close": 3115.6071,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3120.1252,
+   "day": "2023-09-25"
+  },
+  {
+   "open": 3114.0214,
+   "close": 3102.2726,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3113.2861,
+   "day": "2023-09-26"
+  },
+  {
+   "open": 3104.0395,
+   "close": 3107.3156,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3111.423,
+   "day": "2023-09-27"
+  },
+  {
+   "open": 3117.7549,
+   "close": 3110.4753,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3108.2168,
+   "day": "2023-09-28"
+  },
+  {
+   "open": 3099.9998,
+   "close": 3096.9224,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3093.2124,
+   "day": "2023-10-09"
+  },
+  {
+   "open": 3104.3651,
+   "close": 3075.2361,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3088.4324,
+   "day": "2023-10-10"
+  },
+  {
+   "open": 3085.6989,
+   "close": 3078.9556,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3092.7654,
+   "day": "2023-10-11"
+  },
+  {
+   "open": 3101.7051,
+   "close": 3107.9007,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3094.5227,
+   "day": "2023-10-12"
+  },
+  {
+   "open": 3091.9972,
+   "close": 3088.0991,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3089.0786,
+   "day": "2023-10-13"
+  },
+  {
+   "open": 3091.0647,
+   "close": 3073.813,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3073.7908,
+   "day": "2023-10-16"
+  },
+  {
+   "open": 3076.4283,
+   "close": 3083.4964,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3066.8228,
+   "day": "2023-10-17"
+  },
+  {
+   "open": 3076.5796,
+   "close": 3058.7098,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3070.854,
+   "day": "2023-10-18"
+  },
+  {
+   "open": 3043.1955,
+   "close": 3005.3934,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3036.6582,
+   "day": "2023-10-19"
+  },
+  {
+   "open": 2995.3575,
+   "close": 2983.0585,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2992.837,
+   "day": "2023-10-20"
+  },
+  {
+   "open": 2969.7858,
+   "close": 2939.2913,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2955.0159,
+   "day": "2023-10-23"
+  },
+  {
+   "open": 2944.3105,
+   "close": 2962.2437,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2955.131,
+   "day": "2023-10-24"
+  },
+  {
+   "open": 2986.4066,
+   "close": 2974.1135,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2985.8271,
+   "day": "2023-10-25"
+  },
+  {
+   "open": 2960.1038,
+   "close": 2988.2992,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2961.199,
+   "day": "2023-10-26"
+  },
+  {
+   "open": 2978.4026,
+   "close": 3017.7842,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3001.2932,
+   "day": "2023-10-27"
+  },
+  {
+   "open": 3009.6104,
+   "close": 3021.5534,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3003.2178,
+   "day": "2023-10-30"
+  },
+  {
+   "open": 3019.646,
+   "close": 3018.7706,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3011.3647,
+   "day": "2023-10-31"
+  },
+  {
+   "open": 3038.1821,
+   "close": 3023.0765,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3017.444,
+   "day": "2023-11-01"
+  },
+  {
+   "open": 3028.6647,
+   "close": 3009.4058,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3020.5413,
+   "day": "2023-11-02"
+  },
+  {
+   "open": 3012.4654,
+   "close": 3030.7977,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3030.2017,
+   "day": "2023-11-03"
+  },
+  {
+   "open": 3047.1301,
+   "close": 3058.4105,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3046.84,
+   "day": "2023-11-06"
+  },
+  {
+   "open": 3052.9202,
+   "close": 3057.2697,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3046.9575,
+   "day": "2023-11-07"
+  },
+  {
+   "open": 3051.1531,
+   "close": 3052.3726,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3059.9932,
+   "day": "2023-11-08"
+  },
+  {
+   "open": 3047.6532,
+   "close": 3053.2792,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3051.99,
+   "day": "2023-11-09"
+  },
+  {
+   "open": 3043.5585,
+   "close": 3038.9699,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3029.1792,
+   "day": "2023-11-10"
+  },
+  {
+   "open": 3044.0319,
+   "close": 3046.5329,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3034.5664,
+   "day": "2023-11-13"
+  },
+  {
+   "open": 3046.8171,
+   "close": 3056.0703,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3049.7258,
+   "day": "2023-11-14"
+  },
+  {
+   "open": 3077.0291,
+   "close": 3072.8348,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3070.964,
+   "day": "2023-11-15"
+  },
+  {
+   "open": 3066.8554,
+   "close": 3050.9257,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3056.695,
+   "day": "2023-11-16"
+  },
+  {
+   "open": 3043.617,
+   "close": 3054.3655,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3039.9036,
+   "day": "2023-11-17"
+  },
+  {
+   "open": 3056.9268,
+   "close": 3068.3191,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3050.6025,
+   "day": "2023-11-20"
+  },
+  {
+   "open": 3074.8281,
+   "close": 3067.9328,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3079.7776,
+   "day": "2023-11-21"
+  },
+  {
+   "open": 3060.4984,
+   "close": 3043.611,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3063.2612,
+   "day": "2023-11-22"
+  },
+  {
+   "open": 3041.6779,
+   "close": 3061.8562,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3044.92,
+   "day": "2023-11-23"
+  },
+  {
+   "open": 3060.3306,
+   "close": 3040.9717,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3052.4304,
+   "day": "2023-11-24"
+  },
+  {
+   "open": 3038.1864,
+   "close": 3031.7002,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3023.0183,
+   "day": "2023-11-27"
+  },
+  {
+   "open": 3028.5983,
+   "close": 3038.5545,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3033.982,
+   "day": "2023-11-28"
+  },
+  {
+   "open": 3038.4641,
+   "close": 3021.6874,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3034.5117,
+   "day": "2023-11-29"
+  },
+  {
+   "open": 3021.1025,
+   "close": 3029.6727,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3023.6538,
+   "day": "2023-11-30"
+  },
+  {
+   "open": 3027.353,
+   "close": 3031.6358,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3018.421,
+   "day": "2023-12-01"
+  },
+  {
+   "open": 3033.298,
+   "close": 3022.9138,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3032.652,
+   "day": "2023-12-04"
+  },
+  {
+   "open": 3017.0102,
+   "close": 2972.2959,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3005.4048,
+   "day": "2023-12-05"
+  },
+  {
+   "open": 2966.9475,
+   "close": 2968.9334,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2968.6067,
+   "day": "2023-12-06"
+  },
+  {
+   "open": 2965.6523,
+   "close": 2966.2061,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2954.923,
+   "day": "2023-12-07"
+  },
+  {
+   "open": 2965.3901,
+   "close": 2969.5594,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2978.6404,
+   "day": "2023-12-08"
+  },
+  {
+   "open": 2956.2905,
+   "close": 2991.4385,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2945.5618,
+   "day": "2023-12-11"
+  },
+  {
+   "open": 2986.3282,
+   "close": 3003.4378,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2991.1956,
+   "day": "2023-12-12"
+  },
+  {
+   "open": 2997.3358,
+   "close": 2968.7606,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2988.287,
+   "day": "2023-12-13"
+  },
+  {
+   "open": 2979.699,
+   "close": 2958.9856,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2974.0034,
+   "day": "2023-12-14"
+  },
+  {
+   "open": 2966.3015,
+   "close": 2942.5568,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2973.021,
+   "day": "2023-12-15"
+  },
+  {
+   "open": 2936.5751,
+   "close": 2930.8036,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2941.1313,
+   "day": "2023-12-18"
+  },
+  {
+   "open": 2928.7631,
+   "close": 2932.3908,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2929.5657,
+   "day": "2023-12-19"
+  },
+  {
+   "open": 2932.1186,
+   "close": 2902.1096,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2929.605,
+   "day": "2023-12-20"
+  },
+  {
+   "open": 2892.0201,
+   "close": 2918.7149,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2890.2083,
+   "day": "2023-12-21"
+  },
+  {
+   "open": 2919.2879,
+   "close": 2914.7752,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2911.3672,
+   "day": "2023-12-22"
+  },
+  {
+   "open": 2909.8751,
+   "close": 2918.8126,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2908.1418,
+   "day": "2023-12-25"
+  },
+  {
+   "open": 2917.9708,
+   "close": 2898.8787,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2900.3445,
+   "day": "2023-12-26"
+  },
+  {
+   "open": 2900.1491,
+   "close": 2914.6138,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2894.7205,
+   "day": "2023-12-27"
+  },
+  {
+   "open": 2913.1096,
+   "close": 2954.7035,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2931.651,
+   "day": "2023-12-28"
+  },
+  {
+   "open": 2950.8372,
+   "close": 2974.9348,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2968.4988,
+   "day": "2023-12-29"
+  },
+  {
+   "open": 2972.775,
+   "close": 2962.2762,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2971.08,
+   "day": "2024-01-02"
+  },
+  {
+   "open": 2957.1117,
+   "close": 2967.2472,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2963.131,
+   "day": "2024-01-03"
+  },
+  {
+   "open": 2965.5087,
+   "close": 2954.3486,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2951.0325,
+   "day": "2024-01-04"
+  },
+  {
+   "open": 2949.8221,
+   "close": 2929.1833,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2964.428,
+   "day": "2024-01-05"
+  },
+  {
+   "open": 2923.457,
+   "close": 2887.5379,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2897.5427,
+   "day": "2024-01-08"
+  },
+  {
+   "open": 2887.1095,
+   "close": 2893.2513,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2896.209,
+   "day": "2024-01-09"
+  },
+  {
+   "open": 2886.9807,
+   "close": 2877.7023,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2892.076,
+   "day": "2024-01-10"
+  },
+  {
+   "open": 2873.7982,
+   "close": 2886.6502,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2879.1702,
+   "day": "2024-01-11"
+  },
+  {
+   "open": 2880.0399,
+   "close": 2881.9769,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2900.0024,
+   "day": "2024-01-12"
+  },
+  {
+   "open": 2872.5562,
+   "close": 2886.2908,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2894.9604,
+   "day": "2024-01-15"
+  },
+  {
+   "open": 2881.5602,
+   "close": 2893.9886,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2891.5708,
+   "day": "2024-01-16"
+  },
+  {
+   "open": 2887.2917,
+   "close": 2833.6152,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2872.8098,
+   "day": "2024-01-17"
+  },
+  {
+   "open": 2822.6672,
+   "close": 2845.7839,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2795.0796,
+   "day": "2024-01-18"
+  },
+  {
+   "open": 2836.9749,
+   "close": 2832.2793,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2834.4956,
+   "day": "2024-01-19"
+  },
+  {
+   "open": 2826.5034,
+   "close": 2756.3399,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2814.9985,
+   "day": "2024-01-22"
+  },
+  {
+   "open": 2746.8923,
+   "close": 2770.9763,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2756.0366,
+   "day": "2024-01-23"
+  },
+  {
+   "open": 2782.1415,
+   "close": 2820.7719,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2771.689,
+   "day": "2024-01-24"
+  },
+  {
+   "open": 2823.8259,
+   "close": 2906.1087,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2866.0771,
+   "day": "2024-01-25"
+  },
+  {
+   "open": 2897.9149,
+   "close": 2910.2227,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2907.8647,
+   "day": "2024-01-26"
+  },
+  {
+   "open": 2910.6072,
+   "close": 2883.356,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2897.9136,
+   "day": "2024-01-29"
+  },
+  {
+   "open": 2866.2795,
+   "close": 2830.5266,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2860.1233,
+   "day": "2024-01-30"
+  },
+  {
+   "open": 2815.5042,
+   "close": 2788.5482,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2782.8833,
+   "day": "2024-01-31"
+  },
+  {
+   "open": 2773.4239,
+   "close": 2770.7403,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2800.0508,
+   "day": "2024-02-01"
+  },
+  {
+   "open": 2773.2949,
+   "close": 2730.152,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2774.175,
+   "day": "2024-02-02"
+  },
+  {
+   "open": 2716.081,
+   "close": 2702.185,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2669.223,
+   "day": "2024-02-05"
+  },
+  {
+   "open": 2680.4846,
+   "close": 2789.486,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2711.2324,
+   "day": "2024-02-06"
+  },
+  {
+   "open": 2791.5145,
+   "close": 2829.6956,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2815.5093,
+   "day": "2024-02-07"
+  },
+  {
+   "open": 2832.4855,
+   "close": 2865.9032,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2853.463,
+   "day": "2024-02-08"
+  },
+  {
+   "open": 2886.5871,
+   "close": 2910.544,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2899.2163,
+   "day": "2024-02-19"
+  },
+  {
+   "open": 2902.8765,
+   "close": 2922.7302,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2910.6338,
+   "day": "2024-02-20"
+  },
+  {
+   "open": 2906.0243,
+   "close": 2950.9556,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2940.7166,
+   "day": "2024-02-21"
+  },
+  {
+   "open": 2945.4465,
+   "close": 2988.3578,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2957.3528,
+   "day": "2024-02-22"
+  },
+  {
+   "open": 2992.9115,
+   "close": 3004.881,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2986.094,
+   "day": "2024-02-23"
+  },
+  {
+   "open": 3002.1179,
+   "close": 2977.0221,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2988.1345,
+   "day": "2024-02-26"
+  },
+  {
+   "open": 2966.4166,
+   "close": 3015.4807,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2981.3054,
+   "day": "2024-02-27"
+  },
+  {
+   "open": 3016.2555,
+   "close": 2957.8524,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3031.3174,
+   "day": "2024-02-28"
+  },
+  {
+   "open": 2943.6242,
+   "close": 3015.1712,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2994.339,
+   "day": "2024-02-29"
+  },
+  {
+   "open": 3013.8229,
+   "close": 3027.0204,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3018.2432,
+   "day": "2024-03-01"
+  },
+  {
+   "open": 3026.6071,
+   "close": 3039.3055,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3021.0327,
+   "day": "2024-03-04"
+  },
+  {
+   "open": 3027.1028,
+   "close": 3047.7931,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3036.5085,
+   "day": "2024-03-05"
+  },
+  {
+   "open": 3041.7518,
+   "close": 3039.9309,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3037.7903,
+   "day": "2024-03-06"
+  },
+  {
+   "open": 3040.2111,
+   "close": 3027.4013,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3054.474,
+   "day": "2024-03-07"
+  },
+  {
+   "open": 3026.1654,
+   "close": 3046.0192,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3024.12,
+   "day": "2024-03-08"
+  },
+  {
+   "open": 3042.6188,
+   "close": 3068.4554,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3043.496,
+   "day": "2024-03-11"
+  },
+  {
+   "open": 3068.182,
+   "close": 3055.935,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3051.4805,
+   "day": "2024-03-12"
+  },
+  {
+   "open": 3053.3413,
+   "close": 3043.8346,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3035.8105,
+   "day": "2024-03-13"
+  },
+  {
+   "open": 3042.4131,
+   "close": 3038.2339,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3043.4502,
+   "day": "2024-03-14"
+  },
+  {
+   "open": 3031.5229,
+   "close": 3054.6359,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3031.3596,
+   "day": "2024-03-15"
+  },
+  {
+   "open": 3057.2093,
+   "close": 3084.9262,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3069.4204,
+   "day": "2024-03-18"
+  },
+  {
+   "open": 3077.9805,
+   "close": 3062.7558,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3083.2913,
+   "day": "2024-03-19"
+  },
+  {
+   "open": 3058.6478,
+   "close": 3079.6859,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3061.0786,
+   "day": "2024-03-20"
+  },
+  {
+   "open": 3084.4116,
+   "close": 3077.113,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3079.8987,
+   "day": "2024-03-21"
+  },
+  {
+   "open": 3070.5481,
+   "close": 3048.0336,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3042.395,
+   "day": "2024-03-22"
+  },
+  {
+   "open": 3040.501,
+   "close": 3026.3055,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3049.4116,
+   "day": "2024-03-25"
+  },
+  {
+   "open": 3026.9218,
+   "close": 3031.4809,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3026.9683,
+   "day": "2024-03-26"
+  },
+  {
+   "open": 3026.8138,
+   "close": 2993.1388,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3020.7817,
+   "day": "2024-03-27"
+  },
+  {
+   "open": 2988.5899,
+   "close": 3010.6636,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2998.3784,
+   "day": "2024-03-28"
+  },
+  {
+   "open": 3008.3757,
+   "close": 3041.1669,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3023.146,
+   "day": "2024-03-29"
+  },
+  {
+   "open": 3049.0207,
+   "close": 3077.3786,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3075.4402,
+   "day": "2024-04-01"
+  },
+  {
+   "open": 3076.8752,
+   "close": 3074.9586,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3071.192,
+   "day": "2024-04-02"
+  },
+  {
+   "open": 3074.8929,
+   "close": 3069.2959,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3064.8606,
+   "day": "2024-04-03"
+  },
+  {
+   "open": 3057.3255,
+   "close": 3047.0526,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3069.5652,
+   "day": "2024-04-08"
+  },
+  {
+   "open": 3044.6136,
+   "close": 3048.5369,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3040.7134,
+   "day": "2024-04-09"
+  },
+  {
+   "open": 3045.9609,
+   "close": 3027.3349,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3034.7498,
+   "day": "2024-04-10"
+  },
+  {
+   "open": 3013.5727,
+   "close": 3034.2464,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3038.631,
+   "day": "2024-04-11"
+  },
+  {
+   "open": 3035.5773,
+   "close": 3019.4735,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3032.5425,
+   "day": "2024-04-12"
+  },
+  {
+   "open": 3013.6722,
+   "close": 3057.3776,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3058.5225,
+   "day": "2024-04-15"
+  },
+  {
+   "open": 3043.5505,
+   "close": 3007.0681,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3024.9744,
+   "day": "2024-04-16"
+  },
+  {
+   "open": 3008.0614,
+   "close": 3071.3806,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3037.2195,
+   "day": "2024-04-17"
+  },
+  {
+   "open": 3060.0309,
+   "close": 3074.2246,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3086.1523,
+   "day": "2024-04-18"
+  },
+  {
+   "open": 3060.2989,
+   "close": 3065.261,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3071.764,
+   "day": "2024-04-19"
+  },
+  {
+   "open": 3059.0649,
+   "close": 3044.5952,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3072.5066,
+   "day": "2024-04-22"
+  },
+  {
+   "open": 3038.6118,
+   "close": 3021.9775,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3025.8606,
+   "day": "2024-04-23"
+  },
+  {
+   "open": 3029.4028,
+   "close": 3044.8223,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3029.2576,
+   "day": "2024-04-24"
+  },
+  {
+   "open": 3037.9273,
+   "close": 3052.9,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3045.9556,
+   "day": "2024-04-25"
+  },
+  {
+   "open": 3054.9793,
+   "close": 3088.6357,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3068.1494,
+   "day": "2024-04-26"
+  },
+  {
+   "open": 3086.6819,
+   "close": 3113.0432,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3108.508,
+   "day": "2024-04-29"
+  },
+  {
+   "open": 3110.1594,
+   "close": 3104.8245,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3118.3992,
+   "day": "2024-04-30"
+  },
+  {
+   "open": 3132.5115,
+   "close": 3140.7204,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3137.8171,
+   "day": "2024-05-06"
+  },
+  {
+   "open": 3139.6637,
+   "close": 3147.738,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3140.9072,
+   "day": "2024-05-07"
+  },
+  {
+   "open": 3141.4874,
+   "close": 3128.4798,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3138.1467,
+   "day": "2024-05-08"
+  },
+  {
+   "open": 3128.1644,
+   "close": 3154.3201,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3144.2244,
+   "day": "2024-05-09"
+  },
+  {
+   "open": 3158.5891,
+   "close": 3154.5472,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3142.4688,
+   "day": "2024-05-10"
+  },
+  {
+   "open": 3139.4753,
+   "close": 3148.0207,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3143.5508,
+   "day": "2024-05-13"
+  },
+  {
+   "open": 3148.8488,
+   "close": 3145.7743,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3144.7793,
+   "day": "2024-05-14"
+  },
+  {
+   "open": 3141.2518,
+   "close": 3119.9021,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3132.6372,
+   "day": "2024-05-15"
+  },
+  {
+   "open": 3127.1841,
+   "close": 3122.401,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3129.4507,
+   "day": "2024-05-16"
+  },
+  {
+   "open": 3121.7126,
+   "close": 3154.0263,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3121.09,
+   "day": "2024-05-17"
+  },
+  {
+   "open": 3156.1482,
+   "close": 3171.1451,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3170.903,
+   "day": "2024-05-20"
+  },
+  {
+   "open": 3164.6826,
+   "close": 3157.9657,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3158.8923,
+   "day": "2024-05-21"
+  },
+  {
+   "open": 3157.1889,
+   "close": 3158.5399,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3162.0305,
+   "day": "2024-05-22"
+  },
+  {
+   "open": 3149.8752,
+   "close": 3116.387,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3128.4663,
+   "day": "2024-05-23"
+  },
+  {
+   "open": 3110.7533,
+   "close": 3088.8705,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3110.2798,
+   "day": "2024-05-24"
+  },
+  {
+   "open": 3094.14,
+   "close": 3124.0427,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3095.4304,
+   "day": "2024-05-27"
+  },
+  {
+   "open": 3122.3877,
+   "close": 3109.5721,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3126.291,
+   "day": "2024-05-28"
+  },
+  {
+   "open": 3108.0267,
+   "close": 3111.0176,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3126.1013,
+   "day": "2024-05-29"
+  },
+  {
+   "open": 3103.7078,
+   "close": 3091.6778,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3112.9636,
+   "day": "2024-05-30"
+  },
+  {
+   "open": 3094.7587,
+   "close": 3086.8134,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3101.8003,
+   "day": "2024-05-31"
+  },
+  {
+   "open": 3085.9814,
+   "close": 3078.4887,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3094.8257,
+   "day": "2024-06-03"
+  },
+  {
+   "open": 3071.3196,
+   "close": 3091.1992,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3071.1094,
+   "day": "2024-06-04"
+  },
+  {
+   "open": 3086.0509,
+   "close": 3065.4034,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3085.3684,
+   "day": "2024-06-05"
+  },
+  {
+   "open": 3069.4393,
+   "close": 3048.7939,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3054.6155,
+   "day": "2024-06-06"
+  },
+  {
+   "open": 3053.9153,
+   "close": 3051.2787,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3048.1194,
+   "day": "2024-06-07"
+  },
+  {
+   "open": 3042.1338,
+   "close": 3028.0451,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3020.036,
+   "day": "2024-06-11"
+  },
+  {
+   "open": 3025.2963,
+   "close": 3037.4675,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3027.029,
+   "day": "2024-06-12"
+  },
+  {
+   "open": 3038.0859,
+   "close": 3028.9187,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3029.0857,
+   "day": "2024-06-13"
+  },
+  {
+   "open": 3020.9588,
+   "close": 3032.6333,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3021.2876,
+   "day": "2024-06-14"
+  },
+  {
+   "open": 3017.7169,
+   "close": 3015.8907,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3021.672,
+   "day": "2024-06-17"
+  },
+  {
+   "open": 3015.0713,
+   "close": 3030.2464,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3027.5588,
+   "day": "2024-06-18"
+  },
+  {
+   "open": 3029.0993,
+   "close": 3018.0491,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3018.6277,
+   "day": "2024-06-19"
+  },
+  {
+   "open": 3015.7224,
+   "close": 3005.4369,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3019.6106,
+   "day": "2024-06-20"
+  },
+  {
+   "open": 2998.2413,
+   "close": 2998.1377,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3001.0632,
+   "day": "2024-06-21"
+  },
+  {
+   "open": 2982.8263,
+   "close": 2963.0989,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2972.2603,
+   "day": "2024-06-24"
+  },
+  {
+   "open": 2962.7654,
+   "close": 2949.9963,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2965.0425,
+   "day": "2024-06-25"
+  },
+  {
+   "open": 2943.4471,
+   "close": 2972.5251,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2938.884,
+   "day": "2024-06-26"
+  },
+  {
+   "open": 2962.6964,
+   "close": 2945.8524,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2948.715,
+   "day": "2024-06-27"
+  },
+  {
+   "open": 2940.3032,
+   "close": 2967.4028,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2971.6284,
+   "day": "2024-06-28"
+  },
+  {
+   "open": 2965.2452,
+   "close": 2994.7303,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2965.4165,
+   "day": "2024-07-01"
+  },
+  {
+   "open": 2992.8556,
+   "close": 2997.0111,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3002.989,
+   "day": "2024-07-02"
+  },
+  {
+   "open": 2995.6642,
+   "close": 2982.3756,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2984.7988,
+   "day": "2024-07-03"
+  },
+  {
+   "open": 2984.8303,
+   "close": 2957.567,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2977.818,
+   "day": "2024-07-04"
+  },
+  {
+   "open": 2954.3723,
+   "close": 2949.9333,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2930.3918,
+   "day": "2024-07-05"
+  },
+  {
+   "open": 2939.8367,
+   "close": 2922.4498,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2933.4895,
+   "day": "2024-07-08"
+  },
+  {
+   "open": 2919.5729,
+   "close": 2959.3724,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2908.7024,
+   "day": "2024-07-09"
+  },
+  {
+   "open": 2949.0261,
+   "close": 2939.3636,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2955.4111,
+   "day": "2024-07-10"
+  },
+  {
+   "open": 2957.2502,
+   "close": 2970.3874,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2962.865,
+   "day": "2024-07-11"
+  },
+  {
+   "open": 2965.6121,
+   "close": 2971.295,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2969.6282,
+   "day": "2024-07-12"
+  },
+  {
+   "open": 2963.8472,
+   "close": 2974.0107,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2967.2217,
+   "day": "2024-07-15"
+  },
+  {
+   "open": 2963.9001,
+   "close": 2976.3043,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2964.3877,
+   "day": "2024-07-16"
+  },
+  {
+   "open": 2970.8081,
+   "close": 2962.8549,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2964.0051,
+   "day": "2024-07-17"
+  },
+  {
+   "open": 2951.1434,
+   "close": 2977.1334,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2945.342,
+   "day": "2024-07-18"
+  },
+  {
+   "open": 2963.5144,
+   "close": 2982.3086,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2961.5757,
+   "day": "2024-07-19"
+  },
+  {
+   "open": 2978.1932,
+   "close": 2964.2155,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2957.2236,
+   "day": "2024-07-22"
+  },
+  {
+   "open": 2960.5004,
+   "close": 2915.3685,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2950.2104,
+   "day": "2024-07-23"
+  },
+  {
+   "open": 2909.1521,
+   "close": 2901.9518,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2908.7185,
+   "day": "2024-07-24"
+  },
+  {
+   "open": 2891.8918,
+   "close": 2886.7416,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2876.3333,
+   "day": "2024-07-25"
+  },
+  {
+   "open": 2885.9953,
+   "close": 2890.8973,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2878.0742,
+   "day": "2024-07-26"
+  },
+  {
+   "open": 2889.4726,
+   "close": 2891.8453,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2888.509,
+   "day": "2024-07-29"
+  },
+  {
+   "open": 2885.2152,
+   "close": 2879.2996,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2866.7861,
+   "day": "2024-07-30"
+  },
+  {
+   "open": 2877.5409,
+   "close": 2938.7493,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2907.4902,
+   "day": "2024-07-31"
+  },
+  {
+   "open": 2940.12,
+   "close": 2932.3871,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2943.7888,
+   "day": "2024-08-01"
+  },
+  {
+   "open": 2913.0198,
+   "close": 2905.3375,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2915.646,
+   "day": "2024-08-02"
+  },
+  {
+   "open": 2889.3634,
+   "close": 2860.6978,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2893.356,
+   "day": "2024-08-05"
+  },
+  {
+   "open": 2878.6508,
+   "close": 2867.2837,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2867.352,
+   "day": "2024-08-06"
+  },
+  {
+   "open": 2864.0101,
+   "close": 2869.8338,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2874.93,
+   "day": "2024-08-07"
+  },
+  {
+   "open": 2864.758,
+   "close": 2869.9014,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2858.6624,
+   "day": "2024-08-08"
+  },
+  {
+   "open": 2879.8726,
+   "close": 2862.1941,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2879.0935,
+   "day": "2024-08-09"
+  },
+  {
+   "open": 2858.8946,
+   "close": 2858.2046,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2866.1257,
+   "day": "2024-08-12"
+  },
+  {
+   "open": 2860.4099,
+   "close": 2867.946,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2859.1477,
+   "day": "2024-08-13"
+  },
+  {
+   "open": 2866.2434,
+   "close": 2850.6539,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2855.0144,
+   "day": "2024-08-14"
+  },
+  {
+   "open": 2844.2005,
+   "close": 2877.3579,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2882.3728,
+   "day": "2024-08-15"
+  },
+  {
+   "open": 2877.9403,
+   "close": 2879.4298,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2885.1345,
+   "day": "2024-08-16"
+  },
+  {
+   "open": 2877.9542,
+   "close": 2893.6738,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2895.455,
+   "day": "2024-08-19"
+  },
+  {
+   "open": 2895.5506,
+   "close": 2866.661,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2868.3296,
+   "day": "2024-08-20"
+  },
+  {
+   "open": 2858.9388,
+   "close": 2856.5839,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2857.4712,
+   "day": "2024-08-21"
+  },
+  {
+   "open": 2856.2001,
+   "close": 2848.7718,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2849.9033,
+   "day": "2024-08-22"
+  },
+  {
+   "open": 2844.7703,
+   "close": 2854.3675,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2841.3142,
+   "day": "2024-08-23"
+  },
+  {
+   "open": 2855.4741,
+   "close": 2855.5203,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2845.6567,
+   "day": "2024-08-26"
+  },
+  {
+   "open": 2850.8773,
+   "close": 2848.7312,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2848.1929,
+   "day": "2024-08-27"
+  },
+  {
+   "open": 2844.3269,
+   "close": 2837.4293,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2840.0537,
+   "day": "2024-08-28"
+  },
+  {
+   "open": 2829.4506,
+   "close": 2823.106,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2820.161,
+   "day": "2024-08-29"
+  },
+  {
+   "open": 2819.6498,
+   "close": 2842.2142,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2837.1067,
+   "day": "2024-08-30"
+  },
+  {
+   "open": 2832.3499,
+   "close": 2811.035,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2823.6929,
+   "day": "2024-09-02"
+  },
+  {
+   "open": 2809.1733,
+   "close": 2802.9787,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2801.8777,
+   "day": "2024-09-03"
+  },
+  {
+   "open": 2786.5046,
+   "close": 2784.2783,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2787.723,
+   "day": "2024-09-04"
+  },
+  {
+   "open": 2785.2635,
+   "close": 2788.3141,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2788.383,
+   "day": "2024-09-05"
+  },
+  {
+   "open": 2791.7645,
+   "close": 2765.8066,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2799.34,
+   "day": "2024-09-06"
+  },
+  {
+   "open": 2754.7237,
+   "close": 2736.4876,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2740.832,
+   "day": "2024-09-09"
+  },
+  {
+   "open": 2737.881,
+   "close": 2744.1921,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2730.5874,
+   "day": "2024-09-10"
+  },
+  {
+   "open": 2732.7314,
+   "close": 2721.7952,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2723.9136,
+   "day": "2024-09-11"
+  },
+  {
+   "open": 2722.1382,
+   "close": 2717.1231,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2726.632,
+   "day": "2024-09-12"
+  },
+  {
+   "open": 2718.9864,
+   "close": 2704.0896,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2721.7056,
+   "day": "2024-09-13"
+  },
+  {
+   "open": 2705.3451,
+   "close": 2717.2813,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2705.4316,
+   "day": "2024-09-18"
+  },
+  {
+   "open": 2723.2053,
+   "close": 2736.0222,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2745.3284,
+   "day": "2024-09-19"
+  },
+  {
+   "open": 2734.2277,
+   "close": 2736.8139,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 2734.8362,
+   "day": "2024-09-20"
+  },
+  {
+   "open": 2735.3895,
+   "close": 2748.9177,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2748.0476,
+   "day": "2024-09-23"
+  },
+  {
+   "open": 2770.7543,
+   "close": 2863.1255,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2767.4321,
+   "day": "2024-09-24"
+  },
+  {
+   "open": 2901.4185,
+   "close": 2896.3057,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 2940.8135,
+   "day": "2024-09-25"
+  },
+  {
+   "open": 2893.7451,
+   "close": 3000.9526,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 2928.0776,
+   "day": "2024-09-26"
+  },
+  {
+   "open": 3049.1026,
+   "close": 3087.5286,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3030.5837,
+   "day": "2024-09-27"
+  },
+  {
+   "open": 3194.7224,
+   "close": 3336.4974,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3225.1008,
+   "day": "2024-09-30"
+  },
+  {
+   "open": 3674.4048,
+   "close": 3489.7751,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3473.7559,
+   "day": "2024-10-08"
+  },
+  {
+   "open": 3427.2199,
+   "close": 3258.8578,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3344.1848,
+   "day": "2024-10-09"
+  },
+  {
+   "open": 3277.6916,
+   "close": 3301.9259,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3273.154,
+   "day": "2024-10-10"
+  },
+  {
+   "open": 3287.8727,
+   "close": 3217.7377,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3252.954,
+   "day": "2024-10-11"
+  },
+  {
+   "open": 3241.4275,
+   "close": 3284.3225,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3209.9436,
+   "day": "2024-10-14"
+  },
+  {
+   "open": 3265.7461,
+   "close": 3201.2919,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3272.9084,
+   "day": "2024-10-15"
+  },
+  {
+   "open": 3169.1685,
+   "close": 3202.948,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3184.7034,
+   "day": "2024-10-16"
+  },
+  {
+   "open": 3220.7334,
+   "close": 3169.3843,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3208.4355,
+   "day": "2024-10-17"
+  },
+  {
+   "open": 3165.9745,
+   "close": 3261.5633,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3177.3813,
+   "day": "2024-10-18"
+  },
+  {
+   "open": 3276.0598,
+   "close": 3268.11,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3282.1555,
+   "day": "2024-10-21"
+  },
+  {
+   "open": 3263.8224,
+   "close": 3285.8669,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3282.0107,
+   "day": "2024-10-22"
+  },
+  {
+   "open": 3285.2474,
+   "close": 3302.8028,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3303.191,
+   "day": "2024-10-23"
+  },
+  {
+   "open": 3287.8243,
+   "close": 3280.2625,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3285.5725,
+   "day": "2024-10-24"
+  },
+  {
+   "open": 3280.7616,
+   "close": 3299.7003,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3290.0364,
+   "day": "2024-10-25"
+  },
+  {
+   "open": 3300.4634,
+   "close": 3322.1975,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3304.7676,
+   "day": "2024-10-28"
+  },
+  {
+   "open": 3328.0885,
+   "close": 3286.407,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3325.881,
+   "day": "2024-10-29"
+  },
+  {
+   "open": 3273.6421,
+   "close": 3266.2378,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3277.3257,
+   "day": "2024-10-30"
+  },
+  {
+   "open": 3267.975,
+   "close": 3279.8244,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3276.6785,
+   "day": "2024-10-31"
+  },
+  {
+   "open": 3275.5768,
+   "close": 3272.0142,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3291.6582,
+   "day": "2024-11-01"
+  },
+  {
+   "open": 3275.6787,
+   "close": 3310.2072,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3284.3528,
+   "day": "2024-11-04"
+  },
+  {
+   "open": 3306.8098,
+   "close": 3386.9869,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3351.679,
+   "day": "2024-11-05"
+  },
+  {
+   "open": 3395.2217,
+   "close": 3383.8062,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3406.361,
+   "day": "2024-11-06"
+  },
+  {
+   "open": 3359.9851,
+   "close": 3470.6609,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3391.3467,
+   "day": "2024-11-07"
+  },
+  {
+   "open": 3502.1331,
+   "close": 3452.2971,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3488.0562,
+   "day": "2024-11-08"
+  },
+  {
+   "open": 3432.3672,
+   "close": 3470.0657,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3426.66,
+   "day": "2024-11-11"
+  },
+  {
+   "open": 3469.8908,
+   "close": 3421.9701,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3467.2026,
+   "day": "2024-11-12"
+  },
+  {
+   "open": 3406.9164,
+   "close": 3439.2778,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3413.7812,
+   "day": "2024-11-13"
+  },
+  {
+   "open": 3429.5054,
+   "close": 3379.8389,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3427.8135,
+   "day": "2024-11-14"
+  },
+  {
+   "open": 3369.8092,
+   "close": 3330.7263,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3382.7522,
+   "day": "2024-11-15"
+  },
+  {
+   "open": 3344.6904,
+   "close": 3323.8486,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3377.9136,
+   "day": "2024-11-18"
+  },
+  {
+   "open": 3324.8831,
+   "close": 3346.0098,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3314.0852,
+   "day": "2024-11-19"
+  },
+  {
+   "open": 3337.6778,
+   "close": 3367.9893,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3345.0884,
+   "day": "2024-11-20"
+  },
+  {
+   "open": 3362.9444,
+   "close": 3370.4039,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3366.569,
+   "day": "2024-11-21"
+  },
+  {
+   "open": 3368.043,
+   "close": 3267.1916,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3352.3452,
+   "day": "2024-11-22"
+  },
+  {
+   "open": 3274.884,
+   "close": 3263.7597,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3279.661,
+   "day": "2024-11-25"
+  },
+  {
+   "open": 3256.8576,
+   "close": 3259.7572,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3274.817,
+   "day": "2024-11-26"
+  },
+  {
+   "open": 3250.591,
+   "close": 3309.7789,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3256.8997,
+   "day": "2024-11-27"
+  },
+  {
+   "open": 3308.2797,
+   "close": 3295.6983,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3307.9177,
+   "day": "2024-11-28"
+  },
+  {
+   "open": 3295.2096,
+   "close": 3326.4557,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3302.9705,
+   "day": "2024-11-29"
+  },
+  {
+   "open": 3328.482,
+   "close": 3363.9823,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3356.1172,
+   "day": "2024-12-02"
+  },
+  {
+   "open": 3366.2853,
+   "close": 3378.8063,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3355.2803,
+   "day": "2024-12-03"
+  },
+  {
+   "open": 3376.5715,
+   "close": 3364.6498,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3372.2002,
+   "day": "2024-12-04"
+  },
+  {
+   "open": 3353.0573,
+   "close": 3368.8553,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3360.606,
+   "day": "2024-12-05"
+  },
+  {
+   "open": 3370.9405,
+   "close": 3404.0764,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3377.3813,
+   "day": "2024-12-06"
+  },
+  {
+   "open": 3402.6288,
+   "close": 3402.5343,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3425.7422,
+   "day": "2024-12-09"
+  },
+  {
+   "open": 3490.2892,
+   "close": 3422.6607,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3459.541,
+   "day": "2024-12-10"
+  },
+  {
+   "open": 3416.0874,
+   "close": 3432.4902,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3437.3457,
+   "day": "2024-12-11"
+  },
+  {
+   "open": 3432.2786,
+   "close": 3461.4998,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3437.2998,
+   "day": "2024-12-12"
+  },
+  {
+   "open": 3442.9259,
+   "close": 3391.8782,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3407.8757,
+   "day": "2024-12-13"
+  },
+  {
+   "open": 3390.083,
+   "close": 3386.3312,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3390.8079,
+   "day": "2024-12-16"
+  },
+  {
+   "open": 3381.8141,
+   "close": 3361.485,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3382.6643,
+   "day": "2024-12-17"
+  },
+  {
+   "open": 3371.2955,
+   "close": 3382.2081,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3381.77,
+   "day": "2024-12-18"
+  },
+  {
+   "open": 3355.9041,
+   "close": 3370.0331,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3353.4944,
+   "day": "2024-12-19"
+  },
+  {
+   "open": 3364.481,
+   "close": 3368.0693,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3374.3374,
+   "day": "2024-12-20"
+  },
+  {
+   "open": 3367.9037,
+   "close": 3351.2571,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3370.9734,
+   "day": "2024-12-23"
+  },
+  {
+   "open": 3353.5354,
+   "close": 3393.5281,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3377.57,
+   "day": "2024-12-24"
+  },
+  {
+   "open": 3395.1072,
+   "close": 3393.3501,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3393.8848,
+   "day": "2024-12-25"
+  },
+  {
+   "open": 3389.3383,
+   "close": 3398.0765,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3393.414,
+   "day": "2024-12-26"
+  },
+  {
+   "open": 3397.2939,
+   "close": 3400.142,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3396.5286,
+   "day": "2024-12-27"
+  },
+  {
+   "open": 3395.3962,
+   "close": 3407.3259,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3405.6929,
+   "day": "2024-12-30"
+  },
+  {
+   "open": 3406.9652,
+   "close": 3351.763,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3404.0083,
+   "day": "2024-12-31"
+  },
+  {
+   "open": 3347.9392,
+   "close": 3262.5607,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3317.6433,
+   "day": "2025-01-02"
+  },
+  {
+   "open": 3267.0766,
+   "close": 3211.4299,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3260.9134,
+   "day": "2025-01-03"
+  },
+  {
+   "open": 3209.7832,
+   "close": 3206.9228,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3209.5825,
+   "day": "2025-01-06"
+  },
+  {
+   "open": 3203.3068,
+   "close": 3229.6439,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3204.9098,
+   "day": "2025-01-07"
+  },
+  {
+   "open": 3218.8577,
+   "close": 3230.1679,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3220.3981,
+   "day": "2025-01-08"
+  },
+  {
+   "open": 3220.7205,
+   "close": 3211.3933,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3219.4384,
+   "day": "2025-01-09"
+  },
+  {
+   "open": 3211.7068,
+   "close": 3168.5238,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3204.3656,
+   "day": "2025-01-10"
+  },
+  {
+   "open": 3148.8259,
+   "close": 3160.755,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3152.8218,
+   "day": "2025-01-13"
+  },
+  {
+   "open": 3165.1613,
+   "close": 3240.94,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3201.2616,
+   "day": "2025-01-14"
+  },
+  {
+   "open": 3234.7152,
+   "close": 3227.1167,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3236.8359,
+   "day": "2025-01-15"
+  },
+  {
+   "open": 3239.0261,
+   "close": 3236.032,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3254.0017,
+   "day": "2025-01-16"
+  },
+  {
+   "open": 3226.7616,
+   "close": 3241.8212,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3242.3467,
+   "day": "2025-01-17"
+  },
+  {
+   "open": 3256.1492,
+   "close": 3244.3776,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3260.1086,
+   "day": "2025-01-20"
+  },
+  {
+   "open": 3256.8325,
+   "close": 3242.6226,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3236.8524,
+   "day": "2025-01-21"
+  },
+  {
+   "open": 3235.4925,
+   "close": 3213.6237,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3210.3205,
+   "day": "2025-01-22"
+  },
+  {
+   "open": 3237.5988,
+   "close": 3230.1637,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3256.1954,
+   "day": "2025-01-23"
+  },
+  {
+   "open": 3222.8774,
+   "close": 3252.6264,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3239.9341,
+   "day": "2025-01-24"
+  },
+  {
+   "open": 3256.6136,
+   "close": 3250.6007,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3261.9775,
+   "day": "2025-01-27"
+  },
+  {
+   "open": 3270.1604,
+   "close": 3229.4876,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3237.2856,
+   "day": "2025-02-05"
+  },
+  {
+   "open": 3226.575,
+   "close": 3270.6594,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3234.4795,
+   "day": "2025-02-06"
+  },
+  {
+   "open": 3269.2269,
+   "close": 3303.6666,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3295.2142,
+   "day": "2025-02-07"
+  },
+  {
+   "open": 3308.04,
+   "close": 3322.1698,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3319.5334,
+   "day": "2025-02-10"
+  },
+  {
+   "open": 3323.6694,
+   "close": 3318.0569,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3311.1666,
+   "day": "2025-02-11"
+  },
+  {
+   "open": 3312.2572,
+   "close": 3346.3854,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3318.9507,
+   "day": "2025-02-12"
+  },
+  {
+   "open": 3343.2347,
+   "close": 3332.4826,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3350.9752,
+   "day": "2025-02-13"
+  },
+  {
+   "open": 3328.483,
+   "close": 3346.7242,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3326.9172,
+   "day": "2025-02-14"
+  },
+  {
+   "open": 3355.4171,
+   "close": 3355.8296,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3347.7569,
+   "day": "2025-02-17"
+  },
+  {
+   "open": 3348.9827,
+   "close": 3324.4906,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3350.4309,
+   "day": "2025-02-18"
+  },
+  {
+   "open": 3320.7801,
+   "close": 3351.5392,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3343.1363,
+   "day": "2025-02-19"
+  },
+  {
+   "open": 3347.5893,
+   "close": 3350.7833,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3346.0028,
+   "day": "2025-02-20"
+  },
+  {
+   "open": 3356.6947,
+   "close": 3379.1128,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3351.5326,
+   "day": "2025-02-21"
+  },
+  {
+   "open": 3374.0813,
+   "close": 3373.0276,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3375.8196,
+   "day": "2025-02-24"
+  },
+  {
+   "open": 3345.6534,
+   "close": 3346.0398,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3357.6411,
+   "day": "2025-02-25"
+  },
+  {
+   "open": 3351.2093,
+   "close": 3380.2144,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3365.9594,
+   "day": "2025-02-26"
+  },
+  {
+   "open": 3378.4494,
+   "close": 3388.0622,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3373.7362,
+   "day": "2025-02-27"
+  },
+  {
+   "open": 3374.6636,
+   "close": 3320.8973,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3371.2254,
+   "day": "2025-02-28"
+  },
+  {
+   "open": 3328.3955,
+   "close": 3316.9253,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3344.849,
+   "day": "2025-03-03"
+  },
+  {
+   "open": 3300.498,
+   "close": 3324.2099,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3310.2512,
+   "day": "2025-03-04"
+  },
+  {
+   "open": 3324.6962,
+   "close": 3341.9649,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3324.6226,
+   "day": "2025-03-05"
+  },
+  {
+   "open": 3353.5703,
+   "close": 3381.0983,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3367.676,
+   "day": "2025-03-06"
+  },
+  {
+   "open": 3373.1808,
+   "close": 3372.5458,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3379.5688,
+   "day": "2025-03-07"
+  },
+  {
+   "open": 3373.2588,
+   "close": 3366.163,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3358.6924,
+   "day": "2025-03-10"
+  },
+  {
+   "open": 3335.4394,
+   "close": 3379.8284,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3362.5808,
+   "day": "2025-03-11"
+  },
+  {
+   "open": 3385.6853,
+   "close": 3371.9235,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3374.5593,
+   "day": "2025-03-12"
+  },
+  {
+   "open": 3371.0945,
+   "close": 3358.7285,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3368.021,
+   "day": "2025-03-13"
+  },
+  {
+   "open": 3361.6861,
+   "close": 3419.5616,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3395.1301,
+   "day": "2025-03-14"
+  },
+  {
+   "open": 3430.8093,
+   "close": 3426.1285,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3431.8894,
+   "day": "2025-03-17"
+  },
+  {
+   "open": 3434.5653,
+   "close": 3429.7593,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3431.3237,
+   "day": "2025-03-18"
+  },
+  {
+   "open": 3424.1726,
+   "close": 3426.4291,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3418.1038,
+   "day": "2025-03-19"
+  },
+  {
+   "open": 3425.2157,
+   "close": 3408.9482,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3414.442,
+   "day": "2025-03-20"
+  },
+  {
+   "open": 3401.7593,
+   "close": 3364.8307,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3402.451,
+   "day": "2025-03-21"
+  },
+  {
+   "open": 3364.8342,
+   "close": 3370.0283,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3368.4246,
+   "day": "2025-03-24"
+  },
+  {
+   "open": 3370.0008,
+   "close": 3369.9763,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3367.842,
+   "day": "2025-03-25"
+  },
+  {
+   "open": 3365.6658,
+   "close": 3368.6973,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3368.319,
+   "day": "2025-03-26"
+  },
+  {
+   "open": 3362.7123,
+   "close": 3373.7489,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3372.8284,
+   "day": "2025-03-27"
+  },
+  {
+   "open": 3372.0388,
+   "close": 3351.3068,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3364.061,
+   "day": "2025-03-28"
+  },
+  {
+   "open": 3343.3442,
+   "close": 3335.7462,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3341.8752,
+   "day": "2025-03-31"
+  },
+  {
+   "open": 3340.7121,
+   "close": 3348.4351,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3352.871,
+   "day": "2025-04-01"
+  },
+  {
+   "open": 3344.1711,
+   "close": 3350.1266,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3356.645,
+   "day": "2025-04-02"
+  },
+  {
+   "open": 3319.6057,
+   "close": 3342.0077,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3355.8914,
+   "day": "2025-04-03"
+  },
+  {
+   "open": 3193.1024,
+   "close": 3096.5762,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3148.676,
+   "day": "2025-04-07"
+  },
+  {
+   "open": 3094.2619,
+   "close": 3145.5491,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3105.364,
+   "day": "2025-04-08"
+  },
+  {
+   "open": 3110.0101,
+   "close": 3186.8099,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3155.3962,
+   "day": "2025-04-09"
+  },
+  {
+   "open": 3227.8362,
+   "close": 3223.6379,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3239.1328,
+   "day": "2025-04-10"
+  },
+  {
+   "open": 3219.5053,
+   "close": 3238.2268,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3218.574,
+   "day": "2025-04-11"
+  },
+  {
+   "open": 3251.9779,
+   "close": 3262.8075,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3262.3704,
+   "day": "2025-04-14"
+  },
+  {
+   "open": 3260.685,
+   "close": 3267.6623,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3253.8232,
+   "day": "2025-04-15"
+  },
+  {
+   "open": 3267.665,
+   "close": 3276.0039,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3247.4211,
+   "day": "2025-04-16"
+  },
+  {
+   "open": 3261.7177,
+   "close": 3280.3412,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3280.8525,
+   "day": "2025-04-17"
+  },
+  {
+   "open": 3270.3534,
+   "close": 3276.7304,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3268.354,
+   "day": "2025-04-18"
+  },
+  {
+   "open": 3273.1383,
+   "close": 3291.4341,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3291.0454,
+   "day": "2025-04-21"
+  },
+  {
+   "open": 3289.1664,
+   "close": 3299.7571,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3298.3523,
+   "day": "2025-04-22"
+  },
+  {
+   "open": 3308.1514,
+   "close": 3296.3552,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3297.729,
+   "day": "2025-04-23"
+  },
+  {
+   "open": 3295.1487,
+   "close": 3297.2881,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3310.137,
+   "day": "2025-04-24"
+  },
+  {
+   "open": 3300.3916,
+   "close": 3295.06,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3298.1858,
+   "day": "2025-04-25"
+  },
+  {
+   "open": 3292.0559,
+   "close": 3288.4147,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3291.3071,
+   "day": "2025-04-28"
+  },
+  {
+   "open": 3281.4453,
+   "close": 3286.6548,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3286.5232,
+   "day": "2025-04-29"
+  },
+  {
+   "open": 3284.0812,
+   "close": 3279.0314,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3284.0288,
+   "day": "2025-04-30"
+  },
+  {
+   "open": 3295.2504,
+   "close": 3316.1135,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3305.1143,
+   "day": "2025-05-06"
+  },
+  {
+   "open": 3354.9737,
+   "close": 3342.6651,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3335.1096,
+   "day": "2025-05-07"
+  },
+  {
+   "open": 3331.2052,
+   "close": 3351.9958,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3349.6868,
+   "day": "2025-05-08"
+  },
+  {
+   "open": 3350.405,
+   "close": 3341.9989,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3343.9517,
+   "day": "2025-05-09"
+  },
+  {
+   "open": 3352.9698,
+   "close": 3369.2445,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3367.4763,
+   "day": "2025-05-12"
+  },
+  {
+   "open": 3386.2344,
+   "close": 3374.8707,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3377.303,
+   "day": "2025-05-13"
+  },
+  {
+   "open": 3374.2353,
+   "close": 3403.9481,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3373.4246,
+   "day": "2025-05-14"
+  },
+  {
+   "open": 3398.4272,
+   "close": 3380.8214,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3393.4749,
+   "day": "2025-05-15"
+  },
+  {
+   "open": 3374.7061,
+   "close": 3367.4619,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3359.518,
+   "day": "2025-05-16"
+  },
+  {
+   "open": 3365.8823,
+   "close": 3367.5829,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3361.2617,
+   "day": "2025-05-19"
+  },
+  {
+   "open": 3371.6886,
+   "close": 3380.478,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3371.7341,
+   "day": "2025-05-20"
+  },
+  {
+   "open": 3380.2094,
+   "close": 3387.5736,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3388.601,
+   "day": "2025-05-21"
+  },
+  {
+   "open": 3381.865,
+   "close": 3380.1885,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3387.277,
+   "day": "2025-05-22"
+  },
+  {
+   "open": 3376.8691,
+   "close": 3348.3717,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3382.088,
+   "day": "2025-05-23"
+  },
+  {
+   "open": 3346.561,
+   "close": 3346.8388,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3361.0266,
+   "day": "2025-05-26"
+  },
+  {
+   "open": 3346.5029,
+   "close": 3340.687,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3344.6829,
+   "day": "2025-05-27"
+  },
+  {
+   "open": 3341.8518,
+   "close": 3339.9319,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3338.0208,
+   "day": "2025-05-28"
+  },
+  {
+   "open": 3340.4012,
+   "close": 3363.4455,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3355.4841,
+   "day": "2025-05-29"
+  },
+  {
+   "open": 3358.8093,
+   "close": 3347.4873,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3345.2705,
+   "day": "2025-05-30"
+  },
+  {
+   "open": 3340.0666,
+   "close": 3361.9755,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3352.4268,
+   "day": "2025-06-03"
+  },
+  {
+   "open": 3363.391,
+   "close": 3376.2029,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3372.571,
+   "day": "2025-06-04"
+  },
+  {
+   "open": 3378.2169,
+   "close": 3384.0985,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3374.6528,
+   "day": "2025-06-05"
+  },
+  {
+   "open": 3384.2949,
+   "close": 3385.3579,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3383.1987,
+   "day": "2025-06-06"
+  },
+  {
+   "open": 3388.7783,
+   "close": 3399.7716,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3395.1091,
+   "day": "2025-06-09"
+  },
+  {
+   "open": 3402.013,
+   "close": 3384.8163,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3404.0725,
+   "day": "2025-06-10"
+  },
+  {
+   "open": 3385.4568,
+   "close": 3402.3159,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3403.0298,
+   "day": "2025-06-11"
+  },
+  {
+   "open": 3397.972,
+   "close": 3402.658,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3400.6025,
+   "day": "2025-06-12"
+  },
+  {
+   "open": 3397.4844,
+   "close": 3376.996,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3381.7183,
+   "day": "2025-06-13"
+  },
+  {
+   "open": 3369.3661,
+   "close": 3388.7293,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3382.6526,
+   "day": "2025-06-16"
+  },
+  {
+   "open": 3388.1801,
+   "close": 3387.4049,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3384.8665,
+   "day": "2025-06-17"
+  },
+  {
+   "open": 3386.136,
+   "close": 3388.8086,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3372.1492,
+   "day": "2025-06-18"
+  },
+  {
+   "open": 3384.2932,
+   "close": 3362.1082,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3375.7795,
+   "day": "2025-06-19"
+  },
+  {
+   "open": 3358.9128,
+   "close": 3359.8954,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3359.7058,
+   "day": "2025-06-20"
+  },
+  {
+   "open": 3349.4603,
+   "close": 3381.5816,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3355.527,
+   "day": "2025-06-23"
+  },
+  {
+   "open": 3380.08,
+   "close": 3420.566,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3413.3064,
+   "day": "2025-06-24"
+  },
+  {
+   "open": 3419.0914,
+   "close": 3455.9736,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3418.445,
+   "day": "2025-06-25"
+  },
+  {
+   "open": 3451.7193,
+   "close": 3448.4534,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3453.327,
+   "day": "2025-06-26"
+  },
+  {
+   "open": 3450.6863,
+   "close": 3424.2267,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3452.9238,
+   "day": "2025-06-27"
+  },
+  {
+   "open": 3423.4738,
+   "close": 3444.4256,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3431.958,
+   "day": "2025-06-30"
+  },
+  {
+   "open": 3445.8457,
+   "close": 3457.7474,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3451.1682,
+   "day": "2025-07-01"
+  },
+  {
+   "open": 3458.171,
+   "close": 3454.7924,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3456.5232,
+   "day": "2025-07-02"
+  },
+  {
+   "open": 3456.1519,
+   "close": 3461.1506,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3449.1406,
+   "day": "2025-07-03"
+  },
+  {
+   "open": 3459.5924,
+   "close": 3472.3192,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3460.4116,
+   "day": "2025-07-04"
+  },
+  {
+   "open": 3467.9849,
+   "close": 3473.1271,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3469.5706,
+   "day": "2025-07-07"
+  },
+  {
+   "open": 3474.6316,
+   "close": 3497.4753,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3480.0366,
+   "day": "2025-07-08"
+  },
+  {
+   "open": 3498.724,
+   "close": 3493.0495,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3509.4365,
+   "day": "2025-07-09"
+  },
+  {
+   "open": 3491.4973,
+   "close": 3509.6818,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3502.7678,
+   "day": "2025-07-10"
+  },
+  {
+   "open": 3511.3656,
+   "close": 3510.1772,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3535.1223,
+   "day": "2025-07-11"
+  },
+  {
+   "open": 3513.2515,
+   "close": 3519.6498,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3526.703,
+   "day": "2025-07-14"
+  },
+  {
+   "open": 3519.8052,
+   "close": 3504.9988,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3506.0522,
+   "day": "2025-07-15"
+  },
+  {
+   "open": 3502.8987,
+   "close": 3503.7769,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3502.0476,
+   "day": "2025-07-16"
+  },
+  {
+   "open": 3500.3715,
+   "close": 3516.8255,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3500.5908,
+   "day": "2025-07-17"
+  },
+  {
+   "open": 3519.4752,
+   "close": 3534.4827,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3531.1604,
+   "day": "2025-07-18"
+  },
+  {
+   "open": 3542.8164,
+   "close": 3559.7912,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3551.084,
+   "day": "2025-07-21"
+  },
+  {
+   "open": 3561.6316,
+   "close": 3581.8611,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3547.8079,
+   "day": "2025-07-22"
+  },
+  {
+   "open": 3588.8777,
+   "close": 3582.298,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3589.7856,
+   "day": "2025-07-23"
+  },
+  {
+   "open": 3578.9121,
+   "close": 3605.7269,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3593.8284,
+   "day": "2025-07-24"
+  },
+  {
+   "open": 3604.4505,
+   "close": 3593.6553,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3596.1743,
+   "day": "2025-07-25"
+  },
+  {
+   "open": 3594.2313,
+   "close": 3597.9369,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3604.332,
+   "day": "2025-07-28"
+  },
+  {
+   "open": 3595.8099,
+   "close": 3609.7113,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3594.6233,
+   "day": "2025-07-29"
+  },
+  {
+   "open": 3608.354,
+   "close": 3615.7167,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3623.718,
+   "day": "2025-07-30"
+  },
+  {
+   "open": 3604.6959,
+   "close": 3573.2082,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3586.93,
+   "day": "2025-07-31"
+  },
+  {
+   "open": 3568.2608,
+   "close": 3559.9518,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3575.3433,
+   "day": "2025-08-01"
+  },
+  {
+   "open": 3547.1629,
+   "close": 3583.3088,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3569.6624,
+   "day": "2025-08-04"
+  },
+  {
+   "open": 3588.8077,
+   "close": 3617.5976,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3600.4504,
+   "day": "2025-08-05"
+  },
+  {
+   "open": 3615.808,
+   "close": 3633.9949,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3619.448,
+   "day": "2025-08-06"
+  },
+  {
+   "open": 3637.7811,
+   "close": 3639.6666,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3630.4043,
+   "day": "2025-08-07"
+  },
+  {
+   "open": 3634.8546,
+   "close": 3635.1281,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3637.2686,
+   "day": "2025-08-08"
+  },
+  {
+   "open": 3637.0534,
+   "close": 3647.5467,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3639.1777,
+   "day": "2025-08-11"
+  },
+  {
+   "open": 3647.9625,
+   "close": 3665.9177,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3660.751,
+   "day": "2025-08-12"
+  },
+  {
+   "open": 3668.6581,
+   "close": 3683.4648,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3674.0472,
+   "day": "2025-08-13"
+  },
+  {
+   "open": 3685.5223,
+   "close": 3666.4426,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3701.9913,
+   "day": "2025-08-14"
+  },
+  {
+   "open": 3659.8146,
+   "close": 3696.7705,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3669.0426,
+   "day": "2025-08-15"
+  },
+  {
+   "open": 3712.4952,
+   "close": 3728.0273,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3719.4456,
+   "day": "2025-08-18"
+  },
+  {
+   "open": 3728.4851,
+   "close": 3727.2879,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3726.2485,
+   "day": "2025-08-19"
+  },
+  {
+   "open": 3716.6847,
+   "close": 3766.2104,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3730.0967,
+   "day": "2025-08-20"
+  },
+  {
+   "open": 3770.6757,
+   "close": 3771.0989,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3779.9043,
+   "day": "2025-08-21"
+  },
+  {
+   "open": 3772.2769,
+   "close": 3825.7592,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3781.3816,
+   "day": "2025-08-22"
+  },
+  {
+   "open": 3848.1629,
+   "close": 3883.5617,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3866.89,
+   "day": "2025-08-25"
+  },
+  {
+   "open": 3871.471,
+   "close": 3868.382,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3872.9395,
+   "day": "2025-08-26"
+  },
+  {
+   "open": 3869.6116,
+   "close": 3800.3499,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3870.9124,
+   "day": "2025-08-27"
+  },
+  {
+   "open": 3796.7112,
+   "close": 3843.5974,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3806.3845,
+   "day": "2025-08-28"
+  },
+  {
+   "open": 3842.8234,
+   "close": 3857.9274,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3866.8997,
+   "day": "2025-08-29"
+  },
+  {
+   "open": 3869.7457,
+   "close": 3875.5304,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3870.004,
+   "day": "2025-09-01"
+  },
+  {
+   "open": 3877.0858,
+   "close": 3858.1334,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3870.987,
+   "day": "2025-09-02"
+  },
+  {
+   "open": 3865.286,
+   "close": 3813.5566,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3832.7373,
+   "day": "2025-09-03"
+  },
+  {
+   "open": 3807.7571,
+   "close": 3765.8759,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3767.692,
+   "day": "2025-09-04"
+  },
+  {
+   "open": 3761.8801,
+   "close": 3812.5143,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3770.5627,
+   "day": "2025-09-05"
+  },
+  {
+   "open": 3811.6692,
+   "close": 3826.8407,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3813.0608,
+   "day": "2025-09-08"
+  },
+  {
+   "open": 3816.6574,
+   "close": 3807.2923,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3829.0896,
+   "day": "2025-09-09"
+  },
+  {
+   "open": 3806.5842,
+   "close": 3812.2212,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3802.5747,
+   "day": "2025-09-10"
+  },
+  {
+   "open": 3806.0564,
+   "close": 3875.3094,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3823.3076,
+   "day": "2025-09-11"
+  },
+  {
+   "open": 3875.5072,
+   "close": 3870.5984,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3892.1936,
+   "day": "2025-09-12"
+  },
+  {
+   "open": 3876.0974,
+   "close": 3860.5036,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3866.6028,
+   "day": "2025-09-15"
+  },
+  {
+   "open": 3865.9801,
+   "close": 3861.8651,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3855.6167,
+   "day": "2025-09-16"
+  },
+  {
+   "open": 3854.0726,
+   "close": 3876.3409,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3851.1206,
+   "day": "2025-09-17"
+  },
+  {
+   "open": 3876.0592,
+   "close": 3831.6562,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3896.4612,
+   "day": "2025-09-18"
+  },
+  {
+   "open": 3830.4437,
+   "close": 3820.0894,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3828.352,
+   "day": "2025-09-19"
+  },
+  {
+   "open": 3822.0096,
+   "close": 3828.5764,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3823.5369,
+   "day": "2025-09-22"
+  },
+  {
+   "open": 3830.1379,
+   "close": 3821.8327,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3788.0308,
+   "day": "2025-09-23"
+  },
+  {
+   "open": 3804.4833,
+   "close": 3853.6422,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3823.4863,
+   "day": "2025-09-24"
+  },
+  {
+   "open": 3852.431,
+   "close": 3853.3021,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3854.14,
+   "day": "2025-09-25"
+  },
+  {
+   "open": 3839.8553,
+   "close": 3828.106,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3843.68,
+   "day": "2025-09-26"
+  },
+  {
+   "open": 3828.1656,
+   "close": 3862.5317,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3831.542,
+   "day": "2025-09-29"
+  },
+  {
+   "open": 3869.7046,
+   "close": 3882.7774,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3869.197,
+   "day": "2025-09-30"
+  },
+  {
+   "open": 3898.307,
+   "close": 3933.9724,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3916.5276,
+   "day": "2025-10-09"
+  },
+  {
+   "open": 3915.4752,
+   "close": 3897.0281,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3927.6267,
+   "day": "2025-10-10"
+  },
+  {
+   "open": 3800.1055,
+   "close": 3889.5022,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3861.3765,
+   "day": "2025-10-13"
+  },
+  {
+   "open": 3910.7825,
+   "close": 3865.2289,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3906.511,
+   "day": "2025-10-14"
+  },
+  {
+   "open": 3867.5364,
+   "close": 3912.2095,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3881.065,
+   "day": "2025-10-15"
+  },
+  {
+   "open": 3900.6834,
+   "close": 3916.228,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3920.9856,
+   "day": "2025-10-16"
+  },
+  {
+   "open": 3912.0403,
+   "close": 3839.7553,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3876.9692,
+   "day": "2025-10-17"
+  },
+  {
+   "open": 3865.5523,
+   "close": 3863.8926,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3863.9558,
+   "day": "2025-10-20"
+  },
+  {
+   "open": 3870.7488,
+   "close": 3916.3322,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3893.3303,
+   "day": "2025-10-21"
+  },
+  {
+   "open": 3896.0736,
+   "close": 3913.7576,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3914.4497,
+   "day": "2025-10-22"
+  },
+  {
+   "open": 3904.159,
+   "close": 3922.4101,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3883.9795,
+   "day": "2025-10-23"
+  },
+  {
+   "open": 3929.115,
+   "close": 3950.3115,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3929.6956,
+   "day": "2025-10-24"
+  },
+  {
+   "open": 3969.2197,
+   "close": 3996.9445,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3981.6777,
+   "day": "2025-10-27"
+  },
+  {
+   "open": 3986.8912,
+   "close": 3988.2239,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3997.3025,
+   "day": "2025-10-28"
+  },
+  {
+   "open": 3990.2655,
+   "close": 4016.331,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3994.6729,
+   "day": "2025-10-29"
+  },
+  {
+   "open": 4007.8207,
+   "close": 3986.9008,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4018.3806,
+   "day": "2025-10-30"
+  },
+  {
+   "open": 3985.0641,
+   "close": 3954.79,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3966.2493,
+   "day": "2025-10-31"
+  },
+  {
+   "open": 3954.0783,
+   "close": 3976.5207,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3947.0664,
+   "day": "2025-11-03"
+  },
+  {
+   "open": 3973.4575,
+   "close": 3960.186,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3972.5837,
+   "day": "2025-11-04"
+  },
+  {
+   "open": 3922.5844,
+   "close": 3969.2483,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3940.0493,
+   "day": "2025-11-05"
+  },
+  {
+   "open": 3973.3493,
+   "close": 4007.7599,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3993.145,
+   "day": "2025-11-06"
+  },
+  {
+   "open": 3994.3167,
+   "close": 3997.5557,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4000.5886,
+   "day": "2025-11-07"
+  },
+  {
+   "open": 4001.7939,
+   "close": 4018.5972,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4001.7893,
+   "day": "2025-11-10"
+  },
+  {
+   "open": 4023.877,
+   "close": 4002.7576,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4005.4663,
+   "day": "2025-11-11"
+  },
+  {
+   "open": 3996.5648,
+   "close": 4000.1396,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4015.2932,
+   "day": "2025-11-12"
+  },
+  {
+   "open": 3996.5143,
+   "close": 4029.5012,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4006.7896,
+   "day": "2025-11-13"
+  },
+  {
+   "open": 4007.1258,
+   "close": 3990.4921,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4025.6416,
+   "day": "2025-11-14"
+  },
+  {
+   "open": 3988.5564,
+   "close": 3972.0348,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3968.7014,
+   "day": "2025-11-17"
+  },
+  {
+   "open": 3962.4437,
+   "close": 3939.8131,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3956.305,
+   "day": "2025-11-18"
+  },
+  {
+   "open": 3937.9198,
+   "close": 3946.7424,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3949.5298,
+   "day": "2025-11-19"
+  },
+  {
+   "open": 3960.6993,
+   "close": 3931.0512,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3952.9717,
+   "day": "2025-11-20"
+  },
+  {
+   "open": 3896.6646,
+   "close": 3834.8908,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3869.671,
+   "day": "2025-11-21"
+  },
+  {
+   "open": 3848.6565,
+   "close": 3836.7655,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3831.3108,
+   "day": "2025-11-24"
+  },
+  {
+   "open": 3850.571,
+   "close": 3870.0228,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3872.036,
+   "day": "2025-11-25"
+  },
+  {
+   "open": 3867.429,
+   "close": 3864.1844,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3873.441,
+   "day": "2025-11-26"
+  },
+  {
+   "open": 3867.1971,
+   "close": 3875.2594,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3887.0293,
+   "day": "2025-11-27"
+  },
+  {
+   "open": 3870.9438,
+   "close": 3888.5962,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3879.8171,
+   "day": "2025-11-28"
+  },
+  {
+   "open": 3894.2132,
+   "close": 3914.0061,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3892.3206,
+   "day": "2025-12-01"
+  },
+  {
+   "open": 3908.4559,
+   "close": 3897.7116,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3904.2754,
+   "day": "2025-12-02"
+  },
+  {
+   "open": 3894.1556,
+   "close": 3877.9996,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3893.0608,
+   "day": "2025-12-03"
+  },
+  {
+   "open": 3879.7417,
+   "close": 3875.7933,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3869.7854,
+   "day": "2025-12-04"
+  },
+  {
+   "open": 3873.1207,
+   "close": 3902.8076,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3868.9175,
+   "day": "2025-12-05"
+  },
+  {
+   "open": 3909.226,
+   "close": 3924.0778,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3922.558,
+   "day": "2025-12-08"
+  },
+  {
+   "open": 3916.5087,
+   "close": 3909.5216,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3918.6592,
+   "day": "2025-12-09"
+  },
+  {
+   "open": 3901.1275,
+   "close": 3900.496,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3884.319,
+   "day": "2025-12-10"
+  },
+  {
+   "open": 3903.8948,
+   "close": 3873.3176,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3893.6333,
+   "day": "2025-12-11"
+  },
+  {
+   "open": 3869.4127,
+   "close": 3889.3457,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3857.8994,
+   "day": "2025-12-12"
+  },
+  {
+   "open": 3865.4021,
+   "close": 3867.9209,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3883.0525,
+   "day": "2025-12-15"
+  },
+  {
+   "open": 3861.5145,
+   "close": 3824.8119,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3826.99,
+   "day": "2025-12-16"
+  },
+  {
+   "open": 3822.5086,
+   "close": 3870.2775,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3831.8452,
+   "day": "2025-12-17"
+  },
+  {
+   "open": 3857.2568,
+   "close": 3876.3705,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3877.097,
+   "day": "2025-12-18"
+  },
+  {
+   "open": 3878.227,
+   "close": 3890.4475,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3895.3306,
+   "day": "2025-12-19"
+  },
+  {
+   "open": 3900.535,
+   "close": 3917.3638,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3913.6382,
+   "day": "2025-12-22"
+  },
+  {
+   "open": 3919.1063,
+   "close": 3919.9786,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3926.92,
+   "day": "2025-12-23"
+  },
+  {
+   "open": 3920.3466,
+   "close": 3940.947,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3919.1443,
+   "day": "2025-12-24"
+  },
+  {
+   "open": 3937.7196,
+   "close": 3959.6211,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3947.647,
+   "day": "2025-12-25"
+  },
+  {
+   "open": 3957.8326,
+   "close": 3963.6789,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3968.6584,
+   "day": "2025-12-26"
+  },
+  {
+   "open": 3964.6513,
+   "close": 3965.2796,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3976.8582,
+   "day": "2025-12-29"
+  },
+  {
+   "open": 3947.8707,
+   "close": 3965.1159,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3964.7153,
+   "day": "2025-12-30"
+  },
+  {
+   "open": 3968.7256,
+   "close": 3968.8401,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3970.8276,
+   "day": "2025-12-31"
+  },
+  {
+   "open": 3986.9721,
+   "close": 4023.4167,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4003.9106,
+   "day": "2026-01-05"
+  },
+  {
+   "open": 4026.0158,
+   "close": 4083.6672,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4060.444,
+   "day": "2026-01-06"
+  },
+  {
+   "open": 4083.843,
+   "close": 4085.7723,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4078.1057,
+   "day": "2026-01-07"
+  },
+  {
+   "open": 4077.715,
+   "close": 4082.9788,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4080.03,
+   "day": "2026-01-08"
+  },
+  {
+   "open": 4086.7624,
+   "close": 4120.426,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4111.0693,
+   "day": "2026-01-09"
+  },
+  {
+   "open": 4134.893,
+   "close": 4165.287,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4131.292,
+   "day": "2026-01-12"
+  },
+  {
+   "open": 4169.7041,
+   "close": 4138.7585,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4163.7876,
+   "day": "2026-01-13"
+  },
+  {
+   "open": 4138.6454,
+   "close": 4126.0932,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4176.5,
+   "day": "2026-01-14"
+  },
+  {
+   "open": 4106.2241,
+   "close": 4112.6012,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4110.018,
+   "day": "2026-01-15"
+  },
+  {
+   "open": 4127.0632,
+   "close": 4101.9127,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4105.77,
+   "day": "2026-01-16"
+  },
+  {
+   "open": 4090.7185,
+   "close": 4114.0001,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4112.174,
+   "day": "2026-01-19"
+  },
+  {
+   "open": 4116.3659,
+   "close": 4113.649,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4088.782,
+   "day": "2026-01-20"
+  },
+  {
+   "open": 4103.5291,
+   "close": 4116.94,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4128.096,
+   "day": "2026-01-21"
+  },
+  {
+   "open": 4126.0717,
+   "close": 4122.576,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4122.514,
+   "day": "2026-01-22"
+  },
+  {
+   "open": 4130.1076,
+   "close": 4136.1642,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4130.9634,
+   "day": "2026-01-23"
+  },
+  {
+   "open": 4144.7782,
+   "close": 4132.6052,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4148.361,
+   "day": "2026-01-26"
+  },
+  {
+   "open": 4125.2155,
+   "close": 4139.9041,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4126.3726,
+   "day": "2026-01-27"
+  },
+  {
+   "open": 4150.2152,
+   "close": 4151.2378,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4152.992,
+   "day": "2026-01-28"
+  },
+  {
+   "open": 4155.9185,
+   "close": 4157.9845,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4141.167,
+   "day": "2026-01-29"
+  },
+  {
+   "open": 4131.9929,
+   "close": 4117.9476,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4093.214,
+   "day": "2026-01-30"
+  },
+  {
+   "open": 4079.7075,
+   "close": 4015.7464,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4086.606,
+   "day": "2026-02-02"
+  },
+  {
+   "open": 4043.9061,
+   "close": 4067.7379,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4032.29,
+   "day": "2026-02-03"
+  },
+  {
+   "open": 4064.6772,
+   "close": 4102.202,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4080.7913,
+   "day": "2026-02-04"
+  },
+  {
+   "open": 4075.0254,
+   "close": 4075.9167,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4064.627,
+   "day": "2026-02-05"
+  },
+  {
+   "open": 4040.2992,
+   "close": 4065.5834,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4073.754,
+   "day": "2026-02-06"
+  },
+  {
+   "open": 4103.5396,
+   "close": 4123.0897,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4115.3687,
+   "day": "2026-02-09"
+  },
+  {
+   "open": 4127.7658,
+   "close": 4128.3731,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4131.064,
+   "day": "2026-02-10"
+  },
+  {
+   "open": 4124.4277,
+   "close": 4131.985,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4132.9185,
+   "day": "2026-02-11"
+  },
+  {
+   "open": 4136.99,
+   "close": 4134.0178,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4136.255,
+   "day": "2026-02-12"
+  },
+  {
+   "open": 4115.9243,
+   "close": 4082.0726,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4122.44,
+   "day": "2026-02-13"
+  },
+  {
+   "open": 4129.1338,
+   "close": 4117.4089,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4121.026,
+   "day": "2026-02-24"
+  },
+  {
+   "open": 4123.7808,
+   "close": 4147.2305,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4147.4653,
+   "day": "2026-02-25"
+  },
+  {
+   "open": 4151.068,
+   "close": 4146.6311,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4136.6763,
+   "day": "2026-02-26"
+  },
+  {
+   "open": 4128.8974,
+   "close": 4162.8815,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4147.5615,
+   "day": "2026-02-27"
+  },
+  {
+   "open": 4151.8011,
+   "close": 4182.5909,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4139.169,
+   "day": "2026-03-02"
+  },
+  {
+   "open": 4189.4079,
+   "close": 4122.676,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4152.622,
+   "day": "2026-03-03"
+  },
+  {
+   "open": 4087.632,
+   "close": 4082.474,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4089.5664,
+   "day": "2026-03-04"
+  },
+  {
+   "open": 4109.777,
+   "close": 4108.567,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4102.3394,
+   "day": "2026-03-05"
+  },
+  {
+   "open": 4085.8954,
+   "close": 4124.194,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4111.316,
+   "day": "2026-03-06"
+  },
+  {
+   "open": 4098.6987,
+   "close": 4096.6023,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4068.7366,
+   "day": "2026-03-09"
+  },
+  {
+   "open": 4098.5869,
+   "close": 4123.138,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4114.3584,
+   "day": "2026-03-10"
+  },
+  {
+   "open": 4123.6663,
+   "close": 4133.4331,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4124.496,
+   "day": "2026-03-11"
+  },
+  {
+   "open": 4133.1996,
+   "close": 4129.1026,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4137.793,
+   "day": "2026-03-12"
+  },
+  {
+   "open": 4117.5738,
+   "close": 4095.4485,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4121.8525,
+   "day": "2026-03-13"
+  },
+  {
+   "open": 4092.2491,
+   "close": 4084.7858,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4061.1606,
+   "day": "2026-03-16"
+  },
+  {
+   "open": 4086.2953,
+   "close": 4049.9073,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4100.6226,
+   "day": "2026-03-17"
+  },
+  {
+   "open": 4053.3052,
+   "close": 4062.9844,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4041.033,
+   "day": "2026-03-18"
+  },
+  {
+   "open": 4028.542,
+   "close": 4006.5523,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4016.1794,
+   "day": "2026-03-19"
+  },
+  {
+   "open": 4004.5732,
+   "close": 3957.0527,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3997.4087,
+   "day": "2026-03-20"
+  },
+  {
+   "open": 3904.9513,
+   "close": 3813.2829,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3897.0745,
+   "day": "2026-03-23"
+  },
+  {
+   "open": 3849.6312,
+   "close": 3881.2797,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3829.2769,
+   "day": "2026-03-24"
+  },
+  {
+   "open": 3892.269,
+   "close": 3931.8375,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3921.441,
+   "day": "2026-03-25"
+  },
+  {
+   "open": 3924.9621,
+   "close": 3889.0835,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3915.4316,
+   "day": "2026-03-26"
+  },
+  {
+   "open": 3852.0936,
+   "close": 3913.7238,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3888.8115,
+   "day": "2026-03-27"
+  },
+  {
+   "open": 3884.2769,
+   "close": 3923.2869,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3887.6448,
+   "day": "2026-03-30"
+  },
+  {
+   "open": 3924.067,
+   "close": 3891.8605,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3940.2454,
+   "day": "2026-03-31"
+  },
+  {
+   "open": 3939.5658,
+   "close": 3948.5521,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3946.0225,
+   "day": "2026-04-01"
+  },
+  {
+   "open": 3940.7989,
+   "close": 3919.2852,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3932.3225,
+   "day": "2026-04-02"
+  },
+  {
+   "open": 3927.5923,
+   "close": 3880.0967,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3892.3757,
+   "day": "2026-04-03"
+  },
+  {
+   "open": 3884.1505,
+   "close": 3890.1645,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3893.577,
+   "day": "2026-04-07"
+  },
+  {
+   "open": 3930.2507,
+   "close": 3994.9975,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3948.8708,
+   "day": "2026-04-08"
+  },
+  {
+   "open": 3967.6296,
+   "close": 3966.1712,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3977.1853,
+   "day": "2026-04-09"
+  },
+  {
+   "open": 3985.464,
+   "close": 3986.2247,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4004.7053,
+   "day": "2026-04-10"
+  },
+  {
+   "open": 3971.1985,
+   "close": 3988.558,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3978.37,
+   "day": "2026-04-13"
+  },
+  {
+   "open": 4006.7267,
+   "close": 4026.6256,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": true,
+   "at1030": 4007.5771,
+   "day": "2026-04-14"
+  },
+  {
+   "open": 4039.4711,
+   "close": 4027.2095,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4042.4006,
+   "day": "2026-04-15"
+  },
+  {
+   "open": 4030.1378,
+   "close": 4055.5468,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4044.6707,
+   "day": "2026-04-16"
+  },
+  {
+   "open": 4043.3813,
+   "close": 4051.4254,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4044.94,
+   "day": "2026-04-17"
+  },
+  {
+   "open": 4053.3745,
+   "close": 4082.1271,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4073.4045,
+   "day": "2026-04-20"
+  },
+  {
+   "open": 4075.8454,
+   "close": 4085.0766,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4064.4966,
+   "day": "2026-04-21"
+  },
+  {
+   "open": 4074.8131,
+   "close": 4106.2581,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4089.0728,
+   "day": "2026-04-22"
+  },
+  {
+   "open": 4110.7883,
+   "close": 4093.2501,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4107.255,
+   "day": "2026-04-23"
+  },
+  {
+   "open": 4081.0326,
+   "close": 4079.9004,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4068.1074,
+   "day": "2026-04-24"
+  },
+  {
+   "open": 4074.8109,
+   "close": 4086.3442,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4088.63,
+   "day": "2026-04-27"
+  },
+  {
+   "open": 4076.1431,
+   "close": 4078.6374,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4080.3997,
+   "day": "2026-04-28"
+  },
+  {
+   "open": 4061.8221,
+   "close": 4107.5144,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4083.3516,
+   "day": "2026-04-29"
+  },
+  {
+   "open": 4107.2974,
+   "close": 4112.1593,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4108.505,
+   "day": "2026-04-30"
+  },
+  {
+   "open": 4135.4505,
+   "close": 4160.1737,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4157.4766,
+   "day": "2026-05-06"
+  },
+  {
+   "open": 4168.4467,
+   "close": 4180.0922,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4167.071,
+   "day": "2026-05-07"
+  },
+  {
+   "open": 4163.8537,
+   "close": 4179.9524,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4166.78,
+   "day": "2026-05-08"
+  },
+  {
+   "open": 4201.3465,
+   "close": 4225.0207,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4205.6465,
+   "day": "2026-05-11"
+  },
+  {
+   "open": 4229.2833,
+   "close": 4214.4891,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4221.0146,
+   "day": "2026-05-12"
+  },
+  {
+   "open": 4192.3145,
+   "close": 4242.572,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4214.295,
+   "day": "2026-05-13"
+  },
+  {
+   "open": 4256.1569,
+   "close": 4177.9175,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4217.755,
+   "day": "2026-05-14"
+  },
+  {
+   "open": 4174.175,
+   "close": 4135.3894,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4149.0347,
+   "day": "2026-05-15"
+  },
+  {
+   "open": 4120.1401,
+   "close": 4131.5276,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4136.6,
+   "day": "2026-05-18"
+  },
+  {
+   "open": 4122.9608,
+   "close": 4169.5378,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4115.2437,
+   "day": "2026-05-19"
+  },
+  {
+   "open": 4152.6984,
+   "close": 4162.1845,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4152.474,
+   "day": "2026-05-20"
+  },
+  {
+   "open": 4174.3772,
+   "close": 4077.2765,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4193.565,
+   "day": "2026-05-21"
+  },
+  {
+   "open": 4096.1723,
+   "close": 4112.8996,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4074.5852,
+   "day": "2026-05-22"
+  },
+  {
+   "open": 4126.3376,
+   "close": 4152.5686,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4139.158,
+   "day": "2026-05-25"
+  },
+  {
+   "open": 4137.3196,
+   "close": 4145.373,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4133.774,
+   "day": "2026-05-26"
+  },
+  {
+   "open": 4138.8053,
+   "close": 4093.7266,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4134.803,
+   "day": "2026-05-27"
+  },
+  {
+   "open": 4080.3044,
+   "close": 4098.6358,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4070.9785,
+   "day": "2026-05-28"
+  },
+  {
+   "open": 4110.5212,
+   "close": 4068.5691,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4092.879,
+   "day": "2026-05-29"
+  },
+  {
+   "open": 4067.1578,
+   "close": 4057.74,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4087.9397,
+   "day": "2026-06-01"
+  },
+  {
+   "open": 4061.4629,
+   "close": 4075.1016,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4054.016,
+   "day": "2026-06-02"
+  },
+  {
+   "open": 4068.3408,
+   "close": 4083.974,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4084.4766,
+   "day": "2026-06-03"
+  },
+  {
+   "open": 4053.6702,
+   "close": 4057.7811,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4066.3018,
+   "day": "2026-06-04"
+  },
+  {
+   "open": 4044.8292,
+   "close": 4027.7362,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4065.9983,
+   "day": "2026-06-05"
+  },
+  {
+   "open": 3938.7093,
+   "close": 3959.3378,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3982.4844,
+   "day": "2026-06-08"
+  },
+  {
+   "open": 3977.5394,
+   "close": 4010.0307,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3969.6465,
+   "day": "2026-06-09"
+  },
+  {
+   "open": 3985.1244,
+   "close": 3993.2258,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3986.9177,
+   "day": "2026-06-10"
+  },
+  {
+   "open": 3979.7057,
+   "close": 3987.0147,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3972.2678,
+   "day": "2026-06-11"
+  },
+  {
+   "open": 4017.8648,
+   "close": 4031.5129,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4041.2341,
+   "day": "2026-06-12"
+  },
+  {
+   "open": 4053.5822,
+   "close": 4096.4717,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4073.0781,
+   "day": "2026-06-15"
+  },
+  {
+   "open": 4094.2124,
+   "close": 4091.8917,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4093.39,
+   "day": "2026-06-16"
+  },
+  {
+   "open": 4074.2913,
+   "close": 4108.0762,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4090.409,
+   "day": "2026-06-17"
+  },
+  {
+   "open": 4094.2301,
+   "close": 4090.4813,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4108.978,
+   "day": "2026-06-18"
+  },
+  {
+   "open": 4093.9546,
+   "close": 4163.0965,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4086.1814,
+   "day": "2026-06-22"
+  },
+  {
+   "open": 4153.593,
+   "close": 4106.2517,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4167.07,
+   "day": "2026-06-23"
+  },
+  {
+   "open": 4090.1001,
+   "close": 4110.8134,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4097.3965,
+   "day": "2026-06-24"
+  },
+  {
+   "open": 4103.4817,
+   "close": 4120.2806,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4107.8755,
+   "day": "2026-06-25"
+  },
+  {
+   "open": 4098.6864,
+   "close": 4027.2648,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4070.0386,
+   "day": "2026-06-26"
+  },
+  {
+   "open": 4026.6858,
+   "close": 4073.9017,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4031.6777,
+   "day": "2026-06-29"
+  },
+  {
+   "open": 4058.1695,
+   "close": 4094.3972,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4056.638,
+   "day": "2026-06-30"
+  },
+  {
+   "open": 4090.7598,
+   "close": 4112.4453,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4117.4478,
+   "day": "2026-07-01"
+  },
+  {
+   "open": 4054.0857,
+   "close": 4028.9038,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4077.6038,
+   "day": "2026-07-02"
+  },
+  {
+   "open": 4031.3351,
+   "close": 4043.6432,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4035.941,
+   "day": "2026-07-03"
+  },
+  {
+   "open": 4059.1941,
+   "close": 4041.2382,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 4032.7883,
+   "day": "2026-07-06"
+  },
+  {
+   "open": 4019.4942,
+   "close": 3990.2353,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 4006.2773,
+   "day": "2026-07-07"
+  },
+  {
+   "open": 3996.8069,
+   "close": 3970.8797,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3981.1091,
+   "day": "2026-07-08"
+  },
+  {
+   "open": 3977.5473,
+   "close": 4036.5879,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3973.0515,
+   "day": "2026-07-09"
+  },
+  {
+   "open": 4031.5373,
+   "close": 3996.1616,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 4060.8528,
+   "day": "2026-07-10"
+  },
+  {
+   "open": 3966.0234,
+   "close": 3913.794,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3967.5298,
+   "day": "2026-07-13"
+  },
+  {
+   "open": 3909.274,
+   "close": 3967.1262,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3915.553,
+   "day": "2026-07-14"
+  },
+  {
+   "open": 3963.7267,
+   "close": 3955.5781,
+   "strict": "坏",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3974.9958,
+   "day": "2026-07-15"
+  },
+  {
+   "open": 3912.3812,
+   "close": 3882.4126,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3930.8293,
+   "day": "2026-07-16"
+  },
+  {
+   "open": 3865.3165,
+   "close": 3764.1547,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3839.7673,
+   "day": "2026-07-17"
+  },
+  {
+   "open": 3791.6616,
+   "close": 3796.2814,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3796.6667,
+   "day": "2026-07-20"
+  },
+  {
+   "open": 3812.1618,
+   "close": 3864.3671,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3773.5037,
+   "day": "2026-07-21"
+  },
+  {
+   "open": 3839.6654,
+   "close": 3867.0336,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3877.9155,
+   "day": "2026-07-22"
+  },
+  {
+   "open": 3868.0871,
+   "close": 3876.7774,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3867.2046,
+   "day": "2026-07-23"
+  },
+  {
+   "open": 3853.6316,
+   "close": 3814.1978,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3843.6887,
+   "day": "2026-07-24"
+  },
+  {
+   "open": 3808.9032,
+   "close": 3858.245,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3834.1726,
+   "day": "2026-07-27"
+  },
+  {
+   "open": 3823.1331,
+   "close": 3813.3146,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3822.403,
+   "day": "2026-07-28"
+  },
+  {
+   "open": 3823.2931,
+   "close": 3828.469,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3796.686,
+   "day": "2026-07-29"
+  },
+  {
+   "open": 3812.111,
+   "close": 3804.6926,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3813.535,
+   "day": "2026-07-30"
+  },
+  {
+   "open": 3833.5359,
+   "close": 3832.2624,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3833.4363,
+   "day": "2026-07-31"
+  },
+  {
+   "open": 3812.6129,
+   "close": 3809.6629,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3806.3567,
+   "day": "2026-08-03"
+  },
+  {
+   "open": 3816.3699,
+   "close": 3822.2846,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3801.791,
+   "day": "2026-08-04"
+  },
+  {
+   "open": 3815.1217,
+   "close": 3878.4296,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3850.418,
+   "day": "2026-08-05"
+  },
+  {
+   "open": 3864.2734,
+   "close": 3900.3523,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3892.9324,
+   "day": "2026-08-06"
+  },
+  {
+   "open": 3896.4854,
+   "close": 3940.0371,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3912.2827,
+   "day": "2026-08-07"
+  },
+  {
+   "open": 3943.816,
+   "close": 3966.5935,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3957.1428,
+   "day": "2026-08-10"
+  },
+  {
+   "open": 3950.7078,
+   "close": 3934.0929,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3954.099,
+   "day": "2026-08-11"
+  },
+  {
+   "open": 3933.5533,
+   "close": 3946.6752,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3938.115,
+   "day": "2026-08-12"
+  },
+  {
+   "open": 3957.1612,
+   "close": 3926.9648,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3965.5342,
+   "day": "2026-08-13"
+  },
+  {
+   "open": 3930.0215,
+   "close": 3927.1764,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3918.428,
+   "day": "2026-08-14"
+  },
+  {
+   "open": 3930.1044,
+   "close": 3982.6535,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3942.07,
+   "day": "2026-08-17"
+  },
+  {
+   "open": 3979.4898,
+   "close": 3990.3037,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3974.5615,
+   "day": "2026-08-18"
+  },
+  {
+   "open": 3952.1219,
+   "close": 3894.4224,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3931.6775,
+   "day": "2026-08-19"
+  },
+  {
+   "open": 3907.2058,
+   "close": 3903.721,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3908.278,
+   "day": "2026-08-20"
+  },
+  {
+   "open": 3891.1751,
+   "close": 3905.2026,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3906.2998,
+   "day": "2026-08-21"
+  },
+  {
+   "open": 3902.6963,
+   "close": 3882.0079,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3896.177,
+   "day": "2026-08-24"
+  },
+  {
+   "open": 3863.3695,
+   "close": 3889.4449,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3883.7778,
+   "day": "2026-08-25"
+  },
+  {
+   "open": 3881.7408,
+   "close": 3912.5235,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3907.619,
+   "day": "2026-08-26"
+  },
+  {
+   "open": 3911.8908,
+   "close": 3956.571,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3916.894,
+   "day": "2026-08-27"
+  },
+  {
+   "open": 3950.2368,
+   "close": 3952.179,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3967.2876,
+   "day": "2026-08-28"
+  },
+  {
+   "open": 3926.5312,
+   "close": 3986.298,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3943.5454,
+   "day": "2026-08-31"
+  },
+  {
+   "open": 3979.8814,
+   "close": 3979.8877,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3983.6787,
+   "day": "2026-09-01"
+  },
+  {
+   "open": 3963.0661,
+   "close": 3941.3862,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3938.841,
+   "day": "2026-09-02"
+  },
+  {
+   "open": 3952.7948,
+   "close": 3942.0879,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3959.8193,
+   "day": "2026-09-03"
+  },
+  {
+   "open": 3955.5489,
+   "close": 3930.1164,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3969.2354,
+   "day": "2026-09-04"
+  },
+  {
+   "open": 3942.5093,
+   "close": 3932.6992,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3927.041,
+   "day": "2026-09-07"
+  },
+  {
+   "open": 3935.5479,
+   "close": 3940.5509,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3944.7307,
+   "day": "2026-09-08"
+  },
+  {
+   "open": 3943.9221,
+   "close": 3951.5068,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3946.9836,
+   "day": "2026-09-09"
+  },
+  {
+   "open": 3939.0948,
+   "close": 3934.4036,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3939.1138,
+   "day": "2026-09-10"
+  },
+  {
+   "open": 3910.9234,
+   "close": 3888.1106,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3863.0479,
+   "day": "2026-09-11"
+  },
+  {
+   "open": 3867.0216,
+   "close": 3885.3328,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3892.7202,
+   "day": "2026-09-14"
+  },
+  {
+   "open": 3879.7262,
+   "close": 3864.2794,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3889.2156,
+   "day": "2026-09-15"
+  },
+  {
+   "open": 3861.7457,
+   "close": 3891.6005,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3851.593,
+   "day": "2026-09-16"
+  },
+  {
+   "open": 3876.9983,
+   "close": 3875.6044,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3879.939,
+   "day": "2026-09-17"
+  },
+  {
+   "open": 3891.9608,
+   "close": 3911.8714,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3904.583,
+   "day": "2026-09-18"
+  },
+  {
+   "open": 3920.2731,
+   "close": 3949.9068,
+   "strict": "好",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3930.844,
+   "day": "2026-09-21"
+  },
+  {
+   "open": 3963.8073,
+   "close": 3952.128,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3964.214,
+   "day": "2026-09-22"
+  },
+  {
+   "open": 3951.3663,
+   "close": 3936.5199,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3942.237,
+   "day": "2026-09-23"
+  },
+  {
+   "open": 3925.323,
+   "close": 3888.3738,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3916.962,
+   "day": "2026-09-24"
+  },
+  {
+   "open": 3878.4088,
+   "close": 3823.6206,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3828.623,
+   "day": "2026-09-28"
+  },
+  {
+   "open": 3816.1536,
+   "close": 3830.4513,
+   "strict": "模糊",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3818.08,
+   "day": "2026-09-29"
+  },
+  {
+   "open": 3839.2527,
+   "close": 3842.1946,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3839.123,
+   "day": "2026-09-30"
+  },
+  {
+   "open": 3838.9774,
+   "close": 3811.9043,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3848.0948,
+   "day": "2026-10-08"
+  },
+  {
+   "open": 3804.0896,
+   "close": 3813.7913,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3762.6866,
+   "day": "2026-10-09"
+  },
+  {
+   "open": 3806.9786,
+   "close": 3797.2424,
+   "strict": "好",
+   "loose": "好",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3823.8217,
+   "day": "2026-10-12"
+  },
+  {
+   "open": 3760.7988,
+   "close": 3800.8644,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": true,
+   "at1030": 3756.509,
+   "day": "2026-10-13"
+  },
+  {
+   "open": 3790.6308,
+   "close": 3767.2271,
+   "strict": "坏",
+   "loose": "坏",
+   "new_low5": false,
+   "new_high5": false,
+   "at1030": 3804.2841,
+   "day": "2026-10-14"
+  },
+  {
+   "open": 3710.6954,
+   "close": 3707.476,
+   "strict": "模糊",
+   "loose": "好",
+   "new_low5": true,
+   "new_high5": false,
+   "at1030": 3708.7767,
+   "day": "2026-10-15"
+  }
+ ]
+}

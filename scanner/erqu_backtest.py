@@ -124,6 +124,7 @@ def main():
     ap.add_argument("--start", default="20240101")
     ap.add_argument("--end", default=datetime.now().strftime("%Y%m%d"))
     ap.add_argument("--csv")
+    ap.add_argument("--daily", help="日线 CSV（date,open,high,low,close），用官方开盘价/收盘价替代分钟线首末值")
     args = ap.parse_args()
     if args.csv:
         df = pd.read_csv(args.csv)
@@ -133,11 +134,17 @@ def main():
         out_dir.mkdir(exist_ok=True)
         df.to_csv(out_dir / "sse_5min.csv", index=False)
     df["day"] = df["time"].str[:10]
+    daily = {}
+    if args.daily:
+        dd = pd.read_csv(args.daily)
+        daily = {str(r["date"])[:10]: (float(r["open"]), float(r["close"])) for _, r in dd.iterrows()}
     rows = []
     for day, d in df.groupby("day"):
         r = classify_day(d.sort_values("time"))
         if r:
             r["day"] = day
+            if day in daily:
+                r["open"], r["close"] = daily[day]
             rows.append(r)
     print(f"交易日 {len(rows)} 天，{rows[0]['day']} ~ {rows[-1]['day']}")
     res = {"days": len(rows), "span": [rows[0]["day"], rows[-1]["day"]], "by_year": {}, "all": evaluate(rows)}
