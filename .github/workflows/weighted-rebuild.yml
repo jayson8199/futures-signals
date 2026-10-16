@@ -2,13 +2,20 @@ name: 加权指数全量重建
 
 on:
   workflow_dispatch:
+    inputs:
+      assemble_only:
+        description: "跳过拉取，只用已有缓存汇总并提交"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   fetch:
     name: 拉取 ${{ matrix.range }}
+    if: ${{ !inputs.assemble_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 340
     strategy:
@@ -68,6 +75,7 @@ jobs:
       - uses: actions/cache/restore@v4
         with: { path: .cache/bydate, key: x, restore-keys: "bydate-2021-01-01:2026-12-31-" }
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with: { pattern: fetch-log-*, path: fetchlogs }
       - name: 汇总（只增不减）
         run: |
@@ -77,17 +85,21 @@ jobs:
           echo "缓存天数：$(find .cache/bydate -type f 2>/dev/null | wc -l)" | tee experiments/bydate_logs/assemble.log
           python scanner/weighted_bydate.py --assemble 2>&1 | tee -a experiments/bydate_logs/assemble.log
       - name: 提交
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
           for i in 1 2 3 4 5; do
             git add -A data/weighted/ experiments/bydate_logs/
             git commit -m "data: 加权指数（按日全市场，只增不减）" || echo "无变化"
-            git push && exit 0
+            git push 2>&1 | sed -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' | tee push.log; test ${PIPESTATUS[0]} -eq 0 && exit 0
             echo "推送失败，重取远端后重新汇总（第 $i 次）"
             git fetch origin main && git reset --hard origin/main
             python scanner/weighted_bydate.py --assemble > /dev/null 2>&1 || true
             for d in fetchlogs/*/; do n=$(basename "$d"); cp "$d/fetch.log" "experiments/bydate_logs/$n.log" 2>/dev/null || true; done
             sleep 20
           done
+          { echo "run ${{ github.run_id }} 汇总提交 5 次均失败。push 输出："; echo '```'; tail -40 push.log; echo '```'; echo "git status："; echo '```'; git status --short | head -20; git log --oneline -3; echo '```'; } > issue.md
+          gh issue create --title "加权重建提交失败 run ${{ github.run_id }}" --body-file issue.md || true
           exit 1
