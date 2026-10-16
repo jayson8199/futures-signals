@@ -1,40 +1,54 @@
-name: 按日拉取调试
+name: 按日拉取（顺序全量）
 
 on:
   workflow_dispatch:
     inputs:
-      start: { description: "开始日期", default: "2026-10-01" }
-      end: { description: "结束日期", default: "2026-10-15" }
+      start: { description: "开始日期", default: "2008-01-01" }
+      end: { description: "结束日期", default: "2026-12-31" }
+      assemble: { description: "拉完后汇总并提交 data/weighted", type: boolean, default: true }
 
 permissions:
   contents: write
 
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
 jobs:
-  debug:
+  fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r scanner/requirements.txt tushare
+      - name: 恢复按日缓存
+        uses: actions/cache@v4
+        with:
+          path: .cache/bydate
+          key: bydate-all-${{ github.run_id }}
+          restore-keys: bydate-all-
       - name: 拉取并记录日志
         env:
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
         run: |
           mkdir -p experiments
-          python -u scanner/weighted_bydate.py --fetch "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" > experiments/bydate_debug.log 2>&1 || echo "EXIT=$?" >> experiments/bydate_debug.log
+          echo "缓存已有：$(find .cache/bydate -type f 2>/dev/null | wc -l) 天" > experiments/bydate_debug.log
+          python -u scanner/weighted_bydate.py --fetch "${{ github.event.inputs.start }}" "${{ github.event.inputs.end }}" >> experiments/bydate_debug.log 2>&1 || echo "EXIT=$?" >> experiments/bydate_debug.log
           sed -i -E 's/tsr_[A-Za-z0-9_-]+/tsr_***/g' experiments/bydate_debug.log
-          echo "--- 缓存文件 ---" >> experiments/bydate_debug.log
-          find .cache/bydate -type f | sort | head -50 >> experiments/bydate_debug.log
-          for f in $(find .cache/bydate -type f | sort | head -3); do echo "--- $f ($(wc -l < $f) 行)" >> experiments/bydate_debug.log; head -3 "$f" >> experiments/bydate_debug.log; done
-          cat experiments/bydate_debug.log
-      - name: 提交日志
+          echo "缓存现有：$(find .cache/bydate -type f | wc -l) 天；非空 $(find .cache/bydate -type f -size +0 | wc -l) 天" >> experiments/bydate_debug.log
+          tail -5 experiments/bydate_debug.log
+      - name: 汇总
+        if: github.event.inputs.assemble == 'true'
+        run: python scanner/weighted_bydate.py --assemble >> experiments/bydate_debug.log 2>&1 || echo "ASSEMBLE_EXIT=$?" >> experiments/bydate_debug.log
+      - name: 提交
         if: always()
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
           git add experiments/bydate_debug.log
-          git commit -m "debug: 按日拉取日志" || echo "无变化"
+          if [ "${{ github.event.inputs.assemble }}" = "true" ] && ! grep -q "ASSEMBLE_EXIT" experiments/bydate_debug.log && ! grep -q "^EXIT=" experiments/bydate_debug.log; then git add data/weighted/; fi
+          git commit -m "data: 加权指数（按日全市场顺序拉取）" || echo "无变化"
           git pull --rebase origin main || true
           git push

@@ -50,7 +50,14 @@ def connect():
 
 def trade_days(pro, start: str, end: str) -> list[str]:
     """交易日历：用棕榈油主力映射的日期（2007-10 起连续）"""
-    m = pro.fut_mapping(ts_code="P.DCE")  # 代理不接受起止日期参数，取全量后本地筛选
+    m = None
+    for i in range(6):  # 代理不接受起止日期参数，取全量后本地筛选；限流时等待重试
+        try:
+            m = pro.fut_mapping(ts_code="P.DCE"); break
+        except Exception as e:
+            print(f"  交易日历获取失败({i+1}/6): {str(e)[:120]}", file=sys.stderr); time.sleep(31)
+    if m is None or len(m) == 0:
+        raise RuntimeError("交易日历获取失败")
     days = sorted(set(m["trade_date"].astype(str)))
     return [d for d in days if start.replace("-", "") <= d <= end.replace("-", "")]
 
