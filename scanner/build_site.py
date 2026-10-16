@@ -129,6 +129,12 @@ details .tbl{border-radius:0 0 6px 6px}
 .rule{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:10px}
 .rule h4{font-size:14px;margin-bottom:6px;color:var(--cyan);font-family:var(--mono)}
 code{background:var(--panel2);padding:1px 6px;border-radius:3px;font-size:12px;font-family:var(--mono);color:var(--amber)}
+.today{background:var(--panel);border:1px solid var(--line2);border-left:4px solid var(--cyan);border-radius:8px;padding:14px 18px;margin-bottom:12px}
+.today-h{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:8px}
+.today-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.today-cell{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.today-k{font-size:11px;color:var(--muted);font-family:var(--mono)}.today-v{font-size:22px;font-weight:700;line-height:1.2;margin:2px 0}.today-s{font-size:12.5px;color:var(--ink)}
+@media (max-width:720px){.today-grid{grid-template-columns:1fr}}
 .score{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .score-l,.score-r{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
 .score-t{color:var(--muted);font-size:12px;font-family:var(--mono)}
@@ -667,9 +673,9 @@ def erqu_body():
             return f"<div class='step {state}'><div class='step-dot'></div><div class='step-t'>{title}</div><div class='step-b'>{body}</div></div>"
         st1 = step(True, "10:30 判定", f"<b>{latest.get('z2', '')}二区</b> · {latest.get('z2_reason', '')}<br>预测：{latest.get('prediction', '')}<br><span class='muted'>{latest.get('judged_at', '')[11:]}</span>", "done" if latest.get("z2") else "wait")
         if "fixed" in latest:
-            st2 = step(True, "13:30 五区", f"新高 {'是' if latest['z5_new_high'] else '否'} / 新低 {'是' if latest['z5_new_low'] else '否'} → <b>{'修正为 ' + latest['final'] if latest['fixed'] else '维持 ' + latest['final']}</b><br>最终预测：{latest['prediction_final']}<br><span class='muted'>{latest.get('fixed_at', '')[11:]}</span>", "done")
+            st2 = step(True, "13:35 五区", f"新高 {'是' if latest['z5_new_high'] else '否'} / 新低 {'是' if latest['z5_new_low'] else '否'} → <b>{'修正为 ' + latest['final'] if latest['fixed'] else '维持 ' + latest['final']}</b><br>最终预测：{latest['prediction_final']}<br><span class='muted'>{latest.get('fixed_at', '')[11:]}</span>", "done")
         else:
-            st2 = step(False, "13:30 五区", "等待…", "wait")
+            st2 = step(False, "13:35 五区", "等待…", "wait")
         if latest.get("settled"):
             ok = latest["correct_final"]
             st3 = step(True, "收盘结算", f"开 {latest['open_official']:.2f} → 收 {latest['close_official']:.2f}（{latest['actual']}）<br><b class='{'up' if ok else 'down'}'>{'✅ 判对' if ok else '❌ 判错' if ok is not None else '未预测'}</b>（二区单独：{'对' if latest['correct_z2'] else '错'}）<br><span class='muted'>{latest.get('settled_at', '')[11:]}</span>", "done " + ("ok" if ok else "bad"))
@@ -685,7 +691,7 @@ def erqu_body():
     cmp_html = ("<div class='card'><h3>累计正确率（前瞻实盘，自 " + (recs[-1]["day"] if recs else "—") + f" 起 {s['days']} 天）</h3>"
                 + bar("二区判定（10:30）", s["z2"], "var(--cyan)") + bar("二区 + 五区修正", s["final"], "var(--amber)")
                 + bar("对照：10:30 价位 vs 开盘", s["b1030"], "var(--dim)") + bar("对照：13:30 价位 vs 开盘", s["b1330"], "var(--dim)")
-                + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天）：二区 63.4%，二区+修正 73.3%；对照 10:30 价位 71.2%、13:30 价位 82.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
+                + "<div class='muted' style='font-size:11.5px;margin-top:8px'>回测参考（2023-01~2026-10，914 天，五区到 13:35）：二区 63.4%，二区+修正 73.7%；对照 10:30 价位 71.2%、13:30 价位 82.4%。课程宣称 2024 年 87.96%，同期回测 73.5%。</div></div>")
 
     # ---- 按月 + 逐日 ----
     mrows = "".join(f"<tr><td>{mm}</td><td>{v['days']}</td><td class='up'>{v['final_ok']}</td><td class='down'>{v['final_bad']}</td>"
@@ -707,12 +713,35 @@ def erqu_body():
                  f"<td class='muted' style='font-size:11px'>{r.get('judged_at', '')[11:]}/{r.get('fixed_at', '')[11:]}/{r.get('settled_at', '')[11:]}</td></tr>")
     detail = (f"<details><summary>逐日记录（{len(recs)} 天）</summary><div class='tbl'><table><thead><tr><th>日期</th><th>二区</th><th style='text-align:left'>依据</th><th>五区修正</th><th>最终</th><th style='text-align:left'>预测</th><th>官方 开/收</th><th>实际</th><th>二区</th><th>修正后</th><th>对照10:30</th><th>对照13:30</th><th>判定/修正/结算</th></tr></thead><tbody>{rows or '<tr><td colspan=13 class=muted>尚无记录</td></tr>'}</tbody></table></div></details>")
 
-    return f"""<div class='hd'><div><h1>二区定律 · 前瞻实盘记录</h1><div class='sub'>上证指数 ｜ 每个交易日 10:30 当场判定并推送、13:30 五区修正、收盘结算 ｜ 判定只用截止时刻之前的 K 线，事后不改</div></div></div>
+    # ---- 今日判定（页面最上方的实盘状态牌）----
+    tstr = today.strftime("%Y-%m-%d")
+    tr = by_day.get(tstr)
+    if tr:
+        z2c = "up" if tr.get("z2") == "好" else "down"
+        parts = [f"<div class='today-k'>10:30 判定</div><div class='today-v {z2c}'>{tr.get('z2','')}二区</div><div class='today-s'>{tr.get('prediction','')}</div>"]
+        if "fixed" in tr:
+            fc = "up" if tr["final"] == "好" else "down"
+            parts.append(f"<div class='today-k'>13:35 五区</div><div class='today-v {fc}'>{'修正为 ' + tr['final'] if tr['fixed'] else '维持 ' + tr['final']}</div><div class='today-s'>{tr['prediction_final']}</div>")
+        else:
+            parts.append("<div class='today-k'>13:35 五区</div><div class='today-v muted'>等待</div><div class='today-s'>13:35 后检查是否创新高/新低</div>")
+        if tr.get("settled"):
+            ok = tr["correct_final"]
+            parts.append(f"<div class='today-k'>收盘结算</div><div class='today-v {'up' if ok else 'down'}'>{'判对' if ok else '判错'}</div><div class='today-s'>开 {tr['open_official']:.2f} → 收 {tr['close_official']:.2f}（{tr['actual']}）</div>")
+        else:
+            parts.append("<div class='today-k'>收盘结算</div><div class='today-v muted'>等待</div><div class='today-s'>15:00 后用官方开收盘判对错</div>")
+        today_html = f"<div class='today'><div class='today-h'>今日实盘 · {tstr}{'（晚判，用 10:30 前 K 线）' if tr.get('judged_at','')[11:13] not in ('10','11') and not tr.get('backfilled') else ''}</div><div class='today-grid'>{''.join(f'<div class=today-cell>{x}</div>' for x in parts)}</div></div>"
+    else:
+        wd = today.weekday()
+        msg = "今天是周末，下一个交易日 10:30 后出现判定" if wd >= 5 else ("今日判定将在 10:30 后出现" if today.strftime("%H:%M") < "10:35" else "今日暂无记录（休市或数据未更新）")
+        today_html = f"<div class='today'><div class='today-h'>今日实盘 · {tstr}</div><div class='muted' style='padding:6px 0'>{msg}</div></div>"
+
+    return f"""<div class='hd'><div><h1>二区定律 · 前瞻实盘记录</h1><div class='sub'>上证指数 ｜ 每个交易日 10:30 当场判定并推送、13:35 五区修正、收盘结算 ｜ 判定只用截止时刻之前的 K 线，事后不改</div></div></div>
+{today_html}
 {score_html}
 {chart_html}
 {cmp_html}
 {month_table}
-<details><summary>规则说明</summary><div class='card' style='border-radius:0 0 8px 8px'>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:30）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。全部判定自动执行，数据来源新浪财经。</div></details>
+<details><summary>规则说明</summary><div class='card' style='border-radius:0 0 8px 8px'>好二区 = 10:15–10:30 的高点和低点都高于 10:00–10:15（低点抬高、高点抬高）；坏二区相反；形态模糊时按 10:30 收 vs 10:00 开。好二区 → 预测"收盘不会跌破开盘"，坏二区 → "不会涨过开盘"（收平算对）。五区（13:00–13:35，比课程口径多看 5 分钟）创 9:30 以来新低则好改坏，创新高则坏改好。对照组不看任何形态，只看当时价格在开盘价哪一侧。全部判定自动执行，数据来源新浪财经。</div></details>
 {detail}"""
 
 

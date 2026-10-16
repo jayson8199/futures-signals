@@ -15,8 +15,8 @@
     },
     "strict+五区修正": {
      "n": 242,
-     "correct": 184,
-     "acc": 76.03,
+     "correct": 185,
+     "acc": 76.45,
      "flat_days": 0
     },
     "loose": {
@@ -56,8 +56,8 @@
     },
     "strict+五区修正": {
      "n": 242,
-     "correct": 178,
-     "acc": 73.55,
+     "correct": 179,
+     "acc": 73.97,
      "flat_days": 0
     },
     "loose": {
@@ -68,8 +68,8 @@
     },
     "loose+五区修正": {
      "n": 242,
-     "correct": 177,
-     "acc": 73.14,
+     "correct": 178,
+     "acc": 73.55,
      "flat_days": 0
     },
     "基线A_10:30相对开盘同向": {
@@ -97,8 +97,8 @@
     },
     "strict+五区修正": {
      "n": 243,
-     "correct": 173,
-     "acc": 71.19,
+     "correct": 174,
+     "acc": 71.6,
      "flat_days": 0
     },
     "loose": {
@@ -138,8 +138,8 @@
     },
     "strict+五区修正": {
      "n": 187,
-     "correct": 135,
-     "acc": 72.19,
+     "correct": 136,
+     "acc": 72.73,
      "flat_days": 0
     },
     "loose": {
@@ -150,8 +150,8 @@
     },
     "loose+五区修正": {
      "n": 187,
-     "correct": 136,
-     "acc": 72.73,
+     "correct": 137,
+     "acc": 73.26,
      "flat_days": 0
     },
     "基线A_10:30相对开盘同向": {
@@ -180,8 +180,8 @@
    },
    "strict+五区修正": {
     "n": 914,
-    "correct": 670,
-    "acc": 73.3,
+    "correct": 674,
+    "acc": 73.74,
     "flat_days": 0
    },
    "loose": {
@@ -192,8 +192,8 @@
    },
    "loose+五区修正": {
     "n": 914,
-    "correct": 669,
-    "acc": 73.19,
+    "correct": 671,
+    "acc": 73.41,
     "flat_days": 0
    },
    "基线A_10:30相对开盘同向": {
@@ -884,7 +884,7 @@
    "close": 3318.3638,
    "strict": "模糊",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3322.859,
    "day": "2023-04-13"
@@ -985,7 +985,7 @@
    "strict": "好",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3276.182,
    "day": "2023-04-27"
   },
@@ -1134,7 +1134,7 @@
    "close": 3246.238,
    "strict": "坏",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3272.2393,
    "day": "2023-05-23"
@@ -1154,7 +1154,7 @@
    "close": 3201.2605,
    "strict": "好",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3202.4922,
    "day": "2023-05-25"
@@ -1914,7 +1914,7 @@
    "close": 3137.0593,
    "strict": "好",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3137.9932,
    "day": "2023-09-12"
@@ -2084,7 +2084,7 @@
    "close": 3088.0991,
    "strict": "好",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3089.0786,
    "day": "2023-10-13"
@@ -2255,7 +2255,7 @@
    "strict": "模糊",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3046.9575,
    "day": "2023-11-07"
   },
@@ -2524,7 +2524,7 @@
    "close": 2958.9856,
    "strict": "模糊",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 2974.0034,
    "day": "2023-12-14"
@@ -2885,7 +2885,7 @@
    "strict": "坏",
    "loose": "坏",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 2669.223,
    "day": "2024-02-05"
   },
@@ -3725,7 +3725,7 @@
    "strict": "好",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3027.5588,
    "day": "2024-06-18"
   },
@@ -3884,7 +3884,7 @@
    "close": 2939.3636,
    "strict": "好",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 2955.4111,
    "day": "2024-07-10"
@@ -3925,7 +3925,7 @@
    "strict": "模糊",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 2964.3877,
    "day": "2024-07-16"
   },
@@ -4015,7 +4015,7 @@
    "strict": "坏",
    "loose": "坏",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 2888.509,
    "day": "2024-07-29"
   },
@@ -4294,7 +4294,7 @@
    "close": 2788.3141,
    "strict": "模糊",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 2788.383,
    "day": "2024-09-05"
@@ -4904,7 +4904,7 @@
    "close": 3422.6607,
    "strict": "模糊",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3459.541,
    "day": "2024-12-10"
@@ -5204,7 +5204,7 @@
    "close": 3213.6237,
    "strict": "好",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3210.3205,
    "day": "2025-01-22"
@@ -5614,7 +5614,7 @@
    "close": 3351.3068,
    "strict": "模糊",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3364.061,
    "day": "2025-03-28"
@@ -6235,7 +6235,7 @@
    "strict": "好",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3451.1682,
    "day": "2025-07-01"
   },
@@ -6694,7 +6694,7 @@
    "close": 3813.5566,
    "strict": "坏",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3832.7373,
    "day": "2025-09-03"
@@ -6854,7 +6854,7 @@
    "close": 3853.3021,
    "strict": "好",
    "loose": "好",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3854.14,
    "day": "2025-09-25"
@@ -6915,7 +6915,7 @@
    "strict": "好",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3861.3765,
    "day": "2025-10-13"
   },
@@ -6985,7 +6985,7 @@
    "strict": "好",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3914.4497,
    "day": "2025-10-22"
   },
@@ -7245,7 +7245,7 @@
    "strict": "模糊",
    "loose": "好",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3887.0293,
    "day": "2025-11-27"
   },
@@ -8254,7 +8254,7 @@
    "close": 4112.1593,
    "strict": "坏",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 4108.505,
    "day": "2026-04-30"
@@ -9274,7 +9274,7 @@
    "close": 3823.6206,
    "strict": "坏",
    "loose": "坏",
-   "new_low5": false,
+   "new_low5": true,
    "new_high5": false,
    "at1030": 3828.623,
    "day": "2026-09-28"
@@ -9295,7 +9295,7 @@
    "strict": "坏",
    "loose": "坏",
    "new_low5": false,
-   "new_high5": false,
+   "new_high5": true,
    "at1030": 3839.123,
    "day": "2026-09-30"
   },

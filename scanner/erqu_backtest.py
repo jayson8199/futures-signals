@@ -20,6 +20,7 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
+Z5_END = "13:35"  # 五区观察窗口结束（课程 13:30；2026-10-16 起按用户要求多看 5 分钟）
 
 
 def fetch(start, end):
@@ -53,7 +54,7 @@ def classify_day(d):
     day_open = d.iloc[0]["open"]
     day_close = d.iloc[-1]["close"]
     z1to4 = d[d["hm"] <= "11:30"]
-    z5 = d[(d["hm"] > "13:00") & (d["hm"] <= "13:30")]
+    z5 = d[(d["hm"] > "13:00") & (d["hm"] <= Z5_END)]
     new_low5 = len(z5) > 0 and z5["low"].min() < z1to4["low"].min()
     new_high5 = len(z5) > 0 and z5["high"].max() > z1to4["high"].max()
     at1030 = z2.iloc[-1]["close"]

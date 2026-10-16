@@ -3,7 +3,7 @@
 「二区定律」前瞻实盘记录（上证指数）
 三个阶段，每个交易日各跑一次（GitHub 定时 + 备用触发，晚到也没关系：判定只用截止时刻之前的 K 线）：
   judge  ≥10:30 后：用 10:00-10:30 的 5 分钟 K 线判好/坏二区，给出预测（不会跌/不会涨），记录时间戳
-  fix    ≥13:30 后：五区(13:00-13:30)是否创 9:30 以来新高/新低 → 修正
+  fix    ≥13:35 后：五区(13:00-13:35，比课程多看 5 分钟)是否创 9:30 以来新高/新低 → 修正
   settle ≥15:00 后：用官方开盘/收盘判对错，更新累计
 对照组同时记录：A) 10:30 价相对开盘  B) 13:30 价相对开盘  C) 永远"不会跌"
 数据：新浪 5 分钟（akshare stock_zh_a_minute），官方开收盘：新浪日线（stock_zh_index_daily），均不需密钥
@@ -22,6 +22,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "erqu"
 CN = ZoneInfo("Asia/Shanghai")
+Z5_END = "13:35"  # 五区观察窗口结束（课程口径 13:30，用户要求多看 5 分钟）
 
 
 def now_cn():
@@ -114,10 +115,10 @@ def fix(day, force=False):
         print("今日已做五区检查，跳过")
         return rec, False
     d = fetch_5min_today(day)
-    if d.empty or d["hm"].max() < "13:30":
-        print("数据未到 13:30，稍后再试")
+    if d.empty or d["hm"].max() < Z5_END:
+        print(f"数据未到 {Z5_END}，稍后再试")
         return rec, False
-    upto = d[d["hm"] <= "13:30"]
+    upto = d[d["hm"] <= Z5_END]
     z5 = upto[upto["hm"] > "13:00"]
     before = upto[upto["hm"] <= "11:30"]
     new_low = bool(len(z5) and z5["low"].min() < before["low"].min())
@@ -135,7 +136,8 @@ def fix(day, force=False):
         "price_1330": at1330,
         "baseline_1330": "好" if at1330 > rec["open_provisional"] else ("坏" if at1330 < rec["open_provisional"] else "平"),
         "fixed_at": now_cn().strftime("%Y-%m-%d %H:%M"),
-        "bars": bars_of(d, "13:30"),
+        "bars": bars_of(d, Z5_END),
+        "z5_window": f"13:00-{Z5_END}",
     })
     save(rec)
     return rec, True
@@ -227,7 +229,7 @@ def fmt_msg(rec, phase, site):
                 f"开盘(暂) {rec['open_provisional']:.2f} → 10:30 {rec['price_1030']:.2f}\n判定时间 {rec['judged_at']}（只用 10:30 前 K 线）{tail}\n记录：{site}erqu.html")
     if phase == "fix":
         chg = "已修正 → " + rec["final"] if rec["fixed"] else "无修正"
-        return (f"【二区定律·{rec['day']}】13:30 五区检查：新高 {'是' if rec['z5_new_high'] else '否'} / 新低 {'是' if rec['z5_new_low'] else '否'}，{chg}\n"
+        return (f"【二区定律·{rec['day']}】13:35 五区检查：新高 {'是' if rec['z5_new_high'] else '否'} / 新低 {'是' if rec['z5_new_low'] else '否'}，{chg}\n"
                 f"最终预测：{rec['prediction_final']}\n13:30 价 {rec['price_1330']:.2f}{tail}\n记录：{site}erqu.html")
     ok = rec["correct_final"]
     return (f"【二区定律·{rec['day']}】结算：开 {rec['open_official']:.2f} 收 {rec['close_official']:.2f}（{rec['actual']}）\n"
@@ -248,7 +250,7 @@ def main():
         return 0
     phases = [args.phase] if args.phase != "auto" else (
         ["judge", "fix", "settle"] if now_cn().strftime("%H:%M") >= "15:05" else
-        ["judge", "fix"] if now_cn().strftime("%H:%M") >= "13:35" else ["judge"])
+        ["judge", "fix"] if now_cn().strftime("%H:%M") >= "13:40" else ["judge"])
     changed_any = False
     for ph in phases:
         rec, changed = {"judge": judge, "fix": fix, "settle": settle}[ph](args.day, args.force)
@@ -256,7 +258,7 @@ def main():
             changed_any = True
             print(json.dumps(rec, ensure_ascii=False, indent=1))
             if not args.no_push:
-                push(f"二区定律 {args.day} · {dict(judge='10:30判定', fix='13:30修正', settle='收盘结算')[ph]}", fmt_msg(rec, ph, args.site))
+                push(f"二区定律 {args.day} · {dict(judge='10:30判定', fix='13:35修正', settle='收盘结算')[ph]}", fmt_msg(rec, ph, args.site))
     p = os.environ.get("GITHUB_OUTPUT")
     if p:
         with open(p, "a") as f:
