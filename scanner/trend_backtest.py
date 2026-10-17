@@ -164,7 +164,12 @@ def indicators(df):
     exhaust = (d["chg"] < 0) & (~volup) & (d["oichg"] < 0)                                                           # 跌势将尽：跌·缩量·减仓
     above_ma5 = d["close"] > d["close"].rolling(5).mean()
     macd_div = d["macd_sid"] == 4 if "macd_sid" in d else pd.Series(False, index=d.index)                           # MACD 双绿柱底背离
-    for nm, conf in (("os_engulf", bull_engulf), ("os_brk5", brk5), ("os_exhaust", exhaust), ("os_ma5", above_ma5 & ~above_ma5.shift(fill_value=False)), ("os_macddiv", macd_div)):
+    ema12 = d["close"].ewm(span=12, adjust=False).mean(); ema26 = d["close"].ewm(span=26, adjust=False).mean()
+    dif_ = ema12 - ema26; dea_ = dif_.ewm(span=9, adjust=False).mean(); hist_ = 2 * (dif_ - dea_)
+    macd_red = (hist_ > 0) & (hist_.shift() <= 0)              # MACD 翻红（柱由绿变红）
+    macd_up = (hist_ > hist_.shift())                           # 柱子走好（比前一天高）
+    vol_oi = volup & (d["oichg"] > 0)
+    for nm, conf in (("os_full5", vol_oi & brk5 & (hist_ > 0)), ("os_full20", vol_oi & (d["close"] > d["hh20"]) & (hist_ > 0)), ("os_full5_nomacd", vol_oi & brk5), ("os_gfs", gfs), ("os_macdred", macd_red), ("os_gfs_macd", gfs & (hist_ > 0)), ("os_gfs_macdup", gfs & macd_up), ("os_brk5_macd", brk5 & (hist_ > hist_.shift())), ("os_engulf", bull_engulf), ("os_brk5", brk5), ("os_exhaust", exhaust), ("os_ma5", above_ma5 & ~above_ma5.shift(fill_value=False)), ("os_macddiv", macd_div)):
         trig = state & conf
         # 每个超跌区间只进一次：区间 id = cond 从 False→True 的累计计数
         ep = (cond & ~cond.shift(fill_value=False)).cumsum()
