@@ -157,6 +157,20 @@ def indicators(df):
     cond = r60 <= thr
     d["sig_oversold"] = 0
     d.loc[cond & ~cond.shift(fill_value=False), "sig_oversold"] = 1
+    # 超跌 + 反转确认：处于超跌状态（60 日收益仍 ≤ 阈值，或刚离开阈值 10 天内）期间，首次出现确认信号时进场
+    state = (cond | cond.rolling(10, min_periods=1).max().astype(bool))
+    bull_engulf = (d["high"] > d["high"].shift()) & (d["low"] < d["low"].shift()) & (d["close"] > d["open"])          # 1包阳线（不看阴阳的包线+收阳）
+    brk5 = d["close"] > d["high"].rolling(5).max().shift()                                                          # 收盘突破 5 日高点
+    exhaust = (d["chg"] < 0) & (~volup) & (d["oichg"] < 0)                                                           # 跌势将尽：跌·缩量·减仓
+    above_ma5 = d["close"] > d["close"].rolling(5).mean()
+    macd_div = d["macd_sid"] == 4 if "macd_sid" in d else pd.Series(False, index=d.index)                           # MACD 双绿柱底背离
+    for nm, conf in (("os_engulf", bull_engulf), ("os_brk5", brk5), ("os_exhaust", exhaust), ("os_ma5", above_ma5 & ~above_ma5.shift(fill_value=False)), ("os_macddiv", macd_div)):
+        trig = state & conf
+        # 每个超跌区间只进一次：区间 id = cond 从 False→True 的累计计数
+        ep = (cond & ~cond.shift(fill_value=False)).cumsum()
+        first = trig & ~trig.groupby(ep).cumsum().shift(fill_value=0).astype(bool)
+        d[f"sig_{nm}"] = 0
+        d.loc[first & (ep > 0), f"sig_{nm}"] = 1
     d["sig_donchian"] = 0
     d.loc[d["close"] > d["hh20"], "sig_donchian"] = 1
     d.loc[d["close"] < d["ll20"], "sig_donchian"] = -1
@@ -167,6 +181,25 @@ def run(data, signal, start=None, end=None, params=None):
     if params:
         P.update(params)
     ind = {s: indicators(df) for s, df in data.items()}
+    if signal in ("os_sector", "os_sector_brk5"):
+        # 板块共振：同板块 ≥2 个品种 10 日内同时处于超跌状态
+        state = {}
+        for s_, d_ in ind.items():
+            r60 = d_["close"].pct_change(60)
+            thr = r60.expanding(min_periods=250).quantile(P["OS_Q"]).shift()
+            st_ = (r60 <= thr)
+            state[s_] = pd.Series(st_.rolling(10, min_periods=1).max().astype(bool).values, index=d_["date"].values)
+        for s_, d_ in ind.items():
+            sec = SECTOR_OF.get(s_, "其他")
+            peers = [state[o] for o in state if o != s_ and SECTOR_OF.get(o, "其他") == sec]
+            cnt = pd.Series(0, index=d_["date"].values)
+            for pser in peers:
+                cnt = cnt.add(pser.reindex(cnt.index).fillna(False).astype(int), fill_value=0)
+            base = d_["sig_oversold"] if signal == "os_sector" else d_["sig_os_brk5"]
+            d_[f"sig_{signal}"] = (base.values * (cnt.values >= 1)).astype(int)
+    if signal in ("os_sector", "os_sector_brk5"):
+        for s_, d_ in ind.items():
+            pass
     dates = sorted(set().union(*[set(d["date"]) for d in ind.values()]))
     if start:
         dates = [x for x in dates if x >= start]
