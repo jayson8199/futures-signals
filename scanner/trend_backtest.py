@@ -176,6 +176,17 @@ def indicators(df):
         first = trig & ~trig.groupby(ep).cumsum().shift(fill_value=0).astype(bool)
         d[f"sig_{nm}"] = 0
         d.loc[first & (ep > 0), f"sig_{nm}"] = 1
+    # 镜像：涨够久（60 日收益 ≥ 自身历史最高 OS_Q 分位）后，首次 增仓+放量+收盘跌破 5 日低 + MACD 绿柱 → 做空
+    thr_hi = r60.expanding(min_periods=250).quantile(1 - P["OS_Q"]).shift()
+    cond_hi = r60 >= thr_hi
+    state_hi = (cond_hi | cond_hi.rolling(10, min_periods=1).max().astype(bool))
+    brkdn5 = d["close"] < d["low"].rolling(5).min().shift()
+    ep_hi = (cond_hi & ~cond_hi.shift(fill_value=False)).cumsum()
+    for nm, conf in (("ob_full5", vol_oi & brkdn5 & (hist_ < 0)), ("ob_raw", pd.Series(True, index=d.index))):
+        trig = state_hi & conf
+        first = trig & ~trig.groupby(ep_hi).cumsum().shift(fill_value=0).astype(bool)
+        d[f"sig_{nm}"] = 0
+        d.loc[first & (ep_hi > 0), f"sig_{nm}"] = -1
     d["sig_donchian"] = 0
     d.loc[d["close"] > d["hh20"], "sig_donchian"] = 1
     d.loc[d["close"] < d["ll20"], "sig_donchian"] = -1
