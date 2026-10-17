@@ -99,7 +99,7 @@ def load(data_dir):
     return out
 
 
-def indicators(df):
+def indicators(df, with_macd=True):
     d = df.copy()
     d["ma20"] = d["close"].rolling(P["MA_N"]).mean()
     d["ma_exit"] = d["close"].rolling(max(P["EXIT_MA"], 1)).mean()
@@ -131,6 +131,8 @@ def indicators(df):
     d.loc[bfm & (d["chg"] >= -2) & (d["oichg"].between(2, 5)), "sig_best"] = -1
     # MACD 八策略：首发信号日，多=+1 空=-1；叠加形态：3 天内有同向 MACD 信号 且 当日同向 高富帅/白富美
     try:
+        if not with_macd:
+            raise RuntimeError("skip macd8")
         import macd8
         rows_ = d[["date", "close"]].to_dict("records")
         d["sig_macd"] = 0

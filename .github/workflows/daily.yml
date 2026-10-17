@@ -64,6 +64,15 @@ jobs:
           if [ -n "$TUSHARE_TOKEN" ]; then python scanner/weighted_bydate.py --update || echo "::warning::加权指数更新失败，沿用旧数据";
           else python scanner/weighted.py --update --source sina || echo "::warning::加权指数更新失败，沿用旧数据"; fi
 
+      - name: 跌够久纸面实盘（收盘后按当日数据处理一次）
+        if: steps.scan.outputs.updated == 'true'
+        env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python scanner/oversold_live.py run --date "${{ steps.scan.outputs.data_date }}" || echo "::warning::跌够久实盘处理失败"
+
       - name: 提交新数据
         if: steps.scan.outputs.updated == 'true'
         run: |

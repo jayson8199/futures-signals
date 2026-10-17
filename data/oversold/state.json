@@ -1,0 +1,22 @@
+{
+ "start": "2026-10-19",
+ "equity": 1.0,
+ "positions": {},
+ "pending": {},
+ "closed": [],
+ "curve": [],
+ "last_date": null,
+ "rules": {
+  "RISK_PCT": 0.005,
+  "ATR_K": 6.0,
+  "HOLD_DAYS": 60,
+  "OS_Q": 0.1,
+  "MAX_SYM": 0.15,
+  "MAX_SECTOR": 0.45,
+  "MAX_GROSS": 1.5,
+  "COST_SIDE": 0.0002,
+  "EXIT_MA": 0,
+  "STOP_MODE": "atr"
+ },
+ "signal": "os_full5"
+}

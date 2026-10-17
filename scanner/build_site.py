@@ -196,7 +196,7 @@ def spark(closes, w=72, h=20):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -907,6 +907,88 @@ def night_section(exp):
     return "<div class='hd' style='margin-top:18px'><div><h2 style='margin:0;font-size:18px'>补充检验（2026-10-17 夜）：止损结构 · 跌够久 · 厄尔尼诺 · 季节性</h2></div></div>" + over + stops + enso + season
 
 
+def oversold_body():
+    import json as _json
+    import oversold_live as ol
+    st = ol.load_state()
+    snap = ol.snapshot()
+    rules = st.get("rules", ol.RULES)
+    pos = list(st["positions"].values())
+    closed = st["closed"]
+    curve = st["curve"]
+    daily_dir = ol.OUT / "daily"
+    latest_rec = None
+    if daily_dir.exists():
+        fs = sorted(daily_dir.glob("????-??-??.json"))
+        if fs:
+            latest_rec = _json.loads(fs[-1].read_text(encoding="utf-8"))
+    started = bool(st.get("last_date"))
+    wins = sum(1 for t in closed if t["pnl_pct"] > 0)
+    peak, mdd = 1.0, 0.0
+    for _, v, *_ in curve:
+        peak = max(peak, v)
+        mdd = min(mdd, v / peak - 1)
+    head = ("<div class='hd'><div><h1>跌够久 · 超跌反转 纸面实盘</h1><div class='sub'>54 个品种 ｜ 每个交易日收盘后自动扫描、次日开盘执行、持有 60 个交易日 ｜ 规则 2026-10-17 封存，起点 "
+            f"{st['start']} ｜ 只做多、不加杠杆、纸面记录</div></div></div>")
+    kpis = [(f"{st['equity']:.4f}", "净值（起点 1.0000）", 'up' if st['equity'] > 1 else 'down' if st['equity'] < 1 else ''),
+            (str(len(pos)), "当前持仓", ''), (f"{sum(p['w'] for p in pos) * 100:.0f}%", "名义仓位", ''),
+            ((f"{wins}/{len(closed)}" if closed else "—"), "已平仓 胜/总", ''), (f"{mdd * 100:.1f}%", "最大回撤", 'down' if mdd < 0 else '')]
+    kp = "<div class='kpis'>" + "".join(f"<div class='kpi'><div class='v {c}'>{v}</div><div class='k'>{k}</div></div>" for v, k, c in kpis) + "</div>"
+    # 今日/最新
+    day = latest_rec["day"] if latest_rec else snap["day"]
+    if latest_rec:
+        ev = latest_rec.get("events") or ["今日无动作"]
+        today = ("<div class='card' style='border-left:4px solid var(--cyan)'><h3>最新一日 · " + day + f"<span class='muted' style='font-weight:400;font-size:12px;margin-left:8px'>处理于 {latest_rec.get('run_at', '')}</span></h3><ul style='margin:6px 0 0 18px;padding:0'>"
+                 + "".join(f"<li>{e}</li>" for e in ev) + "</ul></div>")
+    else:
+        conf = snap["confirmed"]
+        today = (f"<div class='card' style='border-left:4px solid var(--amber)'><h3>尚未开始 · 第一个处理日为 {st['start']}（周一）收盘后</h3>"
+                 f"<div>按最新数据（{snap['day']}）预览：超跌观察池 {len(snap['watch'])} 个品种" + (f"，其中今日已出现确认信号 {len(conf)} 个：" + "、".join(c['name'] for c in conf) + "（若规则已启动，将于次日开盘买入）" if conf else "，今日无确认信号") + "。</div></div>")
+    # 持仓
+    prow = "".join(f"<tr><td class='b'>{p['name']}</td><td>{p['entry_date']}</td><td>{p['entry']:.2f}</td><td>{p['last_close']:.2f}</td><td class='{'up' if p.get('cur_ret_pct', 0) > 0 else 'down'}'>{p.get('cur_ret_pct', 0):+.2f}%</td><td>{p['stop']:.2f}</td><td>{p['bars']} / {rules['HOLD_DAYS']}</td><td>{p['w'] * 100:.1f}%</td></tr>" for p in sorted(pos, key=lambda x: x["entry_date"]))
+    pend = {k: v for k, v in st["pending"].items() if "__" not in k}
+    pend_html = ("<div class='muted' style='margin-top:8px'>明日开盘待执行：" + "、".join(f"{SYMBOLS_NAME(k)} {'买入' if v == 'enter' else '离场'}" for k, v in pend.items()) + "</div>") if pend else ""
+    positions = (f"<div class='card'><h3>当前持仓（{len(pos)}）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>品种</th><th>进场日</th><th>进场价</th><th>最新收盘</th><th>浮动盈亏</th><th>止损</th><th>已持/应持(天)</th><th>名义</th></tr></thead>"
+                 f"<tbody>{prow or '<tr><td colspan=8 class=muted>暂无持仓</td></tr>'}</tbody></table></div>{pend_html}</div>")
+    # 观察池
+    wrow = "".join(f"<tr><td class='b'>{w['name']}</td><td class='down'>{w['r60']:+.1f}%</td><td>{w['thr']:+.1f}%</td><td>{w['close']:.2f}</td></tr>" for w in snap["watch"])
+    watch = (f"<div class='card'><h3>超跌观察池 · {snap['day']}（60 日跌幅已进入自身历史最低 10%，等待确认信号）</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>品种</th><th>60 日涨跌</th><th>触发阈值</th><th>收盘</th></tr></thead>"
+             f"<tbody>{wrow or '<tr><td colspan=4 class=muted>今日没有品种处于超跌状态</td></tr>'}</tbody></table></div><div class='muted' style='font-size:11.5px;margin-top:6px'>确认信号 = 同一天满足 增仓 + 放量（量＞5 日均且＞20 日均）+ 收盘突破 5 日高点 + MACD 红柱。出现即次日开盘买入。</div></div>")
+    # 净值曲线
+    if len(curve) >= 2:
+        W, H, L, R, T, B = 900, 200, 50, 12, 12, 24
+        vals = [v for _, v, *_ in curve]
+        lo, hi = min(vals + [1.0]), max(vals + [1.0])
+        pad = (hi - lo) * 0.2 or 0.01
+        lo, hi = lo - pad, hi + pad
+        n = len(curve)
+        px = lambda i: L + i * (W - L - R) / (n - 1)
+        py = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
+        pts = " ".join(f"{px(i):.1f},{py(v):.1f}" for i, (_, v, *_) in enumerate(curve))
+        col = "var(--up)" if vals[-1] >= 1 else "var(--down)"
+        grid = "".join(f"<line x1='{L}' x2='{W - R}' y1='{py(g):.1f}' y2='{py(g):.1f}' stroke='var(--line)' stroke-dasharray='2 3'/><text x='{L - 6}' y='{py(g) + 3:.1f}' font-size='10' text-anchor='end' fill='var(--muted)'>{g:.3f}</text>" for g in [round(lo + (hi - lo) * k / 4, 3) for k in range(5)])
+        xl = "".join(f"<text x='{px(i):.1f}' y='{H - 6}' font-size='10' text-anchor='middle' fill='var(--muted)'>{d[5:]}</text>" for i, (d, *_) in enumerate(curve) if i % max(1, n // 8) == 0 or i == n - 1)
+        curve_html = f"<div class='card'><h3>净值曲线</h3><svg viewBox='0 0 {W} {H}' width='100%' style='display:block'>{grid}<line x1='{L}' x2='{W - R}' y1='{py(1):.1f}' y2='{py(1):.1f}' stroke='var(--muted)'/><polyline points='{pts}' fill='none' stroke='{col}' stroke-width='2'/>{xl}</svg></div>"
+    else:
+        curve_html = ""
+    # 已平仓
+    crow = "".join(f"<tr><td class='b'>{t['name']}</td><td>{t['entry_date']}</td><td>{t['exit_date']}</td><td>{t['entry']:.2f}</td><td>{t['exit']:.2f}</td><td class='{'up' if t['ret_pct'] > 0 else 'down'}'>{t['ret_pct']:+.2f}%</td><td class='{'up' if t['pnl_pct'] > 0 else 'down'}'>{t['pnl_pct']:+.3f}%</td><td>{t['bars']}</td><td>{t['why']}</td></tr>" for t in sorted(closed, key=lambda x: x["exit_date"], reverse=True))
+    closed_html = (f"<details><summary>已平仓记录（{len(closed)} 笔）</summary><div class='tbl'><table><thead><tr><th>品种</th><th>进场</th><th>离场</th><th>进场价</th><th>离场价</th><th>本笔涨跌</th><th>对账户贡献</th><th>持有(天)</th><th>原因</th></tr></thead><tbody>{crow or '<tr><td colspan=9 class=muted>尚无</td></tr>'}</tbody></table></div></details>")
+    rule = ("<details><summary>规则（已封存，不再调整）</summary><div class='card' style='border-radius:0 0 8px 8px'>"
+            "<b>触发</b>：品种 60 个交易日收益 ≤ 其自身历史（扩展窗口、至少 250 天）最低 10% 分位，进入超跌状态（含离开阈值后 10 天）。<br>"
+            "<b>确认</b>：超跌状态中首次出现 增仓 + 放量（量＞5 日均且＞20 日均）+ 收盘突破前 5 日最高价 + MACD(12,26,9) 红柱。每段超跌只进一次。<br>"
+            "<b>执行</b>：确认次日开盘价买入；持有 60 个交易日后次日开盘离场；盘中跌破止损即出，止损 = 持仓以来最高收盘 − 6×ATR(14)，只上移不下移。<br>"
+            "<b>仓位</b>：每笔风险 0.5% ÷ (6×ATR/价) = 名义比例，单品种 ≤15%，同板块 ≤45%，总名义 ≤150%；成本每边 0.02%。只做多（镜像做空回测为负）。<br>"
+            "<b>回测参考</b>（2018-01~2026-10，54 品种）：246 笔，胜率 62%，盈亏比 1.5，夏普 0.91，最大回撤 -8.0%，九年无亏损年。这是从二十余种确认条件中选出的最优组合，真实预期应打折；纸面实盘的意义就是给出没被挑选过的数字。"
+            "<br><span class='muted'>代码：scanner/oversold_live.py（信号与 scanner/trend_backtest.py 共用）。本页内容为程序自动生成，不构成投资建议。</span></div></details>")
+    return head + kp + today + positions + watch + curve_html + closed_html + rule
+
+
+def SYMBOLS_NAME(sym):
+    from scan import SYMBOLS as _S
+    return _S.get(sym, (sym,))[0]
+
+
 def method_body():
     rows = "".join(
         f"<tr><td>{PAT_ICON[p]} {p}</td><td>{PAT_DESC[p].split('｜')[0]}</td><td style='white-space:normal;text-align:left'>{PAT_DESC[p].split('｜')[1]}</td></tr>" for p in PATTERNS)
@@ -979,6 +1061,10 @@ def main():
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
     (out / "cta.html").write_text(layout(f"趋势回测 · {SITE_TITLE}", cta_body(), "cta"), encoding="utf-8")
+    try:
+        (out / "oversold.html").write_text(layout(f"跌够久实盘 · {SITE_TITLE}", oversold_body(), "oversold"), encoding="utf-8")
+    except Exception as e:
+        print(f"[警告] 跌够久页面生成失败：{e}")
     # K 线形态图：逐品种 JSON + 页面 + 本地 echarts
     avail = chart_mod.build(out, SYMBOLS)
     (out / "assets").mkdir(exist_ok=True)
