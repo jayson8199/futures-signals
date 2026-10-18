@@ -1,0 +1,33 @@
+name: 命盘日报
+
+on:
+  schedule:
+    # 曼谷时间每天 06:43（UTC 前一天 23:43）启动；GitHub 定时常有延迟，一般 7 点前后送达
+    - cron: "43 23 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "用哪一天发送（YYYY-MM-DD，留空为今天）"
+        default: ""
+
+concurrency:
+  group: mingpan-daily
+  cancel-in-progress: false
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install lunar_python
+      - env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          MINGPAN_PROFILE: ${{ secrets.MINGPAN_PROFILE }}
+        run: python mingpan/daily.py ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }}
