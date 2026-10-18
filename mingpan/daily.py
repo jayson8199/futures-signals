@@ -47,6 +47,19 @@ _GROUP4 = {**dict.fromkeys("申子辰", 0), **dict.fromkeys("寅午戌", 1),
            **dict.fromkeys("巳酉丑", 2), **dict.fromkeys("亥卯未", 3)}
 YIMA, TAOHUA, HUAGAI = "寅申亥巳", "酉卯午子", "辰戌丑未"   # 按三合局分组查
 
+# 以下神煞口径借自 jinchenma94/bazi-skill 的 references/shensha-table.md（MIT 许可）
+JIANGXING, JIESHA, ZAISHA, WANGSHEN = "子午酉卯", "巳亥寅申", "午子卯酉", "亥巳申寅"   # 同上按三合局分组
+JINYU = dict(zip(GANS, "辰巳未申未申戌亥丑寅"))
+YANGREN = dict(zip(GANS, "卯寅午巳午巳酉子子亥"))
+GUCHEN = {**dict.fromkeys("亥子丑", "寅"), **dict.fromkeys("寅卯辰", "巳"),
+          **dict.fromkeys("巳午未", "申"), **dict.fromkeys("申酉戌", "亥")}
+GUASU = {**dict.fromkeys("亥子丑", "戌"), **dict.fromkeys("寅卯辰", "丑"),
+         **dict.fromkeys("巳午未", "辰"), **dict.fromkeys("申酉戌", "未")}
+# 调候用神（《穷通宝鉴》）：日主 + 生月地支 → 第一调候字。思路借自 china-testing/bazi 的 tiaohous 表，这里只收乙木一行
+TIAOHOU = {"乙" + z: t for z, t in zip(ZHIS, "丙丙丙丙癸癸癸癸庚癸癸丙")}
+# 月令旺相休囚死
+SEASON = dict(zip(ZHIS, "水土木木土火火土金金土水"))
+
 CS_START = dict(zip(GANS, "亥午寅酉寅酉巳子申卯"))
 STAGES = "长生 沐浴 冠带 临官 帝旺 衰 病 死 墓 绝 胎 养".split()
 STAGE_NOTE = {
@@ -191,6 +204,12 @@ def analyse(p, date):
 
     god, group = ten_god(dm, gan)
     zgod, zgroup = ten_god(dm, CANG[zhi][0])
+    lead = SEASON[lm[1]]
+    me = GAN_WX[dm]
+    state = ("旺" if me == lead else "相" if SHENG[lead] == me else "休" if SHENG[me] == lead
+             else "囚" if KE[me] == lead else "死")
+    points.append(f"本月{lm}，{lead}当令，你的{me}处在「{state}」，"
+                  + ("底气足。" if state in "旺相" else "底气偏弱，整个月宜守。" if state in "囚死" else "底气一般。"))
     points.append(f"天干{gan}是你的{god}（{xj(GAN_WX[gan])}），主{GROUP_THEME[group]}。")
     cang = "、".join(f"{s}{ten_god(dm, s)[0]}" for s in CANG[zhi])
     points.append(f"地支{zhi}属{ZHI_WX[zhi]}（{xj(ZHI_WX[zhi])}），藏{cang}，本气是{zgod}。")
@@ -285,6 +304,7 @@ def analyse(p, date):
                 points.append(f"{zhi}与{name(have[0])}半合{wx}局，{GROUP_SHORT[grp]}的分量有所加强。")
 
     # 神煞
+    n_main = len(points)
     if zhi in TIANYI[dm]:
         score += 1
         tags.append("贵人")
@@ -309,6 +329,27 @@ def analyse(p, date):
         points.append("今天逢桃花，人缘好，也容易有感情上的牵扯。")
     if zhi in {HUAGAI[_GROUP4[day_zhi]], HUAGAI[_GROUP4[year_zhi]]}:
         points.append("今天逢华盖，适合独处、研究、读书，人容易觉得孤单。")
+    for table, label, note, pts in (
+            (JIANGXING, "将星", "有主见，镇得住场面", 0), (JIESHA, "劫煞", "防破财、东西被人拿走", -0.3),
+            (ZAISHA, "灾煞", "防意外和小伤，出行注意安全", -0.3), (WANGSHEN, "亡神", "心思重、容易想多，也防说漏嘴", 0)):
+        if zhi in {table[_GROUP4[day_zhi]], table[_GROUP4[year_zhi]]}:
+            score += pts
+            points.append(f"今天逢{label}，{note}。")
+    if zhi == JINYU[dm]:
+        points.append("今天逢金舆，有人照应，出行顺。")
+    if zhi == YANGREN[dm]:
+        points.append("今天逢羊刃，性子急、容易冲动，也更有魄力。")
+    if zhi in (GUCHEN[year_zhi], GUASU[year_zhi]):
+        points.append("今天逢孤辰寡宿，容易觉得孤单，适合独处做事。")
+    tiao = p.get("tiaohou") or TIAOHOU.get(dm + pillars[1][1])
+    if tiao and tiao in (gan, CANG[zhi][0]):
+        score += 0.5
+        tags.append("调候")
+        points.append(f"今天见{tiao}，这是你命里最需要的调候之{GAN_WX[tiao]}，燥气得润，心容易静下来。")
+    jishen = [x for x in lunar.getDayJiShen() if x in ("天德", "月德", "天德合", "月德合")]
+    if jishen:
+        score += 0.5
+        points.append(f"今天是{'、'.join(jishen)}日，逢凶有解，适合办正事。")
     kong = xunkong(pillars[2])
     if zhi in kong:
         score -= 0.5
@@ -318,7 +359,7 @@ def analyse(p, date):
     ts_type = lunar.getDayTianShenType()
     score += 0.3 if ts_type == "黄道" else -0.3
     # 门槛按这张命盘一年里的分数分布定（约 15% / 20% / 40% / 15% / 10%），星级是和你自己的平常日子比
-    stars = 1 if score <= -3.6 else 2 if score <= -1.8 else 3 if score < 0.9 else 4 if score < 2.2 else 5
+    stars = 1 if score <= -3.9 else 2 if score <= -2.2 else 3 if score < 0.9 else 4 if score < 2.4 else 5
 
     heavy = max((w for w in weight if w in ji), key=lambda w: weight[w], default=None)
     body = [HEALTH[heavy] if heavy and weight[heavy] >= 1.5 else HEALTH[max(weight, key=weight.get)]]
@@ -327,7 +368,7 @@ def analyse(p, date):
 
     return {
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
-        "god": god, "score": score, "stars": stars, "points": points, "tags": tags,
+        "god": god, "score": score, "stars": stars, "points": points[:n_main], "sha": points[n_main:], "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
         "body": body, "psych": PSYCH[god],
     }
@@ -380,6 +421,8 @@ def report(p, date):
          "", f"**一句话：{GIST[a['stars']]}**",
          "", "### 一、今天和你的命盘"]
     L += [f"- {x}" for x in a["points"]]
+    if a["sha"]:
+        L += ["", "**神煞**"] + [f"- {x}" for x in a["sha"]]
     L += ["", "### 二、宜忌",
           f"- 宜：{'；'.join(a['yi'])}。",
           f"- 忌：{'；'.join(a['ji'])}。",
