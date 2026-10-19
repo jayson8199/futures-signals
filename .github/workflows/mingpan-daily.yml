@@ -2,13 +2,21 @@ name: 命盘日报
 
 on:
   schedule:
-    # 曼谷时间每天 06:43（UTC 前一天 23:43）启动；GitHub 定时常有延迟，一般 7 点前后送达
+    # 曼谷时间 06:43 主触发；GitHub 定时常延迟或漏发，07:17、07:53、08:37 三个备用触发，
+    # 当天（曼谷时间）已有定时任务发送成功时，备用会自动跳过
     - cron: "43 23 * * *"
+    - cron: "17 0 * * *"
+    - cron: "53 0 * * *"
+    - cron: "37 1 * * *"
   workflow_dispatch:
     inputs:
       date:
         description: "用哪一天发送（YYYY-MM-DD，留空为今天）"
         default: ""
+
+permissions:
+  actions: read
+  contents: read
 
 concurrency:
   group: mingpan-daily
@@ -19,12 +27,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - id: check
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          since=$(date -u -d "$(TZ=Asia/Bangkok date +%Y-%m-%d) 00:00 +0700" +%Y-%m-%dT%H:%M:%SZ)
+          n=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mingpan-daily.yml --event schedule \
+                --status success --created ">=$since" --json databaseId -q length)
+          echo "今天已成功的定时发送：$n 次"
+          if [ "$n" -gt 0 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.check.outputs.skip != '1'
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.skip != '1'
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install lunar_python
-      - env:
+      - if: steps.check.outputs.skip != '1'
+        run: pip install lunar_python
+      - if: steps.check.outputs.skip != '1'
+        env:
           MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
