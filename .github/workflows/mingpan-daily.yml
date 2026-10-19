@@ -3,7 +3,7 @@ name: 命盘日报
 on:
   schedule:
     # 曼谷时间 06:43 主触发；GitHub 定时常延迟或漏发，07:17、07:53、08:37 三个备用触发，
-    # 当天（曼谷时间）已有定时任务发送成功时，备用会自动跳过
+    # 当天（曼谷时间）已发送成功时（含手动或 Claude 补发），备用会自动跳过
     - cron: "43 23 * * *"
     - cron: "17 0 * * *"
     - cron: "53 0 * * *"
@@ -33,9 +33,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           since=$(date -u -d "$(TZ=Asia/Bangkok date +%Y-%m-%d) 00:00 +0700" +%Y-%m-%dT%H:%M:%SZ)
-          n=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mingpan-daily.yml --event schedule \
+          n=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mingpan-daily.yml \
                 --status success --created ">=$since" --json databaseId -q length)
-          echo "今天已成功的定时发送：$n 次"
+          echo "今天（曼谷时间）已成功发送：$n 次"
           if [ "$n" -gt 0 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; fi
       - if: steps.check.outputs.skip != '1'
         uses: actions/checkout@v4
