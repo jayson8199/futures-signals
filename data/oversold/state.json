@@ -4,8 +4,15 @@
  "positions": {},
  "pending": {},
  "closed": [],
- "curve": [],
- "last_date": null,
+ "curve": [
+  [
+   "2026-10-19",
+   1.0,
+   0,
+   0
+  ]
+ ],
+ "last_date": "2026-10-19",
  "rules": {
   "RISK_PCT": 0.005,
   "ATR_K": 6.0,
