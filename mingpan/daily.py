@@ -451,7 +451,8 @@ def report(p, date):
     jq = lunar.getNextJieQi()
     jd = jq.getSolar()
     left = (datetime.date(jd.getYear(), jd.getMonth(), jd.getDay()) - date).days
-    L += ["", "### 节气", f"- 下一个节气：{jq.getName()} {jd.getMonth()}/{jd.getDay()}（还有{left}天）。"]
+    L += ["", "### 节气", f"- 今天{jq.getName()}。" if left == 0 else
+          f"- 下一个节气：{jq.getName()} {jd.getMonth()}/{jd.getDay()}（还有{left}天）。"]
     jie = lunar.getNextJie()
     js = jie.getSolar()
     jdate = datetime.date(js.getYear(), js.getMonth(), js.getDay())
