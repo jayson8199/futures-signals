@@ -14,16 +14,14 @@ def esc(s):
     return html.escape(str(s))
 
 
-def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, tip, month_line, next_line, care):
-    """domains：[(领域, 建议, 理由, 补充)]，卡片里只放建议和第一条补充，理由留在详细分析。"""
+def card(date, a, level, gist, good_hours, bad_hours, tip, month_line, next_line, care):
+    """3 秒能看完的结论卡片：星级、一句话、本月、下个月、时辰、养生、提醒。宜忌、方位等放在下面的详细分析。"""
     color = STAR_COLOR[a["stars"]]
     stars = "★" * a["stars"] + "☆" * (5 - a["stars"])
-    rows = [("本月", month_line), ("下个月", next_line)]
-    rows += [(k, text + (f"；{more[0]}" if more else "")) for k, text, why, more in domains]
-    rows += [("养生", care), ("忌", "；".join(ji[:2])),
+    rows = [("本月", month_line), ("下个月", next_line),
             ("好时辰", good_hours[:3] or "今天白天没有特别好的时辰，稳着来"),
             ("避开", bad_hours[:2] or "今天白天没有特别要避开的时辰"),
-            ("方位", direction)]
+            ("养生", care)]
     body = "".join(
         f'<tr><td style="padding:4px 10px 4px 0;color:#888;white-space:nowrap;vertical-align:top">{esc(k)}</td>'
         f'<td style="padding:4px 0;color:#222">{"<br>".join(map(esc, v)) if isinstance(v, list) else esc(v)}</td></tr>'
@@ -38,7 +36,9 @@ def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, ti
         f'<div style="font-size:15px;color:#222;font-weight:bold;margin:6px 0 10px">{esc(gist)}</div>'
         f'<table style="border-collapse:collapse;font-size:14px;line-height:1.5">{body}</table>'
         f'<div style="font-size:13px;color:#555;margin-top:10px;padding-top:8px;border-top:1px dashed #ddd">'
-        f'提醒：{esc(tip)}</div></div>')
+        f'提醒：{esc(tip)}</div>'
+        f'<div style="font-size:12px;color:#999;margin-top:6px">工作、钱财、家人等五个方面的宜忌，方位、神煞都在下面的详细分析里。</div>'
+        '</div>')
 
 
 def wuxing_bars(view):

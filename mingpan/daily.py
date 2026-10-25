@@ -273,6 +273,7 @@ def month_outlook(p, date):
         return {"gz": analyse(p, d0 + datetime.timedelta(days=1))["month_gz"],
                 "mean": sum(b["score"] for b in days) / len(days),
                 "good": sum(b["stars"] >= 4 for b in days), "bad": sum(b["stars"] <= 2 for b in days),
+                "worst": sum(b["stars"] == 1 for b in days),
                 "state": season_state(dm, analyse(p, d0 + datetime.timedelta(days=1))["month_gz"][1])}
 
     cur, new = stats(start, mid), stats(mid, end)
@@ -544,6 +545,7 @@ def analyse(p, date):
 
     ts_type = lunar.getDayTianShenType()
     score += 0.3 if ts_type == "黄道" else -0.3
+    # 评分规则（含门槛）2026-10-25 起封存到 2026-12-31，用来和命主每天的实际打分做对照，验证期间不改
     # 门槛按这张命盘一年里的分数分布定（约 15% / 20% / 40% / 15% / 10%），星级是和你自己的平常日子比
     stars = 1 if score <= -3.8 else 2 if score <= -2.3 else 3 if score < 0.8 else 4 if score < 2.3 else 5
 
@@ -780,25 +782,22 @@ def report(p, date):
     mo = month_outlook(p, date)
     cur, new = mo["cur"], mo["new"]
     next_line = (f"{mo['date'].month}/{mo['date'].day} {mo['jie']}起入{new['gz']}月：{mo['verdict']}"
-                 f"（比起现在的{cur['gz']}月，好日子 {cur['good']}→{new['good']} 天，底气{cur['state']}→{new['state']}）")
+                 f"（比起现在的{cur['gz']}月，好日子 {cur['good']}→{new['good']} 天，最差的一星日 {cur['worst']}→{new['worst']} 天，"
+                 f"底气{cur['state']}→{new['state']}）")
     L += [f"- 这个月{cur['gz']}：你的木处在「{cur['state']}」；逐日算下来平均分 {cur['mean']:+.1f}"
           f"（你一年的平均是 {mo['base']:+.1f}，{cur['vs']}），"
-          f"好日子（4★以上）{cur['good']} 天，差日子（2★以下）{cur['bad']} 天。",
+          f"好日子（4★以上）{cur['good']} 天，差日子（2★以下）{cur['bad']} 天，其中一星日 {cur['worst']} 天。",
           f"- {mo['date'].month}/{mo['date'].day} {mo['jie']}起换成{new['gz']}月：{'；'.join(mo['why'])}。",
-          f"- 下个月逐日算下来平均分 {new['mean']:+.1f}（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天。",
+          f"- 下个月逐日算下来平均分 {new['mean']:+.1f}（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天，其中一星日 {new['worst']} 天。",
           f"- **结论：{mo['verdict']}。{mo['advice']}。**"]
 
     L += ["", "---", "传统文化参考，不是预言。运气好坏由不得你，怎么应对由你：该做的都做到，结果坦然接受。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
-    direction = [f"今天求人谈事：挑你所在处{gui}方向的地点，或坐房间{gui}侧（阳贵）"
-                 + ("，正合你的喜用方位" if match else ""),
-                 f"长期布置：书桌、座位面朝{'、'.join(own)}",
-                 "以你所在的地方为中心，用手机指南针看"]
     html = layout.page(
-        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
+        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
-                    [f"{h['name']} {h['warn']}" for h in bad_h], direction, tip,
+                    [f"{h['name']} {h['warn']}" for h in bad_h], tip,
                     month_line, next_line, f"八段锦{moves}各 8 次；或{alt}"),
         layout.wuxing_bars(wuxing_view(p, a)),
         layout.week_calendar(days) + layout.month_calendar(month_days, date),
