@@ -676,7 +676,43 @@ def hours(p, lunar):
     early = next((dict(r, level="好·清晨", todo="早起想事情、定计划") for r in rows
                   if r["name"][0] == "卯" and r["sc"] >= 1), None)
     night = [r["name"] for r in rows if r["name"][0] not in AWAKE and r["sc"] >= 1]
-    return good, bad, early, night
+    return good, bad, early, night, awake
+
+
+def review(p, date):
+    """当天复盘题里的具体题：好时辰、避开时辰、一个日报没提的对照时辰、当天最重的一条说法。
+    返回 [(键, 题目, 选项)]，用来核对日报的具体说法准不准；对照时辰用来看「避开」是不是比平常更容易出事。"""
+    a = analyse(p, date)
+    good, bad, early, night, awake = hours(p, a["lunar"])
+    qs = []
+    if good:
+        h = good[0]
+        qs.append(("good_hour", f"{h['name']}（日报说适合{h['todo']}）", "A 用上了，挺顺　B 用上了，不顺　C 没用上"))
+    if bad:
+        h = bad[0]
+        qs.append(("bad_hour", f"{h['name']}（日报说{h['warn']}）有没有碰上不顺心、摩擦或意外",
+                   "A 碰上了　B 没碰上　C 记不清"))
+    used = {h["name"] for h in good + bad}
+    ctrl = min((r for r in awake if r["name"] not in used), key=lambda r: (abs(r["sc"]), abs(r["idx"] - 6)), default=None)
+    if ctrl:
+        qs.append(("control_hour", f"{ctrl['name']}（日报没提，用来对照）有没有碰上不顺心、摩擦或意外",
+                   "A 碰上了　B 没碰上　C 记不清"))
+    rel = [x for x in a["points"] if x["pts"] is not None and not x["term"].startswith(("天干", "地支", "你（"))]
+    def short(plain):
+        # 去掉开头解释术语的半句和结尾的帮/耗，只留对今天的说法
+        body = plain.split("。")[0].split("，这股力量")[0]
+        parts = body.split("，")
+        return "，".join(parts[1:]) if len(parts) > 1 and parts[0].endswith(("就是对撞", "就是相互吸引", "是互相别扭",
+                                                                           "是暗中拖累", "的力量", "没凑齐")) else body
+
+    cands = [(x["pts"], f"{short(x['plain'])}（{x['term']}）") for x in rel]
+    cands += [(x["pts"] or (-0.1 if x["kind"] == "凶" else 0.1), f"{x['note']}（{x['name']}）")
+              for x in a["sha"] if x["kind"] != "中"]
+    if cands:
+        neg = [c for c in cands if c[0] < 0]
+        pick = min(neg)[1] if neg else max(cands)[1]
+        qs.append(("claim", f"日报说「{pick}」，应验了吗", "A 应验了　B 没有　C 说不清"))
+    return qs
 
 
 def stars_text(n):
@@ -688,7 +724,7 @@ def report(p, date):
     lunar = a["lunar"]
     hl_yi = "、".join([x for x in lunar.getDayYi() if x not in SKIP_HUANGLI][:4]) or "诸事平常"
     hl_ji = "、".join([x for x in lunar.getDayJi() if x not in SKIP_HUANGLI][:4]) or "无"
-    good_h, bad_h, early_h, night_h = hours(p, lunar)
+    good_h, bad_h, early_h, night_h, _ = hours(p, lunar)
     reminders = p.get("reminders") or ["传统文化参考，不是预言。"]
 
     tip = reminders[date.toordinal() % len(reminders)]
@@ -816,10 +852,24 @@ def main():
     ap.add_argument("--date", help="YYYY-MM-DD，默认今天（曼谷时间）")
     ap.add_argument("--dry-run", action="store_true", help="只打印，不推送")
     ap.add_argument("--html", help="把 HTML 版面另存到这个文件，用来预览")
+    ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（固定五题加当天的具体题），不推送")
     args = ap.parse_args()
 
     date = datetime.date.fromisoformat(args.date) if args.date else datetime.datetime.now(TZ).date()
     for p in load_profiles():
+        if args.review:
+            qs = review(p, date)
+            print(f"**{date.month}/{date.day} 复盘**，回一串像 3BCBA ABBA 的答案（前五个固定题，空格后是今天的具体题）：")
+            print("1. 整体：1 很差　2 偏差　3 一般　4 不错　5 很好")
+            print("2. 压力：A 很大　B 有一些　C 基本没有")
+            print("3. 精力：A 很累或身体不舒服　B 一般　C 精力好")
+            print("4. 人际：A 有摩擦或是非　B 平常　C 顺，有人帮忙")
+            print("5. 日报：A 有用，照着做了　B 看了，没怎么用上　C 没看")
+            for i, (_, q, opts) in enumerate(qs, 6):
+                print(f"{i}. {q}：{opts}")
+            print("想多说一句就写在最后，比如「3BCBA ABBA 上午开会被批评」。")
+            print("KEYS " + "|".join(f"{k}={q}" for k, q, _ in qs))
+            continue
         title, body, html = report(p, date)
         if args.html:
             Path(args.html).write_text(html, encoding="utf-8")
