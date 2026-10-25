@@ -21,12 +21,13 @@ def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, ti
     rows = [("本月", month_line)]
     rows += [(k, text + (f"；{more[0]}" if more else "")) for k, text, why, more in domains]
     rows += [("忌", "；".join(ji[:2])),
-            ("好时辰", "、".join(good_hours[:2]) or "今天没有特别好的时辰，稳着来"),
-            ("避开", "、".join(bad_hours[:2]) or "今天没有特别要避开的时辰"),
+            ("好时辰", good_hours[:2] or "今天白天没有特别好的时辰，稳着来"),
+            ("避开", bad_hours[:2] or "今天白天没有特别要避开的时辰"),
             ("贵人方位", direction)]
     body = "".join(
         f'<tr><td style="padding:4px 10px 4px 0;color:#888;white-space:nowrap;vertical-align:top">{esc(k)}</td>'
-        f'<td style="padding:4px 0;color:#222">{esc(v)}</td></tr>' for k, v in rows)
+        f'<td style="padding:4px 0;color:#222">{"<br>".join(map(esc, v)) if isinstance(v, list) else esc(v)}</td></tr>'
+        for k, v in rows)
     return (
         f'<div style="border:1px solid #e5e5e5;border-left:6px solid {color};border-radius:10px;'
         f'padding:14px 16px;margin:0 0 14px;background:#fff">'

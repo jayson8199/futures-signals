@@ -430,6 +430,21 @@ def analyse(p, date):
     }
 
 
+# 好时辰只在醒着的时段里挑（辰时到亥时，07:00-22:59），夜里的时辰再好也用不上
+AWAKE = "辰巳午未申酉戌亥"
+# 好时辰适合做什么：按时辰地支本气对日主的十神；逢天乙贵人改成求人谈事
+HOUR_TODO = {"比劫": "和同事、朋友商量事，一起干活", "印": "读书、静下来想清楚一件事、请教人",
+             "食伤": "写东西、出方案、清掉积压的事", "财": "处理账目和具体事务",
+             "官杀": "办正事、交差、处理规矩上的事"}
+# 同一天两个好时辰十神相同时，后一个按黄道星换个说法，免得重复
+STAR_TODO = {"青龙": "约人见面、谈事", "明堂": "见领导、办公事", "金匮": "处理钱和账目",
+             "天德": "办最要紧的正事", "玉堂": "读书、写文书", "司命": "处理日常琐事"}
+# 要避开的时辰当心什么：按黄历当时的黑道星
+HOUR_WARN = {"朱雀": "容易起口舌，少争论、少表态", "白虎": "防磕碰和意外，开车走路慢一点",
+             "天牢": "容易被事困住，别轻易答应人", "玄武": "防丢东西、防被骗",
+             "天刑": "容易起冲突，话到嘴边留半句", "勾陈": "容易被琐事缠住，别揽事"}
+
+
 def hours(p, lunar):
     pillars = natal_chart(p)
     dm, day_zhi = pillars[2][0], pillars[2][1]
@@ -437,25 +452,39 @@ def hours(p, lunar):
     rows = []
     for idx, t in enumerate(lunar.getTimes()[1:]):   # 丑时到亥时，再加晚子时
         z = t.getGanZhi()[1]
-        luck = t.getTianShenLuck()
-        sc, why = (1 if luck == "吉" else -1), [f"{t.getTianShen()}{luck}"]
+        if z not in AWAKE:
+            continue
+        luck, star = t.getTianShenLuck(), t.getTianShen()
+        sc, why = (1 if luck == "吉" else -1), [f"{star}{luck}"]
         wx = ZHI_WX[z]
         if wx in xi:
             sc += 1
             why.append(f"{wx}为喜用")
         elif wx in ji:
             sc -= 1
-        if frozenset(z + day_zhi) in CHONG:
+        chong = frozenset(z + day_zhi) in CHONG
+        if chong:
             sc -= 1
             why.append("冲日支")
-        if z in TIANYI[dm]:
+        noble = z in TIANYI[dm]
+        if noble:
             sc += 1
             why.append("贵人时")
-        rng = "23:00-00:59" if z == "子" else f"{t.getMinHm()}-{t.getMaxHm()}"
-        rows.append((sc, idx, f"{z}时 {rng}（{'，'.join(why)}）"))
-    good = sorted(sorted([r for r in rows if r[0] >= 1], key=lambda r: -r[0])[:3], key=lambda r: r[1])
-    bad = sorted(sorted([r for r in rows if r[0] <= -1], key=lambda r: r[0])[:2], key=lambda r: r[1])
-    return [r[2] for r in good], [r[2] for r in bad]
+        god, group = ten_god(dm, CANG[z][0])
+        todo = "求人帮忙、约人谈事" if noble else HOUR_TODO[group]
+        warn = "冲日支，别做决定、别签字" if chong else HOUR_WARN.get(star, "少做决定、别冲动")
+        rows.append({"sc": sc, "idx": idx, "name": f"{z}时 {t.getMinHm()}-{t.getMaxHm()}",
+                     "why": "，".join(why + [f"{god}时"]), "todo": todo, "warn": warn})
+    # 白天的地支多是火土金，喜水木的命盘分数普遍偏低，所以在黄道吉时里挑相对最好的
+    good = sorted(sorted([r for r in rows if r["why"].split("，")[0].endswith("吉") and r["sc"] >= 0],
+                         key=lambda r: -r["sc"])[:3], key=lambda r: r["idx"])
+    used = set()
+    for r in good:
+        if r["todo"] in used:
+            r["todo"] = STAR_TODO[r["why"].split("，")[0][:2]]
+        used.add(r["todo"])
+    bad = sorted(sorted([r for r in rows if r["sc"] <= -1], key=lambda r: r["sc"])[:2], key=lambda r: r["idx"])
+    return good, bad
 
 
 def stars_text(n):
@@ -488,10 +517,9 @@ def report(p, date):
           f"{lunar.getXiu()}宿（{lunar.getXiuLuck()}），冲{lunar.getDayChongShengXiao()}，煞{lunar.getDaySha()}。"
           f"宜{hl_yi}；忌{hl_ji}。",
           "", "### 三、时辰与方位（按当地钟点）"]
-    if good_h:
-        L.append("- 适合谈事、做决定：" + "；".join(good_h))
-    if bad_h:
-        L.append("- 少做决定、别冲动：" + "；".join(bad_h))
+    L += [f"- 好时辰 {h['name']}：{h['todo']}（{h['why']}）。" for h in good_h]
+    L += [f"- 避开 {h['name']}：{h['warn']}（{h['why']}）。" for h in bad_h]
+    L.append("- 只在 07:00 到 23:00 之间挑，夜里的时辰不算；好时辰是白天黄道吉时里相对最好的几个。")
     L.append(f"- 方位：喜神{lunar.getDayPositionXiDesc()}，财神{lunar.getDayPositionCaiDesc()}，"
              f"福神{lunar.getDayPositionFuDesc()}，阳贵{lunar.getDayPositionYangGuiDesc()}。")
     risk, question = a["psych"]
@@ -536,7 +564,7 @@ def report(p, date):
     direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
-                    [h.split("（")[0] for h in good_h], [h.split("（")[0] for h in bad_h], direction, tip,
+                    [f"{h['name']} {h['todo']}" for h in good_h], [f"{h['name']} {h['warn']}" for h in bad_h], direction, tip,
                     month_line),
         layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
         layout.week_calendar(days) + layout.month_calendar(month_days, date),
