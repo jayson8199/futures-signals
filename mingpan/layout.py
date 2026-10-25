@@ -14,11 +14,12 @@ def esc(s):
     return html.escape(str(s))
 
 
-def card(date, a, level, gist, yi, ji, good_hours, direction, tip):
+def card(date, a, level, gist, yi, ji, good_hours, bad_hours, direction, tip):
     color = STAR_COLOR[a["stars"]]
     stars = "★" * a["stars"] + "☆" * (5 - a["stars"])
     rows = [("宜", "；".join(yi[:2])), ("忌", "；".join(ji[:2])),
             ("好时辰", "、".join(good_hours[:2]) or "今天没有特别好的时辰，稳着来"),
+            ("避开", "、".join(bad_hours[:2]) or "今天没有特别要避开的时辰"),
             ("贵人方位", direction)]
     body = "".join(
         f'<tr><td style="padding:4px 10px 4px 0;color:#888;white-space:nowrap;vertical-align:top">{esc(k)}</td>'

@@ -470,7 +470,7 @@ def report(p, date):
     direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["yi"], a["ji"],
-                    [h.split("（")[0] for h in good_h], direction, tip),
+                    [h.split("（")[0] for h in good_h], [h.split("（")[0] for h in bad_h], direction, tip),
         layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
         layout.week_calendar(days),
         notify.md_to_html("\n".join(L)))
