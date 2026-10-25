@@ -35,6 +35,9 @@ GAN_CHONG = {frozenset(p) for p in ["甲庚", "乙辛", "丙壬", "丁癸"]}
 CHONG = {frozenset(p) for p in ["子午", "丑未", "寅申", "卯酉", "辰戌", "巳亥"]}
 HE = {frozenset(p) for p in ["子丑", "寅亥", "卯戌", "辰酉", "巳申", "午未"]}
 HAI = {frozenset(p) for p in ["子未", "丑午", "寅巳", "卯辰", "申亥", "酉戌"]}
+PO = {frozenset(p) for p in ["子酉", "寅亥", "卯午", "辰丑", "巳申", "未戌"]}
+# 六合合出的五行（师傅讲义）：合出喜神才是帮衬，合出忌神是被人情牵着走；午未合火还是土要看八字
+HE_WX = {frozenset(k): v for k, v in {"子丑": "土", "寅亥": "木", "卯戌": "火", "辰酉": "金", "巳申": "水"}.items()}
 XING = {frozenset(p) for p in ["寅巳", "巳申", "寅申", "丑戌", "戌未", "丑未", "子卯"]}
 ZI_XING = set("辰午酉亥")
 SANHE = [("申子辰", "水"), ("亥卯未", "木"), ("寅午戌", "火"), ("巳酉丑", "金")]
@@ -195,6 +198,11 @@ def wx_group(dm, wx):
     return "财" if KE[me] == wx else "官杀"
 
 
+def he_wx(pair, month_zhi):
+    """六合化出的五行；午未生在夏天（巳午未月）论火，其余论土。"""
+    return HE_WX.get(pair) or ("火" if month_zhi in "巳午未" else "土")
+
+
 def ten_god(dm, gan):
     group = wx_group(dm, GAN_WX[gan])
     same = GAN_YANG[dm] == GAN_YANG[gan]
@@ -304,7 +312,8 @@ def month_outlook(p, date):
         if zz != z and pair in CHONG:
             why.append(f"冲{where}（{dom}有变动）")
         elif pair in HE:
-            why.append(f"合{where}（{dom}有人帮衬）")
+            hw = he_wx(pair, pillars[1][1])
+            why.append(f"合{where}，合出{hw}（{xj(hw)}，" + (f"{dom}有人帮衬）" if hw in xi else f"{dom}容易被人情牵着走）"))
         elif zz == z and z in ZI_XING:
             why.append(f"和{where}自刑（{dom}方面容易自己跟自己较劲）")
     advice = {"明显转好": "该推进的事可以排到下个月，但照样守住自己定的规矩",
@@ -431,13 +440,22 @@ def analyse(p, date):
             elif "月" in natal:
                 extra["工作"].append("冲到工作宫，安排容易变，留好余地")
         elif pair in HE:
-            score += 1 if hits_day else 0.5
+            hw = he_wx(pair, pillars[1][1])
+            v = (1 if hits_day else 0.5) * sign(hw)
+            score += v
             tags.append(f"合{z}")
-            pt(f"{zhi}与{name(z)}六合", f"合就是相互吸引，{domain(z)}方面有人帮衬、好商量，有事可以今天谈。",
-               1 if hits_day else 0.5)
-            if hits_day:
-                yi.append("和家人、伴侣、合伙人多沟通")
-                extra["家人"].append("日支逢合，和伴侣、家人好商量，有事今天说")
+            if v > 0:
+                pt(f"{zhi}与{name(z)}六合，合出{hw}（喜用）",
+                   f"合就是相互吸引，合出来的{hw}帮你，{domain(z)}方面有人帮衬、好商量，有事可以今天谈。", v)
+                if hits_day:
+                    yi.append("和家人、伴侣、合伙人多沟通")
+                    extra["家人"].append("日支逢合，和伴侣、家人好商量，有事今天说")
+            else:
+                pt(f"{zhi}与{name(z)}六合，合出{hw}（{xj(hw)}）",
+                   f"合是相互吸引，但合出来的{hw}是你的{xj(hw)}：{domain(z)}方面看着好商量，"
+                   "实际容易被人情牵着走，答应别人之前先想清楚自己的底线。", v)
+                if hits_day:
+                    extra["家人"].append("日支逢合但合出忌神，家人朋友的请求别当场答应")
         if (z != zhi and pair in XING) or (z == zhi and zhi in ZI_XING):
             score -= 0.5
             pt(f"{zhi}{z}相刑", f"刑是互相别扭，{domain(z)}方面容易起摩擦，说话留三分余地。", -0.5)
@@ -448,6 +466,10 @@ def analyse(p, date):
             pt(f"{zhi}{z}相害", f"害是暗中拖累，{domain(z)}方面防暗亏，不轻信、不替人担保。", -0.3)
             avoid.append("轻信他人、替人担保")
             extra["钱财"].append(f"{zhi}{z}相害，不轻信、不替人担保")
+        if pair in PO:
+            score -= 0.3
+            pt(f"{zhi}{z}相破", f"破是把原本好好的事弄出裂缝，{domain(z)}方面谈好的事容易出小变故，关键处落到纸面上。", -0.3)
+            avoid.append("口头约定、不留凭据")
 
     # 三合、三会：流日地支能否和原局、大运、流年、流月凑成局
     for combos, kind in ((SANHE, "三合"), (SANHUI, "三会")):
@@ -457,12 +479,13 @@ def analyse(p, date):
             have = [c for c in chars if c != zhi and c in zmap]
             grp = wx_group(dm, wx)
             if len(have) == 2:
-                score += 1.5 * sign(wx)
-                weight[wx] += 1.5
+                full = 2 if kind == "三会" else 1.5
+                score += full * sign(wx)
+                weight[wx] += full
                 tags.append(f"{wx}局")
                 pt(f"{zhi}和{name(have[0])}、{name(have[1])}凑成{chars}{kind}{wx}局",
                    f"几个地支拧成一股{wx}的力量，{wx}是你的{grp}，{GROUP_SHORT[grp]}今天被放大{help_or_drain(sign(wx))}。",
-                   1.5 * sign(wx))
+                   full * sign(wx))
             elif kind == "三合" and len(have) == 1 and chars[1] in (zhi, have[0]):
                 score += 0.5 * sign(wx)
                 weight[wx] += 0.5
@@ -545,9 +568,9 @@ def analyse(p, date):
 
     ts_type = lunar.getDayTianShenType()
     score += 0.3 if ts_type == "黄道" else -0.3
-    # 评分规则（含门槛）2026-10-25 起封存到 2026-12-31，用来和命主每天的实际打分做对照，验证期间不改
-    # 门槛按这张命盘一年里的分数分布定（约 15% / 20% / 40% / 15% / 10%），星级是和你自己的平常日子比
-    stars = 1 if score <= -3.8 else 2 if score <= -2.3 else 3 if score < 0.8 else 4 if score < 2.3 else 5
+    # 评分规则（含门槛）2026-10-26 起封存到 2026-12-31，用来和命主每天的实际打分做对照，验证期间不改
+    # 门槛按这张命盘两年里的分数分布定（约 17% / 19% / 39% / 15% / 10%），星级是和你自己的平常日子比
+    stars = 1 if score <= -4.4 else 2 if score <= -2.6 else 3 if score < 0.2 else 4 if score < 2.0 else 5
 
     heavy = max((w for w in weight if w in ji), key=lambda w: weight[w], default=None)
     body_wx = heavy if heavy and weight[heavy] >= 1.5 else max(weight, key=weight.get)
