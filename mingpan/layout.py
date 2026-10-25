@@ -21,7 +21,7 @@ def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, ti
     rows = [("本月", month_line)]
     rows += [(k, text + (f"；{more[0]}" if more else "")) for k, text, why, more in domains]
     rows += [("忌", "；".join(ji[:2])),
-            ("好时辰", good_hours[:2] or "今天白天没有特别好的时辰，稳着来"),
+            ("好时辰", good_hours[:3] or "今天白天没有特别好的时辰，稳着来"),
             ("避开", bad_hours[:2] or "今天白天没有特别要避开的时辰"),
             ("贵人方位", direction)]
     body = "".join(
