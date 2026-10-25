@@ -576,17 +576,16 @@ def report(p, date):
     if night_h:
         L.append(f"- 夜里和清晨也有好时辰：{'、'.join(night_h)}，这些都在睡觉的时段，只照实列出。"
                  + ("卯时早起可以用来想事情、定计划。" if early_h else ""))
-    gui, xi_d = lunar.getDayPositionYangGuiDesc(), lunar.getDayPositionXiDesc()
-    fu, cai = lunar.getDayPositionFuDesc(), lunar.getDayPositionCaiDesc()
+    # 方位只用两样：命主固定的喜用方位（长期布置）和当天的阳贵（办事）。喜神、福神、财神只看日干、人人一样，不用
+    gui = lunar.getDayPositionYangGuiDesc()
     own = [d for d, x in DIR_WX.items() if x in p["xi"]]
-    hit = [f"{k}{d}" for k, d in (("阳贵", gui), ("喜神", xi_d)) if d in own]
-    L += [f"- 阳贵{gui}：天乙贵人所在的方向。求人办事、拜访、谈事，选这个方向的地点，或坐在这个方位。",
-          f"- 喜神{xi_d}：主喜事和心情。传统出门先朝这个方向走一段，见面、迎亲也朝这个方向。",
-          f"- 福神{fu}：主平安。祈福、静心时朝这个方向。",
-          f"- 财神{cai}：传统用于开张、谈生意，不对应买卖股票。",
-          f"- 方向都以你当时所在的位置为准。这四个方位只看当天的天干，人人一样，分量比你自己的喜忌轻。和你命盘有关的是固定的喜用方位："
-          f"{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），适合书桌、床头、办公座位的朝向。"
-          + (f"今天{'、'.join(hit)}，正好落在你的喜用方位上，两样叠在一起。" if hit else "")]
+    match = gui in own
+    L += [f"- 当天办事看阳贵：{gui}。求人、谈事、拜访，选在你{gui}方向的地点，或坐在{gui}方位。"
+          + ("今天正好落在你的喜用方位上，是最好用的一天。" if match else
+             f"{gui}不在你的喜用方位上，当天的事照样按它办，长期布置不用跟着改。"),
+          f"- 长期布置看喜用方位：{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），每天不变，"
+          "书桌、床头、办公座位朝这几个方向。",
+          "- 方向以你当时所在的位置为准。方位只是锦上添花，约谁、准备得好不好更重要。"]
     risk, question = a["psych"]
     L += ["", "### 四、身心",
           *[f"- 身体：{x}" for x in a["body"]],
@@ -626,8 +625,8 @@ def report(p, date):
     L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
-    direction = (f"约人谈事、出门办事往{gui}（阳贵、喜神都在{gui}）" if gui == xi_d else
-                 f"求人办事往{gui}（阳贵），出门先往{xi_d}走（喜神）")
+    direction = [f"今天求人谈事往{gui}（阳贵）" + ("，正合你的喜用方位" if match else ""),
+                 f"长期布置：书桌、座位朝{'、'.join(own)}"]
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
