@@ -14,10 +14,10 @@ def esc(s):
     return html.escape(str(s))
 
 
-def card(date, a, level, gist, yi, ji, good_hours, bad_hours, direction, tip):
+def card(date, a, level, gist, yi, ji, good_hours, bad_hours, direction, tip, month_line):
     color = STAR_COLOR[a["stars"]]
     stars = "★" * a["stars"] + "☆" * (5 - a["stars"])
-    rows = [("宜", "；".join(yi[:2])), ("忌", "；".join(ji[:2])),
+    rows = [("本月", month_line), ("宜", "；".join(yi[:2])), ("忌", "；".join(ji[:2])),
             ("好时辰", "、".join(good_hours[:2]) or "今天没有特别好的时辰，稳着来"),
             ("避开", "、".join(bad_hours[:2]) or "今天没有特别要避开的时辰"),
             ("贵人方位", direction)]
@@ -73,6 +73,27 @@ def week_calendar(days):
             '七天星级</div>'
             '<table style="width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed">'
             f'<tr>{"".join(cells)}</tr></table></div>')
+
+
+def month_calendar(month_days, today):
+    """整月日历，每天按星级上色，今天加框。"""
+    head = "".join(f'<td style="text-align:center;font-size:11px;color:#888">{w}</td>' for w in WEEK)
+    cells = ['<td></td>'] * month_days[0][0].weekday()
+    for d, b in month_days:
+        color = STAR_COLOR[b["stars"]]
+        border = "2px solid #222" if d == today else "2px solid transparent"
+        fade = "opacity:0.45;" if d < today else ""
+        cells.append(f'<td style="text-align:center;padding:0"><div style="background:{color};color:#fff;'
+                     f'border:{border};border-radius:6px;font-size:12px;line-height:26px;{fade}">{d.day}</div></td>')
+    cells += ['<td></td>'] * (-len(cells) % 7)
+    rows = "".join("<tr>" + "".join(cells[i:i + 7]) + "</tr>" for i in range(0, len(cells), 7))
+    legend = " ".join(f'<span style="display:inline-block;width:10px;height:10px;border-radius:2px;'
+                      f'background:{STAR_COLOR[n]};margin:0 2px 0 6px"></span>{n}★' for n in range(1, 6))
+    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:6px">'
+            f'{today.month}月星级日历</div>'
+            '<table style="width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed">'
+            f'<tr>{head}</tr>{rows}</table>'
+            f'<div style="font-size:11px;color:#888;margin-top:2px">{legend}</div></div>')
 
 
 def page(card_html, bars_html, cal_html, details_html):

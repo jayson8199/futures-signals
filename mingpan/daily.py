@@ -452,6 +452,16 @@ def report(p, date):
         tag = "·".join([b["god"]] + b["tags"][:2])
         L.append(f"- {d.month}/{d.day} 周{WEEK[d.weekday()]} {b['day_gz']} {stars_text(b['stars'])} {tag}")
 
+    month_days, d = [], date.replace(day=1)
+    while d.month == date.month:
+        month_days.append((d, a if d == date else analyse(p, d)))
+        d += datetime.timedelta(days=1)
+    rank = 1 + sum(1 for _, b in month_days if b["score"] > a["score"])
+    good = [d for d, b in month_days if b["stars"] >= 4]
+    left_good = [f"{d.month}/{d.day}" for d in good if d > date]
+    month_line = (f"排第 {rank}/{len(month_days)} 名；好日子（4★以上）{len(good)} 天"
+                  + (f"，还剩 {'、'.join(left_good)}" if left_good else "，本月已经过完"))
+
     jq = lunar.getNextJieQi()
     jd = jq.getSolar()
     left = (datetime.date(jd.getYear(), jd.getMonth(), jd.getDay()) - date).days
@@ -466,13 +476,14 @@ def report(p, date):
 
     L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
-    md = "\n".join(head + L[:2] + ["", f"一句话提醒：{tip}"] + L[2:])
+    md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
     direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["yi"], a["ji"],
-                    [h.split("（")[0] for h in good_h], [h.split("（")[0] for h in bad_h], direction, tip),
+                    [h.split("（")[0] for h in good_h], [h.split("（")[0] for h in bad_h], direction, tip,
+                    month_line),
         layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
-        layout.week_calendar(days),
+        layout.week_calendar(days) + layout.month_calendar(month_days, date),
         notify.md_to_html("\n".join(L)))
     return title, md, html
 
