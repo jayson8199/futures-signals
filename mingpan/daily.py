@@ -210,6 +210,75 @@ def lunar_of(date):
     return Solar.fromYmdHms(date.year, date.month, date.day, 12, 0, 0).getLunar()
 
 
+def season_state(dm, month_zhi):
+    """月令下日主的旺相休囚死。"""
+    lead, me = SEASON[month_zhi], GAN_WX[dm]
+    return ("旺" if me == lead else "相" if SHENG[lead] == me else "休" if SHENG[me] == lead
+            else "囚" if KE[me] == lead else "死")
+
+
+def jie_date(j):
+    s = j.getSolar()
+    return datetime.date(s.getYear(), s.getMonth(), s.getDay())
+
+
+def month_outlook(p, date):
+    """这个节气月和下个节气月逐日打分对比，加上月柱十神、喜忌、月令底气和与原局的冲合，给出走势结论。"""
+    pillars = natal_chart(p)
+    dm = pillars[2][0]
+    xi, ji = set(p["xi"]), set(p["ji"])
+    lunar = lunar_of(date)
+    start, nxt = jie_date(lunar.getPrevJie()), lunar.getNextJie()
+    mid = jie_date(nxt)
+    end = jie_date(lunar_of(mid + datetime.timedelta(days=1)).getNextJie())
+
+    def stats(d0, d1):
+        days = [analyse(p, d0 + datetime.timedelta(days=i)) for i in range((d1 - d0).days)]
+        return {"gz": analyse(p, d0 + datetime.timedelta(days=1))["month_gz"],
+                "mean": sum(b["score"] for b in days) / len(days),
+                "good": sum(b["stars"] >= 4 for b in days), "bad": sum(b["stars"] <= 2 for b in days),
+                "state": season_state(dm, analyse(p, d0 + datetime.timedelta(days=1))["month_gz"][1])}
+
+    cur, new = stats(start, mid), stats(mid, end)
+    # 平常水平：前后各半年逐日平均分，用来说这个月、下个月在你自己的一年里算高还是低
+    base = sum(analyse(p, date + datetime.timedelta(days=i))["score"] for i in range(-182, 183)) / 365
+    for m in (cur, new):
+        m["vs"] = ("高于你的平常" if m["mean"] - base >= 0.25 else "低于你的平常" if m["mean"] - base <= -0.25
+                   else "和你的平常差不多")
+    diff = new["mean"] - cur["mean"]
+    # 门槛按这张命盘两年里各月平均分的波动定（各月平均分大多在 -1.6 到 -0.8 之间）
+    verdict = ("明显转好" if diff >= 0.4 else "略有好转" if diff >= 0.15 else
+               "明显转差" if diff <= -0.4 else "略有转差" if diff <= -0.15 else "和这个月差不多")
+
+    def xj(wx):
+        return "喜用" if wx in xi else "忌神" if wx in ji else "闲神"
+
+    g, z = new["gz"][0], new["gz"][1]
+    why = [f"天干{g}是你的{ten_god(dm, g)[0]}（{xj(GAN_WX[g])}），地支{z}本气是你的{ten_god(dm, CANG[z][0])[0]}"
+           f"（{xj(ZHI_WX[z])}）",
+           f"{SEASON[z]}当令，你的{GAN_WX[dm]}" + (f"仍处在「{new['state']}」" if new["state"] == cur["state"]
+                                                  else f"从「{cur['state']}」变成「{new['state']}」")]
+    zpos = {}
+    for i, x in enumerate(pillars):
+        zpos.setdefault(x[1], []).append(POS[i])
+    for zz, ps in zpos.items():
+        pair, where = frozenset(z + zz), f"原局{'、'.join(ps)}支{zz}"
+        dom = "、".join(POS_DOMAIN[x] for x in ps)
+        if zz != z and pair in CHONG:
+            why.append(f"冲{where}（{dom}有变动）")
+        elif pair in HE:
+            why.append(f"合{where}（{dom}有人帮衬）")
+        elif zz == z and z in ZI_XING:
+            why.append(f"和{where}自刑（{dom}方面容易自己跟自己较劲）")
+    advice = {"明显转好": "该推进的事可以排到下个月，但照样守住自己定的规矩",
+              "略有好转": "压力会松一点，可以稳步推进",
+              "和这个月差不多": "节奏不用变，照现在的计划走",
+              "略有转差": "要紧的事尽量在交节前办完",
+              "明显转差": f"要紧的事尽量在{nxt.getName()}之前办完，进了新月份以守为主"}[verdict]
+    return {"jie": nxt.getName(), "date": mid, "cur": cur, "new": new, "verdict": verdict, "base": base,
+            "why": why, "advice": advice}
+
+
 def analyse(p, date):
     pillars = natal_chart(p)
     dm, day_zhi, year_zhi = pillars[2][0], pillars[2][1], pillars[0][1]
@@ -615,14 +684,18 @@ def report(p, date):
     jq = lunar.getNextJieQi()
     jd = jq.getSolar()
     left = (datetime.date(jd.getYear(), jd.getMonth(), jd.getDay()) - date).days
-    L += ["", "### 节气", f"- 今天{jq.getName()}。" if left == 0 else
+    L += ["", "### 节气和下个月", f"- 今天{jq.getName()}。" if left == 0 else
           f"- 下一个节气：{jq.getName()} {jd.getMonth()}/{jd.getDay()}（还有{left}天）。"]
-    jie = lunar.getNextJie()
-    js = jie.getSolar()
-    jdate = datetime.date(js.getYear(), js.getMonth(), js.getDay())
-    if (jdate - date).days <= 7:
-        nm = lunar_of(jdate + datetime.timedelta(days=1)).getMonthInGanZhiExact()
-        L.append(f"- {jie.getName()}交节后换成{nm}月，{nm}对你是{ten_god(natal_chart(p)[2][0], nm[0])[0]}月，节奏会跟着变。")
+    mo = month_outlook(p, date)
+    cur, new = mo["cur"], mo["new"]
+    next_line = (f"{mo['date'].month}/{mo['date'].day} {mo['jie']}起入{new['gz']}月：{mo['verdict']}"
+                 f"（比起现在的{cur['gz']}月，好日子 {cur['good']}→{new['good']} 天，底气{cur['state']}→{new['state']}）")
+    L += [f"- 这个月{cur['gz']}：你的木处在「{cur['state']}」；逐日算下来平均分 {cur['mean']:+.1f}"
+          f"（你一年的平均是 {mo['base']:+.1f}，{cur['vs']}），"
+          f"好日子（4★以上）{cur['good']} 天，差日子（2★以下）{cur['bad']} 天。",
+          f"- {mo['date'].month}/{mo['date'].day} {mo['jie']}起换成{new['gz']}月：{'；'.join(mo['why'])}。",
+          f"- 下个月逐日算下来平均分 {new['mean']:+.1f}（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天。",
+          f"- **结论：{mo['verdict']}。{mo['advice']}。**"]
 
     L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
@@ -635,7 +708,7 @@ def report(p, date):
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
                     [f"{h['name']} {h['warn']}" for h in bad_h], direction, tip,
-                    month_line),
+                    month_line, next_line),
         layout.wuxing_bars(wuxing_view(p, a)),
         layout.week_calendar(days) + layout.month_calendar(month_days, date),
         notify.md_to_html("\n".join(L)))
