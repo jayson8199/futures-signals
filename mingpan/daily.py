@@ -580,12 +580,14 @@ def report(p, date):
     gui = lunar.getDayPositionYangGuiDesc()
     own = [d for d, x in DIR_WX.items() if x in p["xi"]]
     match = gui in own
-    L += [f"- 当天办事看阳贵：{gui}。求人、谈事、拜访，选在你{gui}方向的地点，或坐在{gui}方位。"
+    L += [f"- 当天办事看阳贵：{gui}。求人、谈事、拜访，从你出发的地方（家或办公室）看，挑{gui}方向的地点；"
+          f"在屋里谈就坐在房间{gui}那一侧。"
           + ("今天正好落在你的喜用方位上，是最好用的一天。" if match else
              f"{gui}不在你的喜用方位上，当天的事照样按它办，长期布置不用跟着改。"),
-          f"- 长期布置看喜用方位：{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），每天不变，"
-          "书桌、床头、办公座位朝这几个方向。",
-          "- 方向以你当时所在的位置为准。方位只是锦上添花，约谁、准备得好不好更重要。"]
+          f"- 长期布置看喜用方位：{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），每天不变。"
+          "以房间为准，书桌、办公座位让你坐下时面朝这几个方向。",
+          "- 方向不按城市分区，以你当时所在的地方为中心，看真实的东南西北，用手机指南针就能看；在曼谷还是在国内都一样。"
+          "方位只是锦上添花，约谁、准备得好不好更重要。"]
     risk, question = a["psych"]
     L += ["", "### 四、身心",
           *[f"- 身体：{x}" for x in a["body"]],
@@ -625,8 +627,10 @@ def report(p, date):
     L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
-    direction = [f"今天求人谈事往{gui}（阳贵）" + ("，正合你的喜用方位" if match else ""),
-                 f"长期布置：书桌、座位朝{'、'.join(own)}"]
+    direction = [f"今天求人谈事：挑你所在处{gui}方向的地点，或坐房间{gui}侧（阳贵）"
+                 + ("，正合你的喜用方位" if match else ""),
+                 f"长期布置：书桌、座位面朝{'、'.join(own)}",
+                 "以你所在的地方为中心，用手机指南针看"]
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
