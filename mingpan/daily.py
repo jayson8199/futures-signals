@@ -757,7 +757,7 @@ def report(p, date):
           f"- 下个月逐日算下来平均分 {new['mean']:+.1f}（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天。",
           f"- **结论：{mo['verdict']}。{mo['advice']}。**"]
 
-    L += ["", "---", "传统文化参考，不是预言。时运看天，应对在人：尽人事，听天命。"]
+    L += ["", "---", "传统文化参考，不是预言。运气好坏由不得你，怎么应对由你：该做的都做到，结果坦然接受。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
     direction = [f"今天求人谈事：挑你所在处{gui}方向的地点，或坐房间{gui}侧（阳贵）"
