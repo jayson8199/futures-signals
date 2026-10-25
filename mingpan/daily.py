@@ -331,6 +331,14 @@ def analyse(p, date):
         return "喜用" if wx in xi else "忌神" if wx in ji else "闲神"
 
     score, points, tags, yi, avoid = 0.0, [], [], [], []
+
+    def pt(term, plain, pts=None):
+        """命盘一栏的一条：术语、白话（含怎么用）、对评分的影响（None 为不计分的底色）。"""
+        points.append({"term": term, "plain": plain, "pts": pts})
+
+    def help_or_drain(v):
+        return "，这股力量帮你" if v > 0 else "，这股力量耗你" if v < 0 else ""
+
     weight = {w: 0.0 for w in "木火土金水"}   # 今天流日带来的五行分量，用于身体提醒
     weight[GAN_WX[gan]] += 1
     weight[ZHI_WX[zhi]] += 1
@@ -345,11 +353,17 @@ def analyse(p, date):
     me = GAN_WX[dm]
     state = ("旺" if me == lead else "相" if SHENG[lead] == me else "休" if SHENG[me] == lead
              else "囚" if KE[me] == lead else "死")
-    points.append(f"本月{lm}，{lead}当令，你的{me}处在「{state}」，"
-                  + ("底气足。" if state in "旺相" else "底气偏弱，整个月宜守。" if state in "囚死" else "底气一般。"))
-    points.append(f"天干{gan}是你的{god}（{xj(GAN_WX[gan])}），主{GROUP_THEME[group]}。")
+    pt(f"本月{lm}，{lead}当令，你的{me}处在「{state}」",
+       "这个月是哪种五行当家，决定你整个月的底气。"
+       + ("你底气足，扛得住事。" if state in "旺相" else "你底气弱，整个月以守为主，别逞强。" if state in "囚死"
+          else "你底气一般，量力而行。"))
+    pt(f"天干{gan}是你的{god}（{xj(GAN_WX[gan])}）",
+       f"天干是今天摆在明面上的事，主题是{GROUP_THEME[group]}{help_or_drain(sign(GAN_WX[gan]))}。",
+       sign(GAN_WX[gan]))
     cang = "、".join(f"{s}{ten_god(dm, s)[0]}" for s in CANG[zhi])
-    points.append(f"地支{zhi}属{ZHI_WX[zhi]}（{xj(ZHI_WX[zhi])}），藏{cang}，本气是{zgod}。")
+    zpts = sign(ZHI_WX[zhi]) + sum(0.3 * sign(GAN_WX[s]) for s in CANG[zhi][1:])
+    pt(f"地支{zhi}属{ZHI_WX[zhi]}（{xj(ZHI_WX[zhi])}），藏{cang}",
+       f"地支是今天的底子，主要是{zgod}的力量，管{GROUP_SHORT[zgroup]}{help_or_drain(zpts)}。", zpts)
     good, bad = ADVICE[group]
     extra = {k: [] for k in DOMAINS}
     yi.append(good)
@@ -357,16 +371,17 @@ def analyse(p, date):
 
     st = stage(dm, zhi)
     score += STAGE_SCORE.get(st, 0)
-    points.append(f"{dm}木日主在{zhi}为「{st}」，{STAGE_NOTE[st]}。")
+    pt(f"你（{dm}{me}）在{zhi}是「{st}」",
+       f"十二长生看你自己今天的气是强是弱：{STAGE_NOTE[st]}。", STAGE_SCORE.get(st, 0))
 
     # 天干：流日天干与日主、原局其他天干、大运、流年天干的合冲
     if frozenset(gan + dm) in GAN_CHONG:
         score -= 1
         tags.append("冲身")
-        points.append(f"流日{gan}冲日主{dm}，{god}直接冲身，今天压力感会比较明显。")
+        pt(f"流日{gan}冲日主{dm}", f"{god}直接冲着你来，今天压力感明显，遇事多忍一步再回应。", -1)
     elif frozenset(gan + dm) in GAN_HE:
         tags.append("合身")
-        points.append(f"流日{gan}合日主{dm}，{GROUP_THEME[group]}方面的人和事主动找上你。")
+        pt(f"流日{gan}合日主{dm}", f"合是相互吸引，{GROUP_THEME[group]}方面的人和事会主动找上你，来了先看清再接。", 0)
     stems = {}
     for i in (0, 1, 3):
         stems.setdefault(pillars[i][0], []).append(f"原局{POS[i]}干")
@@ -380,7 +395,7 @@ def analyse(p, date):
             score -= 0.5 * k
             msg = ("忌神被合住，这方面的压力有所缓解" if k < 0 else
                    "喜神被合住，这份助力今天打了折扣" if k > 0 else "两者相互牵绊")
-            points.append(f"流日{gan}合住{'、'.join(labels)}的{s}（{g2}），{msg}。")
+            pt(f"流日{gan}合住{'、'.join(labels)}的{s}（{g2}）", f"被合住就是被绊住、发挥不出来：{msg}。", -0.5 * k)
             tags.append(f"合{g2}")
 
     # 地支：流日地支与原局四支、大运、流年、流月地支的冲合刑害
@@ -405,7 +420,9 @@ def analyse(p, date):
         if z != zhi and pair in CHONG:
             score -= 1.5 if hits_day else 0.7 if natal else 0.5
             tags.append(f"冲{z}")
-            points.append(f"{zhi}冲{name(z)}：{domain(z)}方面容易有变动。")
+            pt(f"{zhi}冲{name(z)}", f"冲就是对撞，{domain(z)}方面容易有变动"
+               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。"),
+               -(1.5 if hits_day else 0.7 if natal else 0.5))
             if hits_day:
                 avoid.append("做重大决定、签字、远行")
                 extra["工作"].append("日支被冲，不拍板、不签字")
@@ -415,18 +432,19 @@ def analyse(p, date):
         elif pair in HE:
             score += 1 if hits_day else 0.5
             tags.append(f"合{z}")
-            points.append(f"{zhi}与{name(z)}六合：{domain(z)}方面有人帮衬，好商量。")
+            pt(f"{zhi}与{name(z)}六合", f"合就是相互吸引，{domain(z)}方面有人帮衬、好商量，有事可以今天谈。",
+               1 if hits_day else 0.5)
             if hits_day:
                 yi.append("和家人、伴侣、合伙人多沟通")
                 extra["家人"].append("日支逢合，和伴侣、家人好商量，有事今天说")
         if (z != zhi and pair in XING) or (z == zhi and zhi in ZI_XING):
             score -= 0.5
-            points.append(f"{zhi}{z}相刑：{domain(z)}方面容易起摩擦。")
+            pt(f"{zhi}{z}相刑", f"刑是互相别扭，{domain(z)}方面容易起摩擦，说话留三分余地。", -0.5)
             avoid.append("说话冲、和人起争执")
             extra["工作"].append(f"{zhi}{z}相刑，说话留三分余地")
         if pair in HAI:
             score -= 0.3
-            points.append(f"{zhi}{z}相害：{domain(z)}方面提防暗中损耗。")
+            pt(f"{zhi}{z}相害", f"害是暗中拖累，{domain(z)}方面防暗亏，不轻信、不替人担保。", -0.3)
             avoid.append("轻信他人、替人担保")
             extra["钱财"].append(f"{zhi}{z}相害，不轻信、不替人担保")
 
@@ -441,12 +459,15 @@ def analyse(p, date):
                 score += 1.5 * sign(wx)
                 weight[wx] += 1.5
                 tags.append(f"{wx}局")
-                points.append(f"今天的{zhi}和{name(have[0])}、{name(have[1])}凑成{chars}{kind}{wx}局："
-                              f"{wx}是你的{grp}（{xj(wx)}），{GROUP_SHORT[grp]}的分量今天被放大。")
+                pt(f"{zhi}和{name(have[0])}、{name(have[1])}凑成{chars}{kind}{wx}局",
+                   f"几个地支拧成一股{wx}的力量，{wx}是你的{grp}，{GROUP_SHORT[grp]}今天被放大{help_or_drain(sign(wx))}。",
+                   1.5 * sign(wx))
             elif kind == "三合" and len(have) == 1 and chars[1] in (zhi, have[0]):
                 score += 0.5 * sign(wx)
                 weight[wx] += 0.5
-                points.append(f"{zhi}与{name(have[0])}半合{wx}局，{GROUP_SHORT[grp]}的分量有所加强。")
+                pt(f"{zhi}与{name(have[0])}半合{wx}局",
+                   f"差一个字没凑齐，{wx}的力量有所加强，{GROUP_SHORT[grp]}多了一些{help_or_drain(sign(wx))}。",
+                   0.5 * sign(wx))
 
     # 神煞：分吉神、中性、凶煞。按传统看所临地支的喜忌：吉神临忌神、凶煞临喜神，力量减半
     sha = []
@@ -675,7 +696,17 @@ def report(p, date):
          f"{a['day_gz']}日" + (f" · 大运{a['dayun']}" if a["dayun"] else ""),
          f"评分 {a['score']:+.1f}（星级是和你自己一年里的日子比）",
          "", "### 一、今天和你的命盘"]
-    L += [f"- {x}" for x in a["points"]]
+    pts_items = [x for x in a["points"] if x["pts"] is not None]
+    gain = sum(x["pts"] for x in pts_items if x["pts"] > 0)
+    loss = sum(x["pts"] for x in pts_items if x["pts"] < 0)
+    top_g = max(pts_items, key=lambda x: x["pts"], default=None)
+    top_l = min(pts_items, key=lambda x: x["pts"], default=None)
+    L.append(f"- 先看总账：命盘这一层助力 {gain:+.1f}，消耗 {loss:+.1f}，合计 {gain + loss:+.1f}（神煞和黄道吉凶另算）。"
+             + (f"最大的助力是「{top_g['term']}」。" if top_g and top_g["pts"] > 0 else "今天这一层没有明显的助力。")
+             + (f"最大的消耗是「{top_l['term']}」。" if top_l and top_l["pts"] < 0 else ""))
+    for x in [x for x in a["points"] if x["pts"] is None] + sorted(pts_items, key=lambda x: -abs(x["pts"])):
+        tag = "底色" if x["pts"] is None else "±0" if abs(x["pts"]) < 0.05 else f"{x['pts']:+.1f}"
+        L.append(f"- 【{tag}】{x['term']}。{x['plain']}")
     if a["sha"]:
         L += ["", f"**神煞**（辅助参考，主次以喜忌为准；今天地支{a['day_gz'][1]}属{ZHI_WX[a['day_gz'][1]]}，是你的{a['zxj']}）"]
         for kind, kname in (("吉", "吉神"), ("中", "中性"), ("凶", "凶煞")):
