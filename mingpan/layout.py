@@ -14,10 +14,13 @@ def esc(s):
     return html.escape(str(s))
 
 
-def card(date, a, level, gist, yi, ji, good_hours, bad_hours, direction, tip, month_line):
+def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, tip, month_line):
+    """domains：[(领域, 建议, 理由, 补充)]，卡片里只放建议和第一条补充，理由留在详细分析。"""
     color = STAR_COLOR[a["stars"]]
     stars = "★" * a["stars"] + "☆" * (5 - a["stars"])
-    rows = [("本月", month_line), ("宜", "；".join(yi[:2])), ("忌", "；".join(ji[:2])),
+    rows = [("本月", month_line)]
+    rows += [(k, text + (f"；{more[0]}" if more else "")) for k, text, why, more in domains]
+    rows += [("忌", "；".join(ji[:2])),
             ("好时辰", "、".join(good_hours[:2]) or "今天没有特别好的时辰，稳着来"),
             ("避开", "、".join(bad_hours[:2]) or "今天没有特别要避开的时辰"),
             ("贵人方位", direction)]

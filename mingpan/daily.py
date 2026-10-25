@@ -81,6 +81,35 @@ ADVICE = {
     "财": ("记账理财、守住已有的", "大额支出、冒进投机"),
     "官杀": ("低调办事、找人帮忙、守规矩", "硬碰硬、冒风险"),
 }
+# 宜按领域细分：流日天干十神定每个领域的基调（建议，理由），冲合刑害和神煞再往对应领域里补一句
+DOMAINS = ["工作", "钱财", "家人", "身体", "学习"]
+DOMAIN_ADVICE = {
+    "比劫": {"工作": ("和同事、伙伴碰一碰，分好工一起做，不和人争功", "比劫是同伴，也是竞争"),
+             "钱财": ("不借钱给人，不合伙出钱", "比劫主分财"),
+             "家人": ("联系兄弟姐妹和老朋友", "比劫是同辈"),
+             "身体": ("运动出汗，活动筋骨", "比劫帮身，体力足"),
+             "学习": ("找人讨论、一起学", "同伴日，交流比闷头读有收获")},
+    "印": {"工作": ("整理资料、写方案、请教前辈，不拍板新项目", "印主思考和文书，不主决断"),
+           "钱财": ("记账、核对账户和合同，不添大额开销", "印日心思在内，不在外求财"),
+           "家人": ("多陪长辈，听听他们的意见", "印是长辈和庇护"),
+           "身体": ("补觉、午休，少熬夜", "印主休养，今天养得回来"),
+           "学习": ("读书、上课、做研究", "印日吸收快")},
+    "食伤": {"工作": ("写东西、出方案、清掉积压的事，开会少抢话", "食伤主表达和执行，也容易话多惹人"),
+             "钱财": ("有想法先记下来，不急着掏钱落实", "食伤生财，但今天是想法多过把握"),
+             "家人": ("说话软一点，有不满先放一放", "食伤日口快，容易伤人"),
+             "身体": ("早点睡，别熬夜赶工", "食伤泄日主之气，最耗神"),
+             "学习": ("把学到的写下来、讲出来", "输出日，讲一遍比看三遍记得牢")},
+    "财": {"工作": ("处理具体事务、对数核账，不接超出能力的活", "财是实务，接多了累身"),
+           "钱财": ("记账、守住已有的，不追加、不冒进", "财日对钱敏感，容易贪也容易计较"),
+           "家人": ("多顾家，家里的开支和伴侣商量着来", "财星主家用和伴侣"),
+           "身体": ("按时吃饭，别为事忙到误饭点", "财日事务多，容易顾不上自己"),
+           "学习": ("学点实用的，比如理财、管理", "财日适合学能落地的东西")},
+    "官杀": {"工作": ("按规矩办事，交代的事先做完，不和上面硬顶", "官杀是压力和规矩"),
+             "钱财": ("只守不攻，不签字担保", "官杀日外部压力大，守住就是赚"),
+             "家人": ("回家少带情绪，压力找人说说", "压力日容易把火撒在家里"),
+             "身体": ("放松肩颈，早睡，别硬扛", "官杀克身，最耗体力"),
+             "学习": ("复习、考证，学规则和流程", "官杀主规矩，适合打基础")},
+}
 # 当天天干十神对应的心理倾向，只用来对照交易纪律，不给买卖时机
 PSYCH = {
     "比肩": ("容易跟人较劲，或者听了别人的消息就想跟", "这个决定出自我的规则，还是别人的声音？"),
@@ -215,6 +244,7 @@ def analyse(p, date):
     cang = "、".join(f"{s}{ten_god(dm, s)[0]}" for s in CANG[zhi])
     points.append(f"地支{zhi}属{ZHI_WX[zhi]}（{xj(ZHI_WX[zhi])}），藏{cang}，本气是{zgod}。")
     good, bad = ADVICE[group]
+    extra = {k: [] for k in DOMAINS}
     yi.append(good)
     avoid.append(bad)
 
@@ -271,20 +301,27 @@ def analyse(p, date):
             points.append(f"{zhi}冲{name(z)}：{domain(z)}方面容易有变动。")
             if hits_day:
                 avoid.append("做重大决定、签字、远行")
+                extra["工作"].append("日支被冲，不拍板、不签字")
+                extra["家人"].append("日支被冲，和家人有分歧先缓一缓")
+            elif "月" in natal:
+                extra["工作"].append("冲到工作宫，安排容易变，留好余地")
         elif pair in HE:
             score += 1 if hits_day else 0.5
             tags.append(f"合{z}")
             points.append(f"{zhi}与{name(z)}六合：{domain(z)}方面有人帮衬，好商量。")
             if hits_day:
                 yi.append("和家人、伴侣、合伙人多沟通")
+                extra["家人"].append("日支逢合，和伴侣、家人好商量，有事今天说")
         if (z != zhi and pair in XING) or (z == zhi and zhi in ZI_XING):
             score -= 0.5
             points.append(f"{zhi}{z}相刑：{domain(z)}方面容易起摩擦。")
             avoid.append("说话冲、和人起争执")
+            extra["工作"].append(f"{zhi}{z}相刑，说话留三分余地")
         if pair in HAI:
             score -= 0.3
             points.append(f"{zhi}{z}相害：{domain(z)}方面提防暗中损耗。")
             avoid.append("轻信他人、替人担保")
+            extra["钱财"].append(f"{zhi}{z}相害，不轻信、不替人担保")
 
     # 三合、三会：流日地支能否和原局、大运、流年、流月凑成局
     for combos, kind in ((SANHE, "三合"), (SANHUI, "三会")):
@@ -311,10 +348,12 @@ def analyse(p, date):
         tags.append("贵人")
         points.append("今天逢天乙贵人，遇事有人搭把手。")
         yi.append("出门见人、谈事、求助")
+        extra["工作"].append("逢天乙贵人，卡住的事可以开口求助")
     if zhi == WENCHANG[dm]:
         tags.append("文昌")
         points.append("今天逢文昌，脑子清楚，适合学习和写作。")
         yi.append("考试、写作、学习")
+        extra["学习"].append("逢文昌，脑子清楚，考试、写作都合适")
     if zhi == LU[dm]:
         score += 0.5
         tags.append("禄")
@@ -323,9 +362,11 @@ def analyse(p, date):
         tags.append("驿马")
         if frozenset(zhi + day_zhi) in CHONG:
             points.append("驿马逢冲，奔波难免，出门注意安全。")
+            extra["身体"].append("驿马逢冲，出门注意安全")
         else:
             points.append("今天逢驿马，走动多，适合出行办事。")
             yi.append("出行走动")
+            extra["工作"].append("逢驿马，适合出门办事")
     if zhi in {TAOHUA[_GROUP4[day_zhi]], TAOHUA[_GROUP4[year_zhi]]}:
         points.append("今天逢桃花，人缘好，也容易有感情上的牵扯。")
     if zhi in {HUAGAI[_GROUP4[day_zhi]], HUAGAI[_GROUP4[year_zhi]]}:
@@ -336,6 +377,10 @@ def analyse(p, date):
         if zhi in {table[_GROUP4[day_zhi]], table[_GROUP4[year_zhi]]}:
             score += pts
             points.append(f"今天逢{label}，{note}。")
+            if label == "劫煞":
+                extra["钱财"].append("逢劫煞，看好财物")
+            elif label == "灾煞":
+                extra["身体"].append("逢灾煞，出行注意安全")
     if zhi == JINYU[dm]:
         points.append("今天逢金舆，有人照应，出行顺。")
     if zhi == YANGREN[dm]:
@@ -346,6 +391,7 @@ def analyse(p, date):
     if tiao and tiao in (gan, CANG[zhi][0]):
         score += 0.5
         tags.append("调候")
+        extra["身体"].append(f"见{tiao}调候，心容易静下来")
         points.append(f"今天见{tiao}，这是你命里最需要的调候之{GAN_WX[tiao]}，燥气得润，心容易静下来。")
     jishen = [x for x in lunar.getDayJiShen() if x in ("天德", "月德", "天德合", "月德合")]
     if jishen:
@@ -355,6 +401,7 @@ def analyse(p, date):
     if zhi in kong:
         score -= 0.5
         tags.append("空亡")
+        extra["工作"].append("落空亡，约定和承诺多确认一遍")
         points.append(f"今天的{zhi}落在你的空亡（{kong}），许诺和约定容易落空，重要的事多确认一遍。")
 
     ts_type = lunar.getDayTianShenType()
@@ -367,7 +414,15 @@ def analyse(p, date):
     if frozenset(zhi + day_zhi) in CHONG:
         body.append("日支是身体宫，今天被冲，留意睡眠和小磕碰。")
 
+    domains = []
+    for k in DOMAINS:
+        text, why = DOMAIN_ADVICE[group][k]
+        if k == "工作":
+            why = f"{gan}是你的{god}，{why}"
+        domains.append((k, text, why, extra[k]))
+
     return {
+        "domains": domains,
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
         "god": god, "score": score, "stars": stars, "points": points[:n_main], "sha": points[n_main:], "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
@@ -425,9 +480,10 @@ def report(p, date):
     L += [f"- {x}" for x in a["points"]]
     if a["sha"]:
         L += ["", "**神煞**"] + [f"- {x}" for x in a["sha"]]
-    L += ["", "### 二、宜忌",
-          f"- 宜：{'；'.join(a['yi'])}。",
-          f"- 忌：{'；'.join(a['ji'])}。",
+    L += ["", "### 二、宜忌"]
+    for k, text, why, more in a["domains"]:
+        L.append(f"- {k}：{text}（{why}）" + "".join(f"；{m}" for m in more) + "。")
+    L += [f"- 忌：{'；'.join(a['ji'])}。",
           f"- 黄历：{lunar.getZhiXing()}日，值{lunar.getDayTianShen()}（{lunar.getDayTianShenType()}），"
           f"{lunar.getXiu()}宿（{lunar.getXiuLuck()}），冲{lunar.getDayChongShengXiao()}，煞{lunar.getDaySha()}。"
           f"宜{hl_yi}；忌{hl_ji}。",
@@ -479,7 +535,7 @@ def report(p, date):
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
     direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
     html = layout.page(
-        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["yi"], a["ji"],
+        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [h.split("（")[0] for h in good_h], [h.split("（")[0] for h in bad_h], direction, tip,
                     month_line),
         layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
