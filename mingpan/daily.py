@@ -430,6 +430,46 @@ def analyse(p, date):
     }
 
 
+# 五行按喜忌分两块。忌神不只是坏事：按十神说它的正面用法，再看今天有没有化解它的五行
+# （杀印相生、伤官佩印、比劫帮身担财、财能制印、官杀管比劫，都是命理里常用的化忌思路）
+GROUP_MEAN = {"比劫": "同伴、帮身", "印": "贵人、学习", "食伤": "表达、执行",
+              "财": "钱财、实务", "官杀": "压力、规矩"}
+JI_USE = {"食伤": "用来输出：写东西、把想法讲清楚、清掉积压的事；做完一两件就停，别熬夜",
+          "财": "用来办实事：对账、收尾，把手上的事落地；只处理已有的，不开新摊子",
+          "官杀": "把压力当截止时间，逼自己把该交的事交掉、把规矩守住；不硬扛，累了就停",
+          "印": "用来学习和规划，但给自己定好动手的时间，别光想不做",
+          "比劫": "用来找人合作分工，但钱和利益先说清楚"}
+# 忌神十神 → 化解它的十神，以及今天没来时自己怎么补
+JI_FIX = {"官杀": ("印", "杀印相生，压力经它转成助力", "找人请教、先学再做、早点休息"),
+          "食伤": ("印", "印能护身、收住耗散", "做完事读会儿书、安静一会儿"),
+          "财": ("比劫", "比劫帮身，扛得住事和钱", "事多就找信得过的人分担"),
+          "印": ("财", "财能制印，把想法落地", "把想法落成一件具体的事"),
+          "比劫": ("官杀", "官杀能管住比劫", "给自己定规矩和时限")}
+
+
+def wuxing_view(p, a):
+    """流日五行按喜、忌分组，每个五行标十神和分量；忌神附正面用法和化解。"""
+    dm = natal_chart(p)[2][0]
+    w = a["weight"]
+    wx_of = {wx_group(dm, x): x for x in "木火土金水"}
+    out = {"喜": [], "忌": []}
+    for kind, elems in (("喜", p["xi"]), ("忌", p["ji"])):
+        for x in elems:
+            g = wx_group(dm, x)
+            item = {"wx": x, "w": w[x], "group": g, "mean": GROUP_MEAN[g]}
+            if kind == "忌" and w[x] > 0:
+                fix_g, how, diy = JI_FIX[g]
+                fx = wx_of[fix_g]
+                item["use"] = JI_USE[g]
+                item["fix"] = (f"今天{fx}也在，{how}" if w[fx] >= 1 else
+                               f"今天{fx}只来了一点，靠它不够，自己再补：{diy}" if w[fx] > 0 else
+                               f"今天{fx}没来，自己补：{diy}")
+                if g == "官杀" and w[wx_of["食伤"]] >= 1:
+                    item["fix"] += f"；{wx_of['食伤']}也在，可以靠本事和表达把压力化开（食神制杀）"
+            out[kind].append(item)
+    return out
+
+
 # 好时辰只在醒着的时段里挑（辰时到亥时，07:00-22:59），夜里的时辰再好也用不上
 AWAKE = "辰巳午未申酉戌亥"
 # 好时辰适合做什么：按时辰地支本气对日主的十神；逢天乙贵人改成求人谈事
@@ -581,7 +621,7 @@ def report(p, date):
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
                     [f"{h['name']} {h['warn']}" for h in bad_h], direction, tip,
                     month_line),
-        layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
+        layout.wuxing_bars(wuxing_view(p, a)),
         layout.week_calendar(days) + layout.month_calendar(month_days, date),
         notify.md_to_html("\n".join(L)))
     return title, md, html

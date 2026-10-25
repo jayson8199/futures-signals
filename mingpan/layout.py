@@ -41,24 +41,32 @@ def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, ti
         f'提醒：{esc(tip)}</div></div>')
 
 
-def wuxing_bars(weight, xi, ji):
-    top = max(3.0, max(weight.values()))
-    rows = []
-    for wx in "木火土金水":
-        w = weight[wx]
-        tag = "喜" if wx in xi else "忌" if wx in ji else ""
-        tag_color = "#27ae60" if tag == "喜" else "#c0392b"
-        pct = round(w / top * 100)
-        rows.append(
-            f'<tr><td style="width:22px;font-size:14px;color:{WX_COLOR[wx]};font-weight:bold">{wx}</td>'
-            f'<td style="width:22px;font-size:12px;color:{tag_color}">{tag}</td>'
-            f'<td><div style="background:#f0f0f0;border-radius:4px;height:12px">'
-            f'<div style="background:{WX_COLOR[wx]};width:{pct}%;height:12px;border-radius:4px"></div></div></td>'
-            f'<td style="width:34px;text-align:right;font-size:12px;color:#888">{w:.1f}</td></tr>')
-    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:6px">'
-            '今天流日带来的五行</div>'
-            f'<table style="width:100%;border-collapse:separate;border-spacing:0 4px">{"".join(rows)}</table>'
-            '<div style="font-size:12px;color:#888">喜用多是助力，忌神多是消耗；含三合、三会成局的加成。</div></div>')
+def wuxing_bars(view):
+    """view：{"喜": [...], "忌": [...]}，每项含 wx、w、group、mean，忌神有分量时另含 use、fix。"""
+    top = max(3.0, max(i["w"] for k in view for i in view[k]))
+    blocks = []
+    for kind, color, head in (("喜", "#27ae60", "喜用：帮你的"), ("忌", "#c0392b", "忌神：耗你的，也能用")):
+        total = sum(i["w"] for i in view[kind])
+        rows = []
+        for i in view[kind]:
+            pct = round(i["w"] / top * 100)
+            rows.append(
+                f'<tr><td style="width:22px;font-size:14px;color:{WX_COLOR[i["wx"]]};font-weight:bold">{i["wx"]}</td>'
+                f'<td style="width:96px;font-size:12px;color:#666">{esc(i["group"])} · {esc(i["mean"])}</td>'
+                f'<td><div style="background:#f0f0f0;border-radius:4px;height:12px">'
+                f'<div style="background:{WX_COLOR[i["wx"]]};width:{pct}%;height:12px;border-radius:4px"></div></div></td>'
+                f'<td style="width:34px;text-align:right;font-size:12px;color:#888">{i["w"]:.1f}</td></tr>')
+            if i.get("use"):
+                rows.append(
+                    f'<tr><td></td><td colspan="3" style="font-size:12px;color:#444;line-height:1.5;padding:0 0 6px">'
+                    f'<b>用好它：</b>{esc(i["use"])}。<br><b>化解：</b>{esc(i["fix"])}。</td></tr>')
+        blocks.append(
+            f'<div style="font-size:13px;color:{color};font-weight:bold;margin:8px 0 2px">{head}'
+            f'<span style="font-weight:normal;color:#888">（今天合计 {total:.1f}）</span></div>'
+            f'<table style="width:100%;border-collapse:separate;border-spacing:0 4px">{"".join(rows)}</table>')
+    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:2px">'
+            '今天流日带来的五行</div>' + "".join(blocks) +
+            '<div style="font-size:12px;color:#888">数字是分量，含三合、三会成局的加成；没来的五行是 0。</div></div>')
 
 
 def week_calendar(days):
