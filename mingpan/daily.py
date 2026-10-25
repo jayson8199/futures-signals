@@ -187,6 +187,14 @@ SKIP_HUANGLI = {"入殓", "破土", "启钻", "安葬", "除服", "成服", "移
                 "祭祀", "斋醮", "馀事勿取", "诸事不宜"}
 
 
+def STAR_CUT(score):
+    """星级门槛：按这张命盘两年里的分数分布定（约 17% / 19% / 39% / 15% / 10%）。"""
+    return 1 if score <= CUTS[0] else 2 if score <= CUTS[1] else 3 if score < CUTS[2] else 4 if score < CUTS[3] else 5
+
+
+CUTS = (-4.3, -2.4, 0.5, 2.3)   # 2026-10-25 按梁湘润内核改分后，用 2025-10-26 起两年的分数重定
+
+
 def wx_group(dm, wx):
     me = GAN_WX[dm]
     if wx == me:
@@ -288,12 +296,12 @@ def month_outlook(p, date):
     # 平常水平：前后各半年逐日平均分，用来说这个月、下个月在你自己的一年里算高还是低
     base = sum(analyse(p, date + datetime.timedelta(days=i))["score"] for i in range(-182, 183)) / 365
     for m in (cur, new):
-        m["vs"] = ("高于你的平常" if m["mean"] - base >= 0.25 else "低于你的平常" if m["mean"] - base <= -0.25
+        m["vs"] = ("高于你的平常" if m["mean"] - base >= 0.2 else "低于你的平常" if m["mean"] - base <= -0.2
                    else "和你的平常差不多")
     diff = new["mean"] - cur["mean"]
-    # 门槛按这张命盘两年里各月平均分的波动定（各月平均分大多在 -1.6 到 -0.8 之间）
-    verdict = ("明显转好" if diff >= 0.4 else "略有好转" if diff >= 0.15 else
-               "明显转差" if diff <= -0.4 else "略有转差" if diff <= -0.15 else "和这个月差不多")
+    # 门槛按这张命盘两年里各月平均分的波动定（各月平均分大多在 -1.8 到 -0.7 之间，波动约 0.25）
+    verdict = ("明显转好" if diff >= 0.33 else "略有好转" if diff >= 0.12 else
+               "明显转差" if diff <= -0.33 else "略有转差" if diff <= -0.12 else "和这个月差不多")
 
     def xj(wx):
         return "喜用" if wx in xi else "忌神" if wx in ji else "闲神"
@@ -367,6 +375,22 @@ def analyse(p, date):
        "这个月是哪种五行当家，决定你整个月的底气。"
        + ("你底气足，扛得住事。" if state in "旺相" else "你底气弱，整个月以守为主，别逞强。" if state in "囚死"
           else "你底气一般，量力而行。"))
+    def gz_desc(gz):
+        g1, g2 = ten_god(dm, gz[0])[0], ten_god(dm, CANG[gz[1]][0])[0]
+        return f"天干{gz[0]}是你的{g1}（{xj(GAN_WX[gz[0]])}），地支{gz[1]}本气是{g2}（{xj(ZHI_WX[gz[1]])}）"
+
+    if dy:
+        pt(f"大运{dy}：{gz_desc(dy)}",
+           "大运是这十年的环境。今天的十神要放进这个环境里看。")
+        dy_pt = points[-1]
+    if ly:
+        yg = ten_god(dm, ly[0])[0]
+        rel = ("流年天干和大运天干相合，今年把大运的力量拴住了一部分" if dy and frozenset(ly[0] + dy[0]) in GAN_HE else
+               "流年天干冲大运天干，今年和这十年的主线在拉扯" if dy and frozenset(ly[0] + dy[0]) in GAN_CHONG else "")
+        sui = ("日主去克流年天干，古书叫「日犯岁君」，今年的事要花大力气去接" if KE[GAN_WX[dm]] == GAN_WX[ly[0]] else
+               "流年天干来克日主，古书叫「岁伤日干」，压力看着大，实祸较轻" if KE[GAN_WX[ly[0]]] == GAN_WX[dm] else "")
+        pt(f"流年{ly}：{gz_desc(ly)}",
+           "流年是今年的引动。" + "；".join(x for x in (rel, sui) if x) + ("。" if rel or sui else ""))
     pt(f"天干{gan}是你的{god}（{xj(GAN_WX[gan])}）",
        f"天干是今天摆在明面上的事，主题是{GROUP_THEME[group]}{help_or_drain(sign(GAN_WX[gan]))}。",
        sign(GAN_WX[gan]))
@@ -392,6 +416,7 @@ def analyse(p, date):
     elif frozenset(gan + dm) in GAN_HE:
         tags.append("合身")
         pt(f"流日{gan}合日主{dm}", f"合是相互吸引，{GROUP_THEME[group]}方面的人和事会主动找上你，来了先看清再接。", 0)
+    he_both, tan_cai = False, False
     stems = {}
     for i in (0, 1, 3):
         stems.setdefault(pillars[i][0], []).append(f"原局{POS[i]}干")
@@ -407,6 +432,19 @@ def analyse(p, date):
                    "喜神被合住，这份助力今天打了折扣" if k > 0 else "两者相互牵绊")
             pt(f"流日{gan}合住{'、'.join(labels)}的{s}（{g2}）", f"被合住就是被绊住、发挥不出来：{msg}。", -0.5 * k)
             tags.append(f"合{g2}")
+            # 梁湘润「双边喜忌」：合是两边一起绊住，流日天干自己的力量也打折，只算一次
+            own = sign(GAN_WX[gan])
+            if own and not he_both:
+                he_both = True
+                score -= 0.5 * own
+                pt(f"{gan}自己也被{s}合住（双边）",
+                   f"合是两边互相绊住，不只对方被拴住：今天的{god}（{xj(GAN_WX[gan])}）也有一半力量被{g2}牵走，"
+                   + (f"你最需要的这份{GROUP_THEME[group]}会被{GROUP_MEAN[wx_group(dm, GAN_WX[s])]}的事分心，"
+                      f"想用它就先把{GROUP_MEAN[wx_group(dm, GAN_WX[s])]}的事放一放。" if own > 0 else
+                      f"{GROUP_THEME[group]}带来的消耗今天也轻一些。"), -0.5 * own)
+                if own > 0 and wx_group(dm, GAN_WX[s]) == "财" and group == "印":
+                    tan_cai = True
+                    extra["钱财"].append(f"{gan}被{s}合住（贪财坏印），钱的事今天只记下来，不处理")
 
     # 地支：流日地支与原局四支、大运、流年、流月地支的冲合刑害
     zmap = {}
@@ -428,17 +466,18 @@ def analyse(p, date):
         pair, natal = frozenset(zhi + z), [x for x in labels if x in POS]
         hits_day = "日" in labels
         if z != zhi and pair in CHONG:
-            score -= 1.5 if hits_day else 0.7 if natal else 0.5
-            tags.append(f"冲{z}")
-            # 文字分清冲到喜神还是忌神（梁湘润：冲去忌神未必凶）；分数照封存规则不变
+            # 梁湘润：冲去忌神未必凶。冲到喜用照扣，冲到忌神不扣，闲神按原分值减半
             zw = ZHI_WX[z]
+            full = 1.5 if hits_day else 0.7 if natal else 0.5
+            cv = -full if zw in xi else 0 if zw in ji else -full / 2
+            score += cv
+            tags.append(f"冲{z}")
             whom = (f"被冲的{z}属{zw}，是你的忌神：冲掉的是对你不利的东西，变动不一定是坏事，"
-                    "有的压力反而会被冲散（分数暂按旧规则扣，年底用复盘数据检验）。" if zw in ji else
+                    "有的压力反而会被冲散，所以不扣分；但变动本身要花精力应付。" if zw in ji else
                     f"被冲的{z}属{zw}，是你的喜用：冲伤的是帮你的东西，这一分扣得实在。" if zw in xi else
-                    f"被冲的{z}属{zw}，是闲神，只看变动本身。")
+                    f"被冲的{z}属{zw}，是闲神，只算变动本身，扣一半。")
             pt(f"{zhi}冲{name(z)}", f"冲就是对撞，{domain(z)}方面容易有变动"
-               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。") + whom,
-               -(1.5 if hits_day else 0.7 if natal else 0.5))
+               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。") + whom, cv)
             if hits_day:
                 avoid.append("做重大决定、签字、远行")
                 extra["工作"].append("日支被冲，不拍板、不签字")
@@ -499,6 +538,48 @@ def analyse(p, date):
                    f"差一个字没凑齐，{wx}的力量有所加强，{GROUP_SHORT[grp]}多了一些{help_or_drain(sign(wx))}。",
                    0.5 * sign(wx))
 
+    # 十神生态（梁湘润《大流年判例》的十神相互作用）：今天带来的十神和大运这十年的十神放在一起看，
+    # 一方要由今天带来（分量 ≥1），另一方今天或大运里有就算。只认对命主有实际意义的几种结构
+    wx_of = {wx_group(dm, x): x for x in "木火土金水"}
+    env = {wx_group(dm, GAN_WX[dy[0]]), wx_group(dm, GAN_WX[CANG[dy[1]][0]])} if dy else set()
+
+    def today(g):
+        return weight[wx_of[g]] >= 1
+
+    def has(g):
+        return today(g) or g in env
+
+    def is_ji(g):
+        return wx_of[g] in ji
+
+    def is_xi(g):
+        return wx_of[g] in xi
+
+    structs = []
+    for a_, b_, cond, v, nm, plain in (
+            ("官杀", "印", is_ji("官杀") and is_xi("印"), 0.5, "杀印相生",
+             "压力上门，印接住：压力经过学习、请教、长辈这一道，转成能用的东西。今天用学、问、写下来化压力，比硬扛省力"),
+            ("食伤", "官杀", is_ji("官杀"), 0.3, "食神制杀",
+             "压力有本事去对付：靠专业、表达、把事做出来去顶住压力，但做完一两件就停，别把自己掏空"),
+            ("食伤", "印", is_ji("食伤") and is_xi("印"), 0.3, "伤官佩印",
+             "想法多、话多的时候有印收着：先学再说、先想清楚再出手，才华不会变成口舌"),
+            ("比劫", "财", is_ji("财") and is_xi("比劫"), 0.3, "比劫帮身担财",
+             "钱和事多，有同伴分担：找信得过的人一起扛，钱的分配先说清楚"),
+            ("财", "官杀", is_ji("财") and is_ji("官杀"), -0.5, "财生杀",
+             "钱的事变成压力：财去生七杀，账单、贷款、生意上的事今天容易变成心理负担。只守不攻，不添新的财务承诺"),
+            ("财", "印", is_ji("财") and is_xi("印") and not tan_cai and not has("比劫"), -0.5, "贪财坏印",
+             "钱的事来坏你的印：想静心学习、想清楚的时候容易被钱分心。钱的事只记下来，把整块时间留给想事")):
+        if cond and has(a_) and has(b_) and (today(a_) or today(b_)):
+            src = "和".join(f"{'今天' if today(g) else '大运'}的{g}" for g in (a_, b_))
+            structs.append(nm)
+            score += v
+            pt(f"十神结构：{nm}（{src}）", plain + "。", v)
+            tags.append(nm)
+
+    if dy:
+        dy_pt["plain"] += (f"今天凑成了{'、'.join(structs)}，见下面「十神结构」。" if structs
+                           else "今天的十神和大运没有凑成特别的结构。")
+
     # 神煞：分吉神、中性、凶煞。按传统看所临地支的喜忌：吉神临忌神、凶煞临喜神，力量减半
     sha = []
     zxj = xj(ZHI_WX[zhi])
@@ -514,7 +595,7 @@ def analyse(p, date):
         sha.append({"name": name, "kind": kind, "pts": pts, "note": note, "use": use, "hint": hint})
 
     if zhi in TIANYI[dm]:
-        add_sha("天乙贵人", "吉", 1, "遇事有人搭把手", "卡住的事今天开口求人")
+        add_sha("天乙贵人", "吉", 0.5, "遇事有人搭把手", "卡住的事今天开口求人")
         tags.append("贵人")
         yi.append("出门见人、谈事、求助")
         extra["工作"].append("逢天乙贵人，卡住的事可以开口求助")
@@ -542,8 +623,8 @@ def analyse(p, date):
         add_sha("华盖", "中", 0, "人容易觉得孤单", "独处、研究、读书")
     for table, label, kind, note, use, pts in (
             (JIANGXING, "将星", "吉", "有主见，镇得住场面", "该拿主意的事今天拿", 0),
-            (JIESHA, "劫煞", "凶", "防破财、东西被人拿走", "看好财物，不借钱给人", -0.3),
-            (ZAISHA, "灾煞", "凶", "防意外和小伤", "出行、开车慢一点", -0.3),
+            (JIESHA, "劫煞", "凶", "防破财、东西被人拿走", "看好财物，不借钱给人", 0),
+            (ZAISHA, "灾煞", "凶", "防意外和小伤", "出行、开车慢一点", 0),
             (WANGSHEN, "亡神", "凶", "心思重、容易想多，也防说漏嘴", "说话前想一想，不该说的不说", 0)):
         if zhi in {table[_GROUP4[day_zhi]], table[_GROUP4[year_zhi]]}:
             add_sha(label, kind, pts, note, use)
@@ -564,19 +645,47 @@ def analyse(p, date):
         extra["身体"].append(f"见{tiao}调候，心容易静下来")
     jishen = [x for x in lunar.getDayJiShen() if x in ("天德", "月德", "天德合", "月德合")]
     if jishen:
-        add_sha("、".join(jishen), "吉", 0.5, "逢凶有解", "办正事", on_zhi=False)
+        add_sha("、".join(jishen), "吉", 0, "逢凶有解", "办正事", on_zhi=False)
     kong = xunkong(pillars[2])
     if zhi in kong:
-        add_sha("空亡", "凶", -0.5, f"{zhi}落在你的空亡（{kong}），许诺和约定容易落空", "重要的事多确认一遍", on_zhi=False)
+        # 梁湘润把空亡当指标读：空掉的是忌神，压力声势大、实祸小；空掉的是喜用，所求容易落空
+        if ZHI_WX[zhi] in ji:
+            add_sha("空亡", "中", 0, f"{zhi}落在你的空亡（{kong}），今天的{zgod}是空的：压力声势大、实祸小",
+                    "觉得被逼到墙角时，先写下真正的损失是多少，多半写不出数字；约定照样多确认一遍", on_zhi=False)
+        else:
+            add_sha("空亡", "凶", -0.5, f"{zhi}落在你的空亡（{kong}），帮你的东西容易落空，许诺和约定容易落空",
+                    "重要的事多确认一遍", on_zhi=False)
         tags.append("空亡")
         extra["工作"].append("落空亡，约定和承诺多确认一遍")
     score += sum(x["pts"] for x in sha)
 
-    ts_type = lunar.getDayTianShenType()
-    score += 0.3 if ts_type == "黄道" else -0.3
+    # 黄道黑道属择日，不入八字评分（梁湘润：神煞、择日只作指标），黄历一行照列
     # 评分规则（含门槛）2026-10-26 起封存到 2026-12-31，用来和命主每天的实际打分做对照，验证期间不改
     # 门槛按这张命盘两年里的分数分布定（约 17% / 19% / 39% / 15% / 10%），星级是和你自己的平常日子比
-    stars = 1 if score <= -4.4 else 2 if score <= -2.6 else 3 if score < 0.2 else 4 if score < 2.0 else 5
+    stars = STAR_CUT(score)
+
+    # 把握（梁湘润：最好的批法也只有八成五）：助力和消耗越是一边倒，把握越高；两边打架，把握低
+    vals = [x["pts"] for x in points if x["pts"]] + [x["pts"] for x in sha if x["pts"]]
+    total = sum(abs(v) for v in vals)
+    sure = 5 + round((abs(score) / total if total else 0) * 3.5 * 2) / 2   # 五成到八成五，半成一档
+
+    # 今天的结构一句话：有十神结构先说结构，没有就说天干、地支各是什么十神
+    if structs:
+        # 挑和今天总分同方向的结构先说：总分为负先说坏结构，为正先说好结构
+        sv = {"杀印相生": 1, "食神制杀": 1, "伤官佩印": 1, "比劫帮身担财": 1, "财生杀": -1, "贪财坏印": -1}
+        structs.sort(key=lambda x: sv[x] * (1 if score >= 0 else -1), reverse=True)
+        gist = {"杀印相生": "压力上门，有印接住：用学、问、写下来化压力，不硬扛，不拍板",
+                "食神制杀": "压力上门，靠本事顶住：把事做出来，做完一两件就停",
+                "伤官佩印": "想法多，有印收着：先学再说，先想清楚再出手",
+                "比劫帮身担财": "钱和事多，有人分担：找信得过的人一起扛",
+                "财生杀": "钱的事变成压力：只守不攻，不添新的财务承诺",
+                "贪财坏印": "想静心却被钱分心：钱的事只记不办，时间留给想事"}[structs[0]]
+    else:
+        gist = f"{god}在上、{zgod}在下：{GROUP_THEME[group]}是明面上的事，{GROUP_SHORT[zgroup]}是底子"
+    if tan_cai and "贪财坏印" not in structs:
+        gist += "；印被财合住，钱的事只记不办"
+    # 结构和总分方向相反时（比如有食神制杀但整天压力很重），补一句总的判断，免得只看结构以为是好日子
+    gist_agree = bool(structs) and sv[structs[0]] * score >= 0
 
     heavy = max((w for w in weight if w in ji), key=lambda w: weight[w], default=None)
     body_wx = heavy if heavy and weight[heavy] >= 1.5 else max(weight, key=weight.get)
@@ -594,7 +703,8 @@ def analyse(p, date):
     return {
         "domains": domains,
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
-        "god": god, "score": score, "stars": stars, "points": points, "sha": sha, "zxj": zxj, "tags": tags,
+        "god": god, "score": score, "stars": stars, "sure": sure, "gist": gist, "structs": structs,
+        "gist_agree": gist_agree, "points": points, "sha": sha, "zxj": zxj, "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
         "body": body, "body_wx": body_wx, "chong_day": frozenset(zhi + day_zhi) in CHONG,
         "psych": PSYCH[god], "weight": weight,
@@ -744,6 +854,11 @@ def review(p, date):
     return qs
 
 
+def sure_text(x):
+    n = int(x)
+    return "八成五" if x >= 8.5 else "一二三四五六七八九"[n - 1] + "成" + ("半" if x - n else "")
+
+
 def stars_text(n):
     return "★" * n + "☆" * (5 - n)
 
@@ -757,18 +872,19 @@ def report(p, date):
     reminders = p.get("reminders") or ["传统文化参考，不是预言。"]
 
     tip = reminders[date.toordinal() % len(reminders)]
-    head = [f"**今日：{stars_text(a['stars'])} {STARS[a['stars']]}**", "",
-            f"**一句话：{GIST[a['stars']]}**", ""]
+    head = [f"**今日：{stars_text(a['stars'])} {STARS[a['stars']]} · 把握约{sure_text(a['sure'])}**", "",
+            f"**一句话：{a['gist']}。" + ("" if a["gist_agree"] else GIST[a["stars"]]) + "**", ""]
     L = [f"农历{lunar.getMonthInChinese()}月{lunar.getDayInChinese()} · {a['year_gz']}年 {a['month_gz']}月 "
          f"{a['day_gz']}日" + (f" · 大运{a['dayun']}" if a["dayun"] else ""),
-         f"评分 {a['score']:+.1f}（星级是和你自己一年里的日子比）",
+         f"评分 {a['score']:+.1f}（星级是和你自己一年里的日子比）；把握约{sure_text(a['sure'])}"
+         "（助力和消耗越一边倒越有把握，两边打架就低；梁湘润说最好的批法也只有八成五）",
          "", "### 一、今天和你的命盘"]
     pts_items = [x for x in a["points"] if x["pts"] is not None]
     gain = sum(x["pts"] for x in pts_items if x["pts"] > 0)
     loss = sum(x["pts"] for x in pts_items if x["pts"] < 0)
     top_g = max(pts_items, key=lambda x: x["pts"], default=None)
     top_l = min(pts_items, key=lambda x: x["pts"], default=None)
-    L.append(f"- 先看总账：命盘这一层助力 {gain:+.1f}，消耗 {loss:+.1f}，合计 {gain + loss:+.1f}（神煞和黄道吉凶另算）。"
+    L.append(f"- 先看总账：命盘这一层助力 {gain:+.1f}，消耗 {loss:+.1f}，合计 {gain + loss:+.1f}（神煞另算，黄道吉凶不计分）。"
              + (f"最大的助力是「{top_g['term']}」。" if top_g and top_g["pts"] > 0 else "今天这一层没有明显的助力。")
              + (f"最大的消耗是「{top_l['term']}」。" if top_l and top_l["pts"] < 0 else ""))
     for x in [x for x in a["points"] if x["pts"] is None] + sorted(pts_items, key=lambda x: -abs(x["pts"])):
@@ -860,7 +976,8 @@ def report(p, date):
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
     html = layout.page(
-        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]],
+        layout.card(date, a, f"{STARS[a['stars']]} · 把握约{sure_text(a['sure'])}",
+                    a["gist"] + "。" + ("" if a["gist_agree"] else GIST[a["stars"]]),
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
                     [f"{h['name']} {h['warn']}" for h in bad_h], tip,
                     month_line, next_line, f"八段锦{moves}各 8 次；或{alt}"),
