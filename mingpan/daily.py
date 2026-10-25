@@ -430,8 +430,14 @@ def analyse(p, date):
         if z != zhi and pair in CHONG:
             score -= 1.5 if hits_day else 0.7 if natal else 0.5
             tags.append(f"冲{z}")
+            # 文字分清冲到喜神还是忌神（梁湘润：冲去忌神未必凶）；分数照封存规则不变
+            zw = ZHI_WX[z]
+            whom = (f"被冲的{z}属{zw}，是你的忌神：冲掉的是对你不利的东西，变动不一定是坏事，"
+                    "有的压力反而会被冲散（分数暂按旧规则扣，年底用复盘数据检验）。" if zw in ji else
+                    f"被冲的{z}属{zw}，是你的喜用：冲伤的是帮你的东西，这一分扣得实在。" if zw in xi else
+                    f"被冲的{z}属{zw}，是闲神，只看变动本身。")
             pt(f"{zhi}冲{name(z)}", f"冲就是对撞，{domain(z)}方面容易有变动"
-               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。"),
+               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。") + whom,
                -(1.5 if hits_day else 0.7 if natal else 0.5))
             if hits_day:
                 avoid.append("做重大决定、签字、远行")
