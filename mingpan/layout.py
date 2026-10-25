@@ -23,7 +23,7 @@ def card(date, a, level, gist, domains, ji, good_hours, bad_hours, direction, ti
     rows += [("忌", "；".join(ji[:2])),
             ("好时辰", good_hours[:3] or "今天白天没有特别好的时辰，稳着来"),
             ("避开", bad_hours[:2] or "今天白天没有特别要避开的时辰"),
-            ("贵人方位", direction)]
+            ("方位", direction)]
     body = "".join(
         f'<tr><td style="padding:4px 10px 4px 0;color:#888;white-space:nowrap;vertical-align:top">{esc(k)}</td>'
         f'<td style="padding:4px 0;color:#222">{"<br>".join(map(esc, v)) if isinstance(v, list) else esc(v)}</td></tr>'

@@ -130,6 +130,8 @@ HEALTH = {
     "水": "水是你的喜神，适合休养、补觉，注意别受凉。",
     "木": "木气来帮身，适合到户外走走、舒展筋骨。",
 }
+# 八方按后天八卦配五行：震东、巽东南属木，离南火，坤西南、艮东北属土，兑西、乾西北属金，坎北水；用来算命主固定的喜用方位
+DIR_WX = {"正东": "木", "东南": "木", "正南": "火", "西南": "土", "正西": "金", "西北": "金", "正北": "水", "东北": "土"}
 POS = ["年", "月", "日", "时"]
 POS_DOMAIN = {"年": "大环境", "月": "工作环境", "日": "自己和身体", "时": "孩子和后续计划"}
 FLOW_DOMAIN = {"大运": "这十年的主线", "流年": "今年的事", "流月": "这个月的事"}
@@ -574,8 +576,17 @@ def report(p, date):
     if night_h:
         L.append(f"- 夜里和清晨也有好时辰：{'、'.join(night_h)}，这些都在睡觉的时段，只照实列出。"
                  + ("卯时早起可以用来想事情、定计划。" if early_h else ""))
-    L.append(f"- 方位：喜神{lunar.getDayPositionXiDesc()}，财神{lunar.getDayPositionCaiDesc()}，"
-             f"福神{lunar.getDayPositionFuDesc()}，阳贵{lunar.getDayPositionYangGuiDesc()}。")
+    gui, xi_d = lunar.getDayPositionYangGuiDesc(), lunar.getDayPositionXiDesc()
+    fu, cai = lunar.getDayPositionFuDesc(), lunar.getDayPositionCaiDesc()
+    own = [d for d, x in DIR_WX.items() if x in p["xi"]]
+    hit = [f"{k}{d}" for k, d in (("阳贵", gui), ("喜神", xi_d)) if d in own]
+    L += [f"- 阳贵{gui}：天乙贵人所在的方向。求人办事、拜访、谈事，选这个方向的地点，或坐在这个方位。",
+          f"- 喜神{xi_d}：主喜事和心情。传统出门先朝这个方向走一段，见面、迎亲也朝这个方向。",
+          f"- 福神{fu}：主平安。祈福、静心时朝这个方向。",
+          f"- 财神{cai}：传统用于开张、谈生意，不对应买卖股票。",
+          f"- 方向都以你当时所在的位置为准。这四个方位只看当天的天干，人人一样，分量比你自己的喜忌轻。和你命盘有关的是固定的喜用方位："
+          f"{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），适合书桌、床头、办公座位的朝向。"
+          + (f"今天{'、'.join(hit)}，正好落在你的喜用方位上，两样叠在一起。" if hit else "")]
     risk, question = a["psych"]
     L += ["", "### 四、身心",
           *[f"- 身体：{x}" for x in a["body"]],
@@ -615,7 +626,8 @@ def report(p, date):
     L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
     md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
-    direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
+    direction = (f"约人谈事、出门办事往{gui}（阳贵、喜神都在{gui}）" if gui == xi_d else
+                 f"求人办事往{gui}（阳贵），出门先往{xi_d}走（喜神）")
     html = layout.page(
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
