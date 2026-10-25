@@ -132,6 +132,19 @@ HEALTH = {
 }
 # 八方按后天八卦配五行：震东、巽东南属木，离南火，坤西南、艮东北属土，兑西、乾西北属金，坎北水；用来算命主固定的喜用方位
 DIR_WX = {"正东": "木", "东南": "木", "正南": "火", "西南": "土", "正西": "金", "西北": "金", "正北": "水", "东北": "土"}
+# 养生具体做法：按当天分量最重的五行，配八段锦对应的式子、一个可以去做的放松，和一个自己能按的穴位
+EXERCISE = {
+    "金": ("「五劳七伤往后瞧」「攒拳怒目增气力」", "去做个肩颈按摩或推拿",
+           "太冲穴（脚背上大脚趾和二脚趾之间往上约两指，疏肝）、风池穴（后脑勺下两侧凹陷，松颈）"),
+    "火": ("「摇头摆尾去心火」「背后七颠百病消」", "晚上热水泡脚 15 分钟",
+           "内关穴（手腕横纹往上三指、两筋之间，安神）"),
+    "土": ("「调理脾胃须单举」「两手托天理三焦」", "饭后散步 15 分钟",
+           "足三里（膝盖外侧下四指，健脾胃）"),
+    "水": ("「两手攀足固肾腰」「背后七颠百病消」", "早点睡，腰腹注意保暖",
+           "涌泉穴（脚底前三分之一凹陷处，睡前按）"),
+    "木": ("「两手托天理三焦」「左右开弓似射雕」", "去户外快走半小时",
+           "太冲穴（脚背上大脚趾和二脚趾之间往上约两指）"),
+}
 POS = ["年", "月", "日", "时"]
 POS_DOMAIN = {"年": "大环境", "月": "工作环境", "日": "自己和身体", "时": "孩子和后续计划"}
 FLOW_DOMAIN = {"大运": "这十年的主线", "流年": "今年的事", "流月": "这个月的事"}
@@ -481,7 +494,8 @@ def analyse(p, date):
     stars = 1 if score <= -3.9 else 2 if score <= -2.2 else 3 if score < 0.9 else 4 if score < 2.4 else 5
 
     heavy = max((w for w in weight if w in ji), key=lambda w: weight[w], default=None)
-    body = [HEALTH[heavy] if heavy and weight[heavy] >= 1.5 else HEALTH[max(weight, key=weight.get)]]
+    body_wx = heavy if heavy and weight[heavy] >= 1.5 else max(weight, key=weight.get)
+    body = [HEALTH[body_wx]]
     if frozenset(zhi + day_zhi) in CHONG:
         body.append("日支是身体宫，今天被冲，留意睡眠和小磕碰。")
 
@@ -497,7 +511,8 @@ def analyse(p, date):
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
         "god": god, "score": score, "stars": stars, "points": points[:n_main], "sha": points[n_main:], "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
-        "body": body, "psych": PSYCH[god], "weight": weight,
+        "body": body, "body_wx": body_wx, "chong_day": frozenset(zhi + day_zhi) in CHONG,
+        "psych": PSYCH[god], "weight": weight,
     }
 
 
@@ -657,9 +672,14 @@ def report(p, date):
           "以房间为准，书桌、办公座位让你坐下时面朝这几个方向。",
           "- 方向不按城市分区，以你当时所在的地方为中心，看真实的东南西北，用手机指南针就能看；在曼谷还是在国内都一样。"
           "方位只是锦上添花，约谁、准备得好不好更重要。"]
+    moves, alt, point = EXERCISE[a["body_wx"]]
     risk, question = a["psych"]
     L += ["", "### 四、身心",
           *[f"- 身体：{x}" for x in a["body"]],
+          f"- 动一动：八段锦{moves}，各做 8 次，大约 5 分钟；不想动就{alt}。"
+          + ("今天日支被冲，动作放轻放慢，或者干脆选后者。" if a["chong_day"] else ""),
+          f"- 按一按：{point}，每处按揉 1 到 2 分钟，有酸胀感就对了。",
+          "- 这些是传统养生的做法，不代替看病；哪里一直不舒服，还是去看医生。",
           f"- 心态：{a['god']}日，{risk}。",
           f"- 自检一问：{question}",
           "", "### 五、未来六天"]
@@ -708,7 +728,7 @@ def report(p, date):
         layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["domains"], a["ji"],
                     [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
                     [f"{h['name']} {h['warn']}" for h in bad_h], direction, tip,
-                    month_line, next_line),
+                    month_line, next_line, f"八段锦{moves}各 8 次；或{alt}"),
         layout.wuxing_bars(wuxing_view(p, a)),
         layout.week_calendar(days) + layout.month_calendar(month_days, date),
         notify.md_to_html("\n".join(L)))
