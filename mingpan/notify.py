@@ -74,7 +74,9 @@ def send_wechat(title, content, template="txt"):
         return f"微信失败：{type(e).__name__}"
 
 
-def push(title, body, markdown=False):
+def push(title, body, markdown=False, html=None):
+    if html:
+        return send_mail(title, body, html), send_wechat(title, html, "html")
     if markdown:
         return send_mail(title, body, md_to_html(body)), send_wechat(title, body, "markdown")
     return send_mail(title, body), send_wechat(title, body)

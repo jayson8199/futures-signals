@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from lunar_python import Solar
 
+import layout
 import notify
 
 ROOT = Path(__file__).resolve().parent
@@ -370,7 +371,7 @@ def analyse(p, date):
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
         "god": god, "score": score, "stars": stars, "points": points[:n_main], "sha": points[n_main:], "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
-        "body": body, "psych": PSYCH[god],
+        "body": body, "psych": PSYCH[god], "weight": weight,
     }
 
 
@@ -414,11 +415,12 @@ def report(p, date):
     good_h, bad_h = hours(p, lunar)
     reminders = p.get("reminders") or ["传统文化参考，不是预言。"]
 
-    L = [f"**今日：{stars_text(a['stars'])} {STARS[a['stars']]}**",
-         f"农历{lunar.getMonthInChinese()}月{lunar.getDayInChinese()} · {a['year_gz']}年 {a['month_gz']}月 "
+    tip = reminders[date.toordinal() % len(reminders)]
+    head = [f"**今日：{stars_text(a['stars'])} {STARS[a['stars']]}**", "",
+            f"**一句话：{GIST[a['stars']]}**", ""]
+    L = [f"农历{lunar.getMonthInChinese()}月{lunar.getDayInChinese()} · {a['year_gz']}年 {a['month_gz']}月 "
          f"{a['day_gz']}日" + (f" · 大运{a['dayun']}" if a["dayun"] else ""),
          f"评分 {a['score']:+.1f}（星级是和你自己一年里的日子比）",
-         "", f"**一句话：{GIST[a['stars']]}**",
          "", "### 一、今天和你的命盘"]
     L += [f"- {x}" for x in a["points"]]
     if a["sha"]:
@@ -442,9 +444,11 @@ def report(p, date):
           f"- 心态：{a['god']}日，{risk}。",
           f"- 自检一问：{question}",
           "", "### 五、未来六天"]
+    days = [(date, a)]
     for i in range(1, 7):
         d = date + datetime.timedelta(days=i)
         b = analyse(p, d)
+        days.append((d, b))
         tag = "·".join([b["god"]] + b["tags"][:2])
         L.append(f"- {d.month}/{d.day} 周{WEEK[d.weekday()]} {b['day_gz']} {stars_text(b['stars'])} {tag}")
 
@@ -460,10 +464,17 @@ def report(p, date):
         nm = lunar_of(jdate + datetime.timedelta(days=1)).getMonthInGanZhiExact()
         L.append(f"- {jie.getName()}交节后换成{nm}月，{nm}对你是{ten_god(natal_chart(p)[2][0], nm[0])[0]}月，节奏会跟着变。")
 
-    L += ["", "---", f"一句话提醒：{reminders[date.toordinal() % len(reminders)]}",
-          "传统文化参考，不是预言，事在人为。"]
+    L += ["", "---", "传统文化参考，不是预言，事在人为。"]
     title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
-    return title, "\n".join(L)
+    md = "\n".join(head + L[:2] + ["", f"一句话提醒：{tip}"] + L[2:])
+    direction = f"阳贵{lunar.getDayPositionYangGuiDesc()}，喜神{lunar.getDayPositionXiDesc()}"
+    html = layout.page(
+        layout.card(date, a, STARS[a["stars"]], GIST[a["stars"]], a["yi"], a["ji"],
+                    [h.split("（")[0] for h in good_h], direction, tip),
+        layout.wuxing_bars(a["weight"], set(p["xi"]), set(p["ji"])),
+        layout.week_calendar(days),
+        notify.md_to_html("\n".join(L)))
+    return title, md, html
 
 
 def load_profiles():
@@ -476,15 +487,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", help="YYYY-MM-DD，默认今天（曼谷时间）")
     ap.add_argument("--dry-run", action="store_true", help="只打印，不推送")
+    ap.add_argument("--html", help="把 HTML 版面另存到这个文件，用来预览")
     args = ap.parse_args()
 
     date = datetime.date.fromisoformat(args.date) if args.date else datetime.datetime.now(TZ).date()
     for p in load_profiles():
-        title, body = report(p, date)
+        title, body, html = report(p, date)
+        if args.html:
+            Path(args.html).write_text(html, encoding="utf-8")
         if args.dry_run:
             print(title + "\n\n" + body)
             continue
-        mail, wechat = notify.push(title, body, markdown=True)
+        mail, wechat = notify.push(title, body, html=html)
         print(f"{date.isoformat()} | {mail} | {wechat}")
 
 
