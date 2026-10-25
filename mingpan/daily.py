@@ -448,73 +448,83 @@ def analyse(p, date):
                 weight[wx] += 0.5
                 points.append(f"{zhi}与{name(have[0])}半合{wx}局，{GROUP_SHORT[grp]}的分量有所加强。")
 
-    # 神煞
-    n_main = len(points)
+    # 神煞：分吉神、中性、凶煞。按传统看所临地支的喜忌：吉神临忌神、凶煞临喜神，力量减半
+    sha = []
+    zxj = xj(ZHI_WX[zhi])
+
+    def add_sha(name, kind, pts, note, use, on_zhi=True):
+        hint = ""
+        if on_zhi and kind == "吉" and zxj == "忌神":
+            pts, hint = pts / 2, "落在忌神上，力量打折"
+        elif on_zhi and kind == "凶" and zxj == "喜用":
+            pts, hint = pts / 2, "落在喜神上，凶性减轻"
+        elif on_zhi and kind == "凶" and zxj == "忌神":
+            hint = "落在忌神上，要多当心"
+        sha.append({"name": name, "kind": kind, "pts": pts, "note": note, "use": use, "hint": hint})
+
     if zhi in TIANYI[dm]:
-        score += 1
+        add_sha("天乙贵人", "吉", 1, "遇事有人搭把手", "卡住的事今天开口求人")
         tags.append("贵人")
-        points.append("今天逢天乙贵人，遇事有人搭把手。")
         yi.append("出门见人、谈事、求助")
         extra["工作"].append("逢天乙贵人，卡住的事可以开口求助")
     if zhi == WENCHANG[dm]:
+        add_sha("文昌", "吉", 0, "脑子清楚", "学习、写作、考试")
         tags.append("文昌")
-        points.append("今天逢文昌，脑子清楚，适合学习和写作。")
         yi.append("考试、写作、学习")
         extra["学习"].append("逢文昌，脑子清楚，考试、写作都合适")
     if zhi == LU[dm]:
-        score += 0.5
+        add_sha("禄神", "吉", 0.5, "心里有底气", "做本职的事")
         tags.append("禄")
-        points.append("今天逢禄神，心里有底气，适合做本职的事。")
     if zhi in {YIMA[_GROUP4[day_zhi]], YIMA[_GROUP4[year_zhi]]}:
         tags.append("驿马")
         if frozenset(zhi + day_zhi) in CHONG:
-            points.append("驿马逢冲，奔波难免，出门注意安全。")
+            add_sha("驿马逢冲", "凶", 0, "奔波难免", "出门注意安全，能不跑就少跑")
             extra["身体"].append("驿马逢冲，出门注意安全")
         else:
-            points.append("今天逢驿马，走动多，适合出行办事。")
+            add_sha("驿马", "中", 0, "走动多", "出门办事、拜访")
             yi.append("出行走动")
             extra["工作"].append("逢驿马，适合出门办事")
     if zhi in {TAOHUA[_GROUP4[day_zhi]], TAOHUA[_GROUP4[year_zhi]]}:
-        points.append("今天逢桃花，人缘好，也容易有感情上的牵扯。")
+        add_sha("桃花", "中", 0, "人缘好，也容易有感情上的牵扯",
+                "见人、维护关系，相处和说话有分寸" + ("；落在忌神上，人缘里容易夹着是非" if zxj == "忌神" else ""))
     if zhi in {HUAGAI[_GROUP4[day_zhi]], HUAGAI[_GROUP4[year_zhi]]}:
-        points.append("今天逢华盖，适合独处、研究、读书，人容易觉得孤单。")
-    for table, label, note, pts in (
-            (JIANGXING, "将星", "有主见，镇得住场面", 0), (JIESHA, "劫煞", "防破财、东西被人拿走", -0.3),
-            (ZAISHA, "灾煞", "防意外和小伤，出行注意安全", -0.3), (WANGSHEN, "亡神", "心思重、容易想多，也防说漏嘴", 0)):
+        add_sha("华盖", "中", 0, "人容易觉得孤单", "独处、研究、读书")
+    for table, label, kind, note, use, pts in (
+            (JIANGXING, "将星", "吉", "有主见，镇得住场面", "该拿主意的事今天拿", 0),
+            (JIESHA, "劫煞", "凶", "防破财、东西被人拿走", "看好财物，不借钱给人", -0.3),
+            (ZAISHA, "灾煞", "凶", "防意外和小伤", "出行、开车慢一点", -0.3),
+            (WANGSHEN, "亡神", "凶", "心思重、容易想多，也防说漏嘴", "说话前想一想，不该说的不说", 0)):
         if zhi in {table[_GROUP4[day_zhi]], table[_GROUP4[year_zhi]]}:
-            score += pts
-            points.append(f"今天逢{label}，{note}。")
+            add_sha(label, kind, pts, note, use)
             if label == "劫煞":
                 extra["钱财"].append("逢劫煞，看好财物")
             elif label == "灾煞":
                 extra["身体"].append("逢灾煞，出行注意安全")
     if zhi == JINYU[dm]:
-        points.append("今天逢金舆，有人照应，出行顺。")
+        add_sha("金舆", "吉", 0, "有人照应", "出行、办事有人帮")
     if zhi == YANGREN[dm]:
-        points.append("今天逢羊刃，性子急、容易冲动，也更有魄力。")
+        add_sha("羊刃", "中", 0, "性子急，也更有魄力", "难办的事可以啃，但别冲动、别和人硬碰")
     if zhi in (GUCHEN[year_zhi], GUASU[year_zhi]):
-        points.append("今天逢孤辰寡宿，容易觉得孤单，适合独处做事。")
+        add_sha("孤辰寡宿", "中", 0, "容易觉得孤单", "独处做事，晚上主动和家人说说话")
     tiao = p.get("tiaohou") or TIAOHOU.get(dm + pillars[1][1])
     if tiao and tiao in (gan, CANG[zhi][0]):
-        score += 0.5
+        add_sha("调候", "吉", 0.5, f"见到你命里最需要的{tiao}{GAN_WX[tiao]}，燥气得润", "静下心来想事、定计划", on_zhi=False)
         tags.append("调候")
         extra["身体"].append(f"见{tiao}调候，心容易静下来")
-        points.append(f"今天见{tiao}，这是你命里最需要的调候之{GAN_WX[tiao]}，燥气得润，心容易静下来。")
     jishen = [x for x in lunar.getDayJiShen() if x in ("天德", "月德", "天德合", "月德合")]
     if jishen:
-        score += 0.5
-        points.append(f"今天是{'、'.join(jishen)}日，逢凶有解，适合办正事。")
+        add_sha("、".join(jishen), "吉", 0.5, "逢凶有解", "办正事", on_zhi=False)
     kong = xunkong(pillars[2])
     if zhi in kong:
-        score -= 0.5
+        add_sha("空亡", "凶", -0.5, f"{zhi}落在你的空亡（{kong}），许诺和约定容易落空", "重要的事多确认一遍", on_zhi=False)
         tags.append("空亡")
         extra["工作"].append("落空亡，约定和承诺多确认一遍")
-        points.append(f"今天的{zhi}落在你的空亡（{kong}），许诺和约定容易落空，重要的事多确认一遍。")
+    score += sum(x["pts"] for x in sha)
 
     ts_type = lunar.getDayTianShenType()
     score += 0.3 if ts_type == "黄道" else -0.3
     # 门槛按这张命盘一年里的分数分布定（约 15% / 20% / 40% / 15% / 10%），星级是和你自己的平常日子比
-    stars = 1 if score <= -3.9 else 2 if score <= -2.2 else 3 if score < 0.9 else 4 if score < 2.4 else 5
+    stars = 1 if score <= -3.8 else 2 if score <= -2.3 else 3 if score < 0.8 else 4 if score < 2.3 else 5
 
     heavy = max((w for w in weight if w in ji), key=lambda w: weight[w], default=None)
     body_wx = heavy if heavy and weight[heavy] >= 1.5 else max(weight, key=weight.get)
@@ -532,7 +542,7 @@ def analyse(p, date):
     return {
         "domains": domains,
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
-        "god": god, "score": score, "stars": stars, "points": points[:n_main], "sha": points[n_main:], "tags": tags,
+        "god": god, "score": score, "stars": stars, "points": points, "sha": sha, "zxj": zxj, "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
         "body": body, "body_wx": body_wx, "chong_day": frozenset(zhi + day_zhi) in CHONG,
         "psych": PSYCH[god], "weight": weight,
@@ -667,7 +677,11 @@ def report(p, date):
          "", "### 一、今天和你的命盘"]
     L += [f"- {x}" for x in a["points"]]
     if a["sha"]:
-        L += ["", "**神煞**"] + [f"- {x}" for x in a["sha"]]
+        L += ["", f"**神煞**（辅助参考，主次以喜忌为准；今天地支{a['day_gz'][1]}属{ZHI_WX[a['day_gz'][1]]}，是你的{a['zxj']}）"]
+        for kind, kname in (("吉", "吉神"), ("中", "中性"), ("凶", "凶煞")):
+            for x in (x for x in a["sha"] if x["kind"] == kind):
+                w = f"{x['pts']:+.2g} 分" if x["pts"] else "不计分，只作参考"
+                L.append(f"- {kname}·{x['name']}（{w}{'，' + x['hint'] if x['hint'] else ''}）：{x['note']}。用法：{x['use']}。")
     L += ["", "### 二、宜忌"]
     for k, text, why, more in a["domains"]:
         L.append(f"- {k}：{text}（{why}）" + "".join(f"；{m}" for m in more) + "。")
