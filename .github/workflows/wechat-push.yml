@@ -4,7 +4,7 @@ name: 微信推送
 # 用法（gh）：
 #   gh api -X POST repos/jayson8199/futures-signals/actions/workflows/wechat-push.yml/dispatches \
 #     -f ref=main -f 'inputs[title]=标题' -f 'inputs[content]=正文，可多行'
-# 依赖仓库 Secrets 里已有的 PUSHPLUS_TOKEN，以及 scanner/notify.py 里的 send_wechat()。
+# 只依赖仓库 Secrets 里已有的 PUSHPLUS_TOKEN，不加载仓库里任何代码。
 
 on:
   workflow_dispatch:
@@ -18,41 +18,45 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   push:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: 安装依赖
-        run: |
-          if [ -f requirements.txt ]; then pip install -q -r requirements.txt; fi
-          pip install -q requests
-
       - name: 发微信
         env:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           PUSH_TITLE: ${{ inputs.title }}
           PUSH_CONTENT: ${{ inputs.content }}
         run: |
-          python - <<'EOF'
-          import os, sys
-          sys.path.insert(0, "scanner")
+          python3 - <<'EOF'
+          import json, os, sys
+          from urllib import parse, request
+
+          token = os.environ.get("PUSHPLUS_TOKEN", "").strip()
+          if not token:
+              print("PUSHPLUS_TOKEN 没配置，发不了")
+              sys.exit(1)
+
+          data = parse.urlencode({
+              "token": token,
+              "title": os.environ["PUSH_TITLE"][:100],
+              "content": os.environ["PUSH_CONTENT"],
+              "template": "txt",
+          }).encode("utf-8")
+          req = request.Request("https://www.pushplus.plus/send", data=data, method="POST")
           try:
-              from notify import send_wechat
-          except ImportError:
-              from scanner.notify import send_wechat
-          result = send_wechat(os.environ["PUSH_TITLE"], os.environ["PUSH_CONTENT"])
-          print(result)
-          if "失败" in result or "未配置" in result:
-              # 未配置或发送失败都让这一步变红，方便在 Actions 页面看到
+              with request.urlopen(req, timeout=30) as resp:
+                  r = json.loads(resp.read().decode("utf-8"))
+          except Exception as e:
+              print(f"微信推送失败: {e}")
+              sys.exit(1)
+
+          if r.get("code") == 200:
+              print("微信消息已发送")
+          else:
+              print(f"PushPlus 返回: {r.get('msg', r)}")
               sys.exit(1)
           EOF
