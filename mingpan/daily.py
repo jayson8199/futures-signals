@@ -8,7 +8,7 @@
   python mingpan/daily.py --date 2026-10-19 --dry-run
 仓库是公开的，所以推送时日志里只打印发送结果，不打印正文。
 """
-import argparse, datetime, json, os
+import argparse, datetime, json, os, sys
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -329,7 +329,8 @@ def month_outlook(p, date):
               "和这个月差不多": "节奏不用变，照现在的计划走",
               "略有转差": "要紧的事尽量在交节前办完",
               "明显转差": f"要紧的事尽量在{nxt.getName()}之前办完，进了新月份以守为主"}[verdict]
-    return {"jie": nxt.getName(), "date": mid, "cur": cur, "new": new, "verdict": verdict, "base": base,
+    return {"jie": nxt.getName(), "date": mid, "start": start, "end": end, "prev_jie": lunar.getPrevJie().getName(),
+            "cur": cur, "new": new, "verdict": verdict, "base": base,
             "why": why, "advice": advice}
 
 
@@ -444,7 +445,7 @@ def analyse(p, date):
                       f"{GROUP_THEME[group]}带来的消耗今天也轻一些。"), -0.5 * own)
                 if own > 0 and wx_group(dm, GAN_WX[s]) == "财" and group == "印":
                     tan_cai = True
-                    extra["钱财"].append(f"{gan}被{s}合住（贪财坏印），钱的事今天只记下来，不处理")
+                    extra["钱财"].append(f"{gan}被{s}合住（贪财坏印），核对账目照常做，新增支出、借贷和担保先缓")
 
     # 地支：流日地支与原局四支、大运、流年、流月地支的冲合刑害
     zmap = {}
@@ -568,7 +569,7 @@ def analyse(p, date):
             ("财", "官杀", is_ji("财") and is_ji("官杀"), -0.5, "财生杀",
              "钱的事变成压力：财去生七杀，账单、贷款、生意上的事今天容易变成心理负担。只守不攻，不添新的财务承诺"),
             ("财", "印", is_ji("财") and is_xi("印") and not tan_cai and not has("比劫"), -0.5, "贪财坏印",
-             "钱的事来坏你的印：想静心学习、想清楚的时候容易被钱分心。钱的事只记下来，把整块时间留给想事")):
+             "钱的事来坏你的印：想静心学习、想清楚的时候容易被钱分心。钱的事只核对、不新增，把整块时间留给想事")):
         if cond and has(a_) and has(b_) and (today(a_) or today(b_)):
             src = "和".join(f"{'今天' if today(g) else '大运'}的{g}" for g in (a_, b_))
             structs.append(nm)
@@ -664,11 +665,6 @@ def analyse(p, date):
     # 门槛按这张命盘两年里的分数分布定（约 17% / 19% / 39% / 15% / 10%），星级是和你自己的平常日子比
     stars = STAR_CUT(score)
 
-    # 把握（梁湘润：最好的批法也只有八成五）：助力和消耗越是一边倒，把握越高；两边打架，把握低
-    vals = [x["pts"] for x in points if x["pts"]] + [x["pts"] for x in sha if x["pts"]]
-    total = sum(abs(v) for v in vals)
-    sure = 5 + round((abs(score) / total if total else 0) * 3.5 * 2) / 2   # 五成到八成五，半成一档
-
     # 今天的结构一句话：有十神结构先说结构，没有就说天干、地支各是什么十神
     if structs:
         # 挑和今天总分同方向的结构先说：总分为负先说坏结构，为正先说好结构
@@ -679,11 +675,11 @@ def analyse(p, date):
                 "伤官佩印": "想法多，有印收着：先学再说，先想清楚再出手",
                 "比劫帮身担财": "钱和事多，有人分担：找信得过的人一起扛",
                 "财生杀": "钱的事变成压力：只守不攻，不添新的财务承诺",
-                "贪财坏印": "想静心却被钱分心：钱的事只记不办，时间留给想事"}[structs[0]]
+                "贪财坏印": "想静心却被钱分心：钱的事只核对、不新增，时间留给想事"}[structs[0]]
     else:
         gist = f"{god}在上、{zgod}在下：{GROUP_THEME[group]}是明面上的事，{GROUP_SHORT[zgroup]}是底子"
     if tan_cai and "贪财坏印" not in structs:
-        gist += "；印被财合住，钱的事只记不办"
+        gist += "；印被财合住，钱的事只核对、不新增"
     # 结构和总分方向相反时（比如有食神制杀但整天压力很重），补一句总的判断，免得只看结构以为是好日子
     gist_agree = bool(structs) and sv[structs[0]] * score >= 0
 
@@ -703,7 +699,7 @@ def analyse(p, date):
     return {
         "domains": domains,
         "lunar": lunar, "year_gz": ly, "month_gz": lm, "day_gz": ld, "dayun": dy,
-        "god": god, "score": score, "stars": stars, "sure": sure, "gist": gist, "structs": structs,
+        "god": god, "score": score, "stars": stars, "gist": gist, "structs": structs,
         "gist_agree": gist_agree, "points": points, "sha": sha, "zxj": zxj, "tags": tags,
         "yi": list(dict.fromkeys(yi)), "ji": list(dict.fromkeys(avoid)),
         "body": body, "body_wx": body_wx, "chong_day": frozenset(zhi + day_zhi) in CHONG,
@@ -755,7 +751,7 @@ def wuxing_view(p, a):
 AWAKE = "辰巳午未申酉戌亥"
 # 好时辰适合做什么：按时辰地支本气对日主的十神；逢天乙贵人改成求人谈事
 HOUR_TODO = {"比劫": "和同事、朋友商量事，一起干活", "印": "读书、静下来想清楚一件事、请教人",
-             "食伤": "写东西、出方案、清掉积压的事", "财": "处理账目和具体事务",
+             "食伤": "写东西、出方案、清掉积压的事", "财": "核对账目、处理具体事务",
              "官杀": "办正事、交差、处理规矩上的事"}
 # 同一天两个好时辰十神相同时，后一个按黄道星换个说法，免得重复
 STAR_TODO = {"青龙": "约人见面、谈事", "明堂": "见领导、办公事", "金匮": "处理钱和账目",
@@ -854,157 +850,38 @@ def review(p, date):
     return qs
 
 
-def sure_text(x):
-    n = int(x)
-    return "八成五" if x >= 8.5 else "一二三四五六七八九"[n - 1] + "成" + ("半" if x - n else "")
-
-
-def stars_text(n):
-    return "★" * n + "☆" * (5 - n)
-
-
-def report(p, date):
-    a = analyse(p, date)
-    lunar = a["lunar"]
-    hl_yi = "、".join([x for x in lunar.getDayYi() if x not in SKIP_HUANGLI][:4]) or "诸事平常"
-    hl_ji = "、".join([x for x in lunar.getDayJi() if x not in SKIP_HUANGLI][:4]) or "无"
-    good_h, bad_h, early_h, night_h, _ = hours(p, lunar)
-    reminders = p.get("reminders") or ["传统文化参考，不是预言。"]
-
-    tip = reminders[date.toordinal() % len(reminders)]
-    head = [f"**今日：{stars_text(a['stars'])} {STARS[a['stars']]} · 把握约{sure_text(a['sure'])}**", "",
-            f"**一句话：{a['gist']}。" + ("" if a["gist_agree"] else GIST[a["stars"]]) + "**", ""]
-    L = [f"农历{lunar.getMonthInChinese()}月{lunar.getDayInChinese()} · {a['year_gz']}年 {a['month_gz']}月 "
-         f"{a['day_gz']}日" + (f" · 大运{a['dayun']}" if a["dayun"] else ""),
-         f"评分 {a['score']:+.1f}（星级是和你自己一年里的日子比）；把握约{sure_text(a['sure'])}"
-         "（助力和消耗越一边倒越有把握，两边打架就低；梁湘润说最好的批法也只有八成五）",
-         "", "### 一、今天和你的命盘"]
-    pts_items = [x for x in a["points"] if x["pts"] is not None]
-    gain = sum(x["pts"] for x in pts_items if x["pts"] > 0)
-    loss = sum(x["pts"] for x in pts_items if x["pts"] < 0)
-    top_g = max(pts_items, key=lambda x: x["pts"], default=None)
-    top_l = min(pts_items, key=lambda x: x["pts"], default=None)
-    L.append(f"- 先看总账：命盘这一层助力 {gain:+.1f}，消耗 {loss:+.1f}，合计 {gain + loss:+.1f}（神煞另算，黄道吉凶不计分）。"
-             + (f"最大的助力是「{top_g['term']}」。" if top_g and top_g["pts"] > 0 else "今天这一层没有明显的助力。")
-             + (f"最大的消耗是「{top_l['term']}」。" if top_l and top_l["pts"] < 0 else ""))
-    for x in [x for x in a["points"] if x["pts"] is None] + sorted(pts_items, key=lambda x: -abs(x["pts"])):
-        tag = "底色" if x["pts"] is None else "±0" if abs(x["pts"]) < 0.05 else f"{x['pts']:+.1f}"
-        L.append(f"- 【{tag}】{x['term']}。{x['plain']}")
-    if a["sha"]:
-        L += ["", f"**神煞**（辅助参考，主次以喜忌为准；今天地支{a['day_gz'][1]}属{ZHI_WX[a['day_gz'][1]]}，是你的{a['zxj']}）"]
-        for kind, kname in (("吉", "吉神"), ("中", "中性"), ("凶", "凶煞")):
-            for x in (x for x in a["sha"] if x["kind"] == kind):
-                w = f"{x['pts']:+.2g} 分" if x["pts"] else "不计分，只作参考"
-                L.append(f"- {kname}·{x['name']}（{w}{'，' + x['hint'] if x['hint'] else ''}）：{x['note']}。用法：{x['use']}。")
-    L += ["", "### 二、宜忌"]
-    for k, text, why, more in a["domains"]:
-        L.append(f"- {k}：{text}（{why}）" + "".join(f"；{m}" for m in more) + "。")
-    L += [f"- 忌：{'；'.join(a['ji'])}。",
-          f"- 黄历：{lunar.getZhiXing()}日，值{lunar.getDayTianShen()}（{lunar.getDayTianShenType()}），"
-          f"{lunar.getXiu()}宿（{lunar.getXiuLuck()}），冲{lunar.getDayChongShengXiao()}，煞{lunar.getDaySha()}。"
-          f"宜{hl_yi}；忌{hl_ji}。",
-          "", "### 三、时辰与方位（按当地钟点）"]
-    if not any(h["level"] == "好" for h in good_h):
-        L.append("- 今天 07:00 到 23:00 之间没有真正的好时辰，下面标「平」的只是白天里相对稳的。")
-    L += [f"- 【{h['level']}】{h['name']}：{h['todo']}（{h['why']}）。" for h in good_h]
-    L += [f"- 【避开】{h['name']}：{h['warn']}（{h['why']}）。" for h in bad_h]
-    if night_h:
-        L.append(f"- 夜里和清晨也有好时辰：{'、'.join(night_h)}，这些都在睡觉的时段，只照实列出。"
-                 + ("卯时早起可以用来想事情、定计划。" if early_h else ""))
-    # 方位只用两样：命主固定的喜用方位（长期布置）和当天的阳贵（办事）。喜神、福神、财神只看日干、人人一样，不用
-    gui = lunar.getDayPositionYangGuiDesc()
-    own = [d for d, x in DIR_WX.items() if x in p["xi"]]
-    match = gui in own
-    L += [f"- 当天办事看阳贵：{gui}。求人、谈事、拜访，从你出发的地方（家或办公室）看，挑{gui}方向的地点；"
-          f"在屋里谈就坐在房间{gui}那一侧。"
-          + ("今天正好落在你的喜用方位上，是最好用的一天。" if match else
-             f"{gui}不在你的喜用方位上，当天的事照样按它办，长期布置不用跟着改。"),
-          f"- 长期布置看喜用方位：{'、'.join(own)}（按八卦配五行，属{'、'.join(p['xi'])}），每天不变。"
-          "以房间为准，书桌、办公座位让你坐下时面朝这几个方向。",
-          "- 方向不按城市分区，以你当时所在的地方为中心，看真实的东南西北，用手机指南针就能看；在曼谷还是在国内都一样。"
-          "方位只是锦上添花，约谁、准备得好不好更重要。"]
-    moves, alt, point = EXERCISE[a["body_wx"]]
-    risk, question = a["psych"]
-    sci = PSYCH_SCI[a["god"]]
-    L += ["", "### 四、身心",
-          *[f"- 身体：{x}" for x in a["body"]],
-          f"- 动一动：八段锦{moves}，各做 8 次，大约 5 分钟；不想动就{alt}。"
-          + ("今天日支被冲，动作放轻放慢，或者干脆选后者。" if a["chong_day"] else ""),
-          f"- 按一按：{point}，每处按揉 1 到 2 分钟，有酸胀感就对了。",
-          "- 这些是传统养生的做法，不代替看病；哪里一直不舒服，还是去看医生。",
-          f"- 心态：{a['god']}日，{risk}。",
-          f"- 自检一问：{question}",
-          f"- 心理学看：关键词是「{sci[0]}」。{sci[1]}。",
-          f"- 试试：{sci[2]}。",
-          "", "### 五、未来六天"]
-    days = [(date, a)]
-    for i in range(1, 7):
-        d = date + datetime.timedelta(days=i)
-        b = analyse(p, d)
-        days.append((d, b))
-        tag = "·".join([b["god"]] + b["tags"][:2])
-        L.append(f"- {d.month}/{d.day} 周{WEEK[d.weekday()]} {b['day_gz']} {stars_text(b['stars'])} {tag}")
-
-    month_days, d = [], date.replace(day=1)
-    while d.month == date.month:
-        month_days.append((d, a if d == date else analyse(p, d)))
-        d += datetime.timedelta(days=1)
-    rank = 1 + sum(1 for _, b in month_days if b["score"] > a["score"])
-    good = [d for d, b in month_days if b["stars"] >= 4]
-    left_good = [f"{d.month}/{d.day}" for d in good if d > date]
-    month_line = (f"排第 {rank}/{len(month_days)} 名；好日子（4★以上）{len(good)} 天"
-                  + (f"，还剩 {'、'.join(left_good)}" if left_good else "，本月已经过完"))
-
-    jq = lunar.getNextJieQi()
-    jd = jq.getSolar()
-    left = (datetime.date(jd.getYear(), jd.getMonth(), jd.getDay()) - date).days
-    L += ["", "### 节气和下个月", f"- 今天{jq.getName()}。" if left == 0 else
-          f"- 下一个节气：{jq.getName()} {jd.getMonth()}/{jd.getDay()}（还有{left}天）。"]
-    mo = month_outlook(p, date)
-    cur, new = mo["cur"], mo["new"]
-    next_line = (f"{mo['date'].month}/{mo['date'].day} {mo['jie']}起入{new['gz']}月：{mo['verdict']}"
-                 f"（比起现在的{cur['gz']}月，好日子 {cur['good']}→{new['good']} 天，最差的一星日 {cur['worst']}→{new['worst']} 天，"
-                 f"底气{cur['state']}→{new['state']}）")
-    L += [f"- 这个月{cur['gz']}：你的木处在「{cur['state']}」；逐日算下来平均分 {cur['mean']:+.1f}"
-          f"（你一年的平均是 {mo['base']:+.1f}，{cur['vs']}），"
-          f"好日子（4★以上）{cur['good']} 天，差日子（2★以下）{cur['bad']} 天，其中一星日 {cur['worst']} 天。",
-          f"- {mo['date'].month}/{mo['date'].day} {mo['jie']}起换成{new['gz']}月：{'；'.join(mo['why'])}。",
-          f"- 下个月逐日算下来平均分 {new['mean']:+.1f}（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天，其中一星日 {new['worst']} 天。",
-          f"- **结论：{mo['verdict']}。{mo['advice']}。**"]
-
-    L += ["", "---", "传统文化参考，不是预言。运气好坏由不得你，怎么应对由你：该做的都做到，结果坦然接受。"]
-    title = f"命盘日报 {date.month}/{date.day} 周{WEEK[date.weekday()]} · {a['day_gz']}日 {stars_text(a['stars'])}"
-    md = "\n".join(head + L[:2] + [f"本月：{month_line}", "", f"一句话提醒：{tip}"] + L[2:])
-    html = layout.page(
-        layout.card(date, a, f"{STARS[a['stars']]} · 把握约{sure_text(a['sure'])}",
-                    a["gist"] + "。" + ("" if a["gist_agree"] else GIST[a["stars"]]),
-                    [f"{h['name']}【{h['level']}】{h['todo']}" for h in ([early_h] if early_h else []) + good_h],
-                    [f"{h['name']} {h['warn']}" for h in bad_h], tip,
-                    month_line, next_line, f"八段锦{moves}各 8 次；或{alt}"),
-        layout.wuxing_bars(wuxing_view(p, a)),
-        layout.week_calendar(days) + layout.month_calendar(month_days, date),
-        notify.md_to_html("\n".join(L)))
-    return title, md, html
-
-
 def load_profiles():
     # 优先用 Secret MINGPAN_PROFILE（JSON），否则用仓库里的 profile.json
     raw = os.environ.get("MINGPAN_PROFILE")
     return json.loads(raw) if raw else json.loads((ROOT / "profile.json").read_text(encoding="utf-8"))
 
 
+def load_personal(path=None):
+    """个人配置（工作、关系状态、关心的事），可选：--personal 文件优先，其次 Secret MINGPAN_PERSONAL，都没有就空。"""
+    raw = Path(path).read_text(encoding="utf-8") if path else os.environ.get("MINGPAN_PERSONAL")
+    return json.loads(raw) if raw else {}
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date", help="YYYY-MM-DD；默认曼谷时间 18 点前是今天、18 点起是明天（日报前一晚发），--review 默认今天")
-    ap.add_argument("--dry-run", action="store_true", help="只打印，不推送")
-    ap.add_argument("--html", help="把 HTML 版面另存到这个文件，用来预览")
+    ap.add_argument("--date", help="日报目标日期 YYYY-MM-DD；默认曼谷时间 18 点前是今天、18 点起是明天（前一晚发），--review 默认今天")
+    ap.add_argument("--send-date", help="假定的发送日期（测试日期边界用），默认曼谷时间今天")
+    ap.add_argument("--dry-run", action="store_true", help="只打印纯文字版，不推送")
+    ap.add_argument("--wechat", action="store_true", help="只打印微信摘要，不推送")
+    ap.add_argument("--html", help="把邮件 HTML 另存到这个文件，用来预览")
+    ap.add_argument("--pdf", help="生成 PDF 到这个文件（需要本机有 Playwright 和 Chromium）")
+    ap.add_argument("--personal", help="个人配置 JSON 文件（本地测试用），默认读 Secret MINGPAN_PERSONAL")
     ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（固定五题加当天的具体题），不推送")
     args = ap.parse_args()
 
     now = datetime.datetime.now(TZ)
-    # 日报前一天晚上发：18 点起默认算明天；复盘题问的是今天
-    default = now.date() + datetime.timedelta(days=1 if now.hour >= 18 and not args.review else 0)
+    send_date = datetime.date.fromisoformat(args.send_date) if args.send_date else now.date()
+    # 日报前一天晚上发：18 点起默认算明天；复盘题问的是发送当天，不随日报往后挪
+    late = now.hour >= 18 if not args.send_date else False
+    default = send_date + datetime.timedelta(days=1 if late and not args.review else 0)
     date = datetime.date.fromisoformat(args.date) if args.date else default
+    import compose   # compose 反过来引用本模块，放到这里导入
+    personal = load_personal(args.personal)
     for p in load_profiles():
         if args.review:
             qs = review(p, date)
@@ -1016,17 +893,59 @@ def main():
             print("5. 日报：A 有用，照着做了　B 看了，没怎么用上　C 没看")
             for i, (_, q, opts) in enumerate(qs, 6):
                 print(f"{i}. {q}：{opts}")
-            print("想多说一句就写在最后，比如「3BCBA ABBA 上午开会被批评」。")
+            print("想多说一句就写在最后，比如「3BCBA ABBA 上午开会被批评」；"
+                  "也可以按「完成：…　有用：…　不合适：…　明天：…」写，符合的和不符合的都记。")
             print("KEYS " + "|".join(f"{k}={q}" for k, q, _ in qs))
             continue
-        title, body, html = report(p, date)
+        d = compose.build(p, date, send_date, personal)
+        mail_html = layout.email_html(d)
         if args.html:
-            Path(args.html).write_text(html, encoding="utf-8")
-        if args.dry_run:
-            print(title + "\n\n" + body)
+            Path(args.html).write_text(mail_html, encoding="utf-8")
+        if args.pdf:
+            write_pdf(layout.pdf_html(d), args.pdf, d)
+        if args.wechat:
+            print(d["subject"] + "\n\n" + layout.wechat_text(d))
             continue
-        mail, wechat = notify.push(title, body, html=html)
+        if args.dry_run:
+            print(d["subject"] + "\n\n" + layout.text(d))
+            continue
+        if args.pdf or args.html:
+            continue
+        mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_html(d))
         print(f"{date.isoformat()} | {mail} | {wechat}")
+        # 两个渠道都没发出去时让工作流失败，备用触发会再试；只要有一个成功就不重发，免得重复
+        if not any(x.endswith(("已发送", "已推送")) for x in (mail, wechat)) and \
+                not all(x.endswith("跳过") for x in (mail, wechat)):
+            sys.exit(1)
+
+
+PDF_FOOTER = ('<div style="font-size:8px;color:#999;width:100%;text-align:center">'
+              '传统文化参考 · 现实事项结合事实判断　|　<span class="pageNumber"></span> / <span class="totalPages"></span></div>')
+PDF_JS = """const {chromium}=require('playwright');(async()=>{const [src,out,foot]=process.argv.slice(1);
+const b=await chromium.launch();const p=await b.newPage();await p.goto('file://'+src);
+await p.pdf({path:out,format:'A4',printBackground:true,displayHeaderFooter:true,headerTemplate:'<span></span>',
+footerTemplate:foot,margin:{top:'14mm',bottom:'16mm',left:'13mm',right:'13mm'}});await b.close();})();"""
+
+
+def write_pdf(page_html, path, d):
+    """HTML 转 PDF：有 Python 版 Playwright 就用它，没有就调 Node 版（本机预览用，工作流里不生成）。"""
+    path = str(Path(path).resolve())
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        import subprocess, tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as tmp:
+            tmp.write(page_html)
+        subprocess.run(["node", "-e", PDF_JS, tmp.name, path, PDF_FOOTER], check=True)
+        return
+    with sync_playwright() as pw:
+        b = pw.chromium.launch()
+        pg = b.new_page()
+        pg.set_content(page_html, wait_until="load")
+        pg.pdf(path=path, format="A4", print_background=True, display_header_footer=True,
+               header_template="<span></span>", footer_template=PDF_FOOTER,
+               margin={"top": "14mm", "bottom": "16mm", "left": "13mm", "right": "13mm"})
+        b.close()
 
 
 if __name__ == "__main__":

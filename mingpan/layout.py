@@ -1,117 +1,370 @@
 #!/usr/bin/env python3
 """
-命盘日报的 HTML 版面：最上面一张结论卡片，接着五行强弱条和七天星级日历，详细分析放在最后。
-邮件和微信（PushPlus html 模板）共用同一份 HTML，样式全部写在行内，兼容邮件客户端。
+命盘日报的三种版面，都从 compose.build 得到的同一份数据渲染：
+  wechat_html / wechat_text  微信摘要（PushPlus html 模板，约 350-600 字，不用宽表格）
+  email_html                 邮件完整版（样式写在行内，兼容邮件客户端，手机上单栏阅读）
+  pdf_html                   PDF 版（同一套栏目，分四页：前两页日用，后两页依据；本地用 Chromium 转 PDF）
+  text                       纯文字版，--dry-run 打印用
+栏目顺序按 2026-10-26 个人日报融合样稿：速览 → 事业财运感情 → 我关心的事 → 生活补充 → 未来七天 → 晚间回顾
+→ 运年月背景 → 流日计分 → 五行 → 神煞调候 → 时辰方位 → 节气和下月。
 """
+import datetime
 import html
+import re
 
 WX_COLOR = {"木": "#3a8f5c", "火": "#d9534f", "土": "#b8862b", "金": "#9a8a5a", "水": "#2f6db5"}
 STAR_COLOR = {1: "#c0392b", 2: "#e67e22", 3: "#7f8c8d", 4: "#27ae60", 5: "#1e8449"}
-WEEK = "一二三四五六日"
+ACCENT = "#2e6b55"
+DISCLAIMER = "传统文化参考，不是预言，也不构成任何投资建议。现实的事以事实、期限和自己的判断为准。"
 
 
 def esc(s):
     return html.escape(str(s))
 
 
-def card(date, a, level, gist, good_hours, bad_hours, tip, month_line, next_line, care):
-    """3 秒能看完的结论卡片：星级、一句话、本月、下个月、时辰、养生、提醒。宜忌、方位等放在下面的详细分析。"""
-    color = STAR_COLOR[a["stars"]]
-    stars = "★" * a["stars"] + "☆" * (5 - a["stars"])
-    rows = [("本月", month_line), ("下个月", next_line),
-            ("好时辰", good_hours[:3] or "今天白天没有特别好的时辰，稳着来"),
-            ("避开", bad_hours[:2] or "今天白天没有特别要避开的时辰"),
-            ("养生", care)]
-    body = "".join(
-        f'<tr><td style="padding:4px 10px 4px 0;color:#888;white-space:nowrap;vertical-align:top">{esc(k)}</td>'
-        f'<td style="padding:4px 0;color:#222">{"<br>".join(map(esc, v)) if isinstance(v, list) else esc(v)}</td></tr>'
-        for k, v in rows)
-    return (
-        f'<div style="border:1px solid #e5e5e5;border-left:6px solid {color};border-radius:10px;'
-        f'padding:14px 16px;margin:0 0 14px;background:#fff">'
-        f'<div style="font-size:13px;color:#888">{date.month}/{date.day} 周{WEEK[date.weekday()]} · '
-        f'{esc(a["month_gz"])}月 {esc(a["day_gz"])}日</div>'
-        f'<div style="font-size:24px;color:{color};margin:6px 0 2px;letter-spacing:2px">{stars} '
-        f'<span style="font-size:17px;letter-spacing:0">{esc(level)}</span></div>'
-        f'<div style="font-size:15px;color:#222;font-weight:bold;margin:6px 0 10px">{esc(gist)}</div>'
-        f'<table style="border-collapse:collapse;font-size:14px;line-height:1.5">{body}</table>'
-        f'<div style="font-size:13px;color:#555;margin-top:10px;padding-top:8px;border-top:1px dashed #ddd">'
-        f'提醒：{esc(tip)}</div>'
-        f'<div style="font-size:12px;color:#999;margin-top:6px">工作、钱财、家人等五个方面的宜忌，方位、神煞都在下面的详细分析里。</div>'
-        '</div>')
+def stars(n):
+    return "★" * n + "☆" * (5 - n)
 
 
-def wuxing_bars(view):
-    """view：{"喜": [...], "忌": [...]}，每项含 wx、w、group、mean，忌神有分量时另含 use、fix。"""
+def md(d):
+    return f"{d.month}/{d.day}"
+
+
+def head_line(d):
+    return f"{md(d['target'])} 周{d['wd']} · {d['year_gz']}年 {d['month_gz']}月 {d['day_gz']}日"
+
+
+# ---------- 公用小块 ----------
+
+def h2(num, title, sub=""):
+    return (f'<div style="margin:16px 0 6px;font-size:17px;font-weight:bold;color:#222">'
+            f'<span style="color:{ACCENT};margin-right:8px">{num}</span>{esc(title)}'
+            + (f'<span style="font-size:12px;font-weight:normal;color:#888;margin-left:8px">{esc(sub)}</span>' if sub else "")
+            + '</div>')
+
+
+def box(inner, border="#e3e8e5", bg="#fff"):
+    return (f'<div style="border:1px solid {border};border-radius:10px;background:{bg};'
+            f'padding:12px 14px;margin:0 0 10px">{inner}</div>')
+
+
+def label_row(label, text, color="#555"):
+    return (f'<div style="margin:5px 0;font-size:14px;line-height:1.65;color:#222">'
+            f'<b style="color:{color}">{esc(label)}</b>　{esc(text)}</div>')
+
+
+def note(text):
+    return f'<div style="font-size:12px;color:#888;line-height:1.6;margin:4px 0 0">{esc(text)}</div>'
+
+
+def table(head, rows, widths=None, small=False):
+    fs = "12px" if small else "13px"
+    th = "".join(f'<th style="text-align:left;padding:6px 6px;font-weight:bold;color:#555;background:#eef3f0;'
+                 f'font-size:{fs}{";width:" + widths[i] if widths and widths[i] else ""}">{esc(h)}</th>'
+                 for i, h in enumerate(head))
+    tr = "".join("<tr>" + "".join(f'<td style="padding:6px 6px;border-bottom:1px solid #eee;font-size:{fs};'
+                                  f'line-height:1.5;vertical-align:top">{c}</td>' for c in r) + "</tr>" for r in rows)
+    return f'<table style="width:100%;border-collapse:collapse;margin:0 0 6px">{"<tr>" + th + "</tr>"}{tr}</table>'
+
+
+# ---------- 各栏目 ----------
+
+def s_overview(d):
+    t = d["theme"]
+    c = STAR_COLOR[d["stars"]]
+    tip = (f'<div style="font-size:12px;color:#666;margin-top:10px;padding-top:8px;border-top:1px dashed #cfd9d4">'
+           f'个人设置 · 长期提醒：{esc(d["tip"])}</div>') if d["tip"] else ""
+    return box(
+        f'<div style="font-size:13px;color:#666">{esc(head_line(d))}　{esc(d["lunar_text"])}</div>'
+        f'<div style="font-size:24px;color:{c};margin:6px 0 2px;letter-spacing:2px">{stars(d["stars"])}'
+        f'<span style="font-size:16px;letter-spacing:0;margin-left:8px">{d["stars"]}/5 · {esc(d["level"])}</span>'
+        f'<span style="font-size:12px;color:#888;letter-spacing:0;margin-left:8px">和你自己一年里的日子比</span></div>'
+        f'<div style="font-size:16px;font-weight:bold;margin:8px 0 4px">今日主线：{esc(t["name"])}，{esc(t["line"])}。</div>'
+        f'<div style="font-size:14px;line-height:1.65;color:#333">{esc(t["explain"])}</div>'
+        f'<div style="font-size:14px;line-height:1.65;margin-top:8px"><b style="color:{ACCENT}">今日行动</b>　{esc(t["action"])}。</div>'
+        + tip, border="#cfe0d7", bg="#f4f8f6")
+
+
+def s_cols(d):
+    out = [h2("01", "事业 · 财运 · 感情", "先看解读，再落到行动")]
+    for key, letter, title in (("事业", "A", "事业与工作"), ("财运", "B", "财运与财务"), ("感情", "C", "感情与关系")):
+        x = d["cols"][key]
+        out.append(box(
+            f'<div style="font-size:15px;font-weight:bold"><span style="color:{ACCENT};margin-right:6px">{letter}</span>{title}</div>'
+            f'<div style="font-size:14px;font-weight:bold;color:#333;margin:6px 0 4px">{esc(x["theme"])}</div>'
+            + label_row("命理解读", x["basis"]) + label_row("现实行动", x["action"], ACCENT) + label_row("留意", x["note"])))
+    out.append(note("「命理解读」引用的是当天实际计分的项目和神煞（括号里是分值）；「现实行动」是编辑整理的建议，不是推算结果。计分明细见后面。"))
+    return "".join(out)
+
+
+def s_concerns(d):
+    rows = []
+    for c in d["concerns"]:
+        due = (f"（期限 {c['due']}，还有 {c['left']} 天）" if c["left"] is not None and c["left"] >= 0 else
+               f"（期限 {c['due']}，已过）" if c["due"] else "")
+        rows.append(label_row("当前事项", c["text"] + due) + label_row("今天的一步", c["step"], ACCENT))
+    if not rows:
+        rows.append(label_row("当前事项", "还没有填写。可以在个人配置里写最多 3 件近期最关心的事。"))
+    miss = "、".join(d["missing"])
+    return (h2("02", "我关心的事", "来自个人配置，不由命盘推出") + box("".join(rows)
+            + (label_row("待补信息", f"{miss}没有填写；没填的部分不作推断。") if miss else "")))
+
+
+def s_life(d):
+    return h2("03", "生活补充", "家人、学习、身心") + box("".join(label_row(k, v) for k, v in d["life"])) + note(
+        "身心只做休息、活动和自我观察的提醒，不按五行推断症状，不代替看医生。")
+
+
+def s_week(d):
+    rows = [[f"<b>{md(w['date'])}</b> 周{w['wd']}", esc(w["gz"]),
+             f'<span style="color:{STAR_COLOR[w["stars"]]}">{w["stars"]}★</span>', esc(w["struct"]), esc(w["hint"])]
+            for w in d["week"]]
+    return (h2("04", "未来七天", "干支、星级、结构都是程序算的") +
+            table(["日期", "干支", "星级", "结构", "行动提示"], rows, ["21%", "11%", "10%", "38%", "20%"], small=True)
+            + note("行动提示是编辑整理的，不是新的推算；星级是和自己平常日子比的相对评价，不能代替事实和期限的判断。"))
+
+
+def s_review(d):
+    r = d["review_date"]
+    return (h2("05", "晚间回顾", f"复盘问的是 {md(r)} 当天") + box(
+        label_row("固定流程", f"{md(r)} 晚上 21:37 在对话里发复盘题：固定五题加当天的具体题和对照时辰，回一串字母就行，"
+                              "记录照旧。")
+        + label_row("可选多写", "想多写一句，可以按「完成：…　有用：…　不合适：…　明天：…」接在字母后面，"
+                              "符合的和不符合的都记。")))
+
+
+def s_background(d):
+    rows = []
+    for x in d["bases"]:
+        layer = x["term"].split("：")[0] if "：" in x["term"] else x["term"].split("，")[0]
+        rows.append([f"<b>{esc(layer)}</b>", esc(x["term"].split("：", 1)[1] if "：" in x["term"] else x["term"])
+                     + "<br>" + f'<span style="color:#666">{esc(x["plain"])}</span>'])
+    return h2("06", "运、年、月的背景", "底色，不计分") + table(["层次", "解释"], rows, ["24%", "76%"])
+
+
+def brief(plain, n=34):
+    """计分表里的解释摘要：白话第一句，去掉帮/耗的尾巴，太长截断（全文在事业财运感情和纯文字版里）。"""
+    s = re.sub(r"，这股力量(帮|耗)你", "", plain.split("。")[0])
+    return s if len(s) <= n else s[:n] + "…"
+
+
+def s_score(d):
+    rows = [[f"{i:02d}", esc(x["term"]),
+             f'<b style="color:{"#1e8449" if x["pts"] > 0 else "#c0392b" if x["pts"] < 0 else "#888"}">{x["pts"]:+.1f}</b>',
+             esc(brief(x["plain"]))]
+            for i, x in enumerate(d["items"], 1)]
+    sha = [x for x in d["sha"] if x["pts"]]
+    tot = box(
+        f'<div style="font-size:14px;line-height:1.8"><b>命盘层：</b>助力 {d["gain"]:+.1f}，消耗 {d["loss"]:+.1f}，'
+        f'小计 {d["subtotal"]:+.1f}<br><b>神煞调整：</b>'
+        + ("、".join(f"{esc(x['name'])} {x['pts']:+.1f}" for x in sha) or "无") + f'（合计 {d["sha_adj"]:+.1f}）<br>'
+        f'<b>最终评分 {d["score"]:+.1f}，对应 {d["stars"]} 星（{esc(d["level"])}）</b>；黄道黑道不计分。</div>',
+        border="#cfe0d7", bg="#f4f8f6")
+    return (h2("07", "流日计分明细", f"{d['day_gz']}日 · {d['dm']}{d['dm_wx']}日主")
+            + table(["#", "计分项", "分值", "解释摘要"], rows, ["6%", "38%", "10%", "46%"], small=True) + tot)
+
+
+def s_wuxing(d):
+    view = d["wuxing"]
     top = max(3.0, max(i["w"] for k in view for i in view[k]))
-    blocks = []
-    for kind, color, head in (("喜", "#27ae60", "喜用：帮你的"), ("忌", "#c0392b", "忌神：耗你的，也能用")):
-        total = sum(i["w"] for i in view[kind])
-        rows = []
+    rows = []
+    for kind in ("喜", "忌"):
         for i in view[kind]:
             pct = round(i["w"] / top * 100)
             rows.append(
                 f'<tr><td style="width:22px;font-size:14px;color:{WX_COLOR[i["wx"]]};font-weight:bold">{i["wx"]}</td>'
-                f'<td style="width:96px;font-size:12px;color:#666">{esc(i["group"])} · {esc(i["mean"])}</td>'
-                f'<td><div style="background:#f0f0f0;border-radius:4px;height:12px">'
-                f'<div style="background:{WX_COLOR[i["wx"]]};width:{pct}%;height:12px;border-radius:4px"></div></div></td>'
-                f'<td style="width:34px;text-align:right;font-size:12px;color:#888">{i["w"]:.1f}</td></tr>')
+                f'<td style="width:110px;font-size:12px;color:#666">{esc(i["group"])} · {"喜用" if kind == "喜" else "忌神"}</td>'
+                f'<td><div style="background:#f0f0f0;border-radius:4px;height:10px">'
+                f'<div style="background:{WX_COLOR[i["wx"]]};width:{pct}%;height:10px;border-radius:4px"></div></div></td>'
+                f'<td style="width:34px;text-align:right;font-size:12px;color:#555">{i["w"]:.1f}</td></tr>')
             if i.get("use"):
-                rows.append(
-                    f'<tr><td></td><td colspan="3" style="font-size:12px;color:#444;line-height:1.5;padding:0 0 6px">'
-                    f'<b>用好它：</b>{esc(i["use"])}。<br><b>化解：</b>{esc(i["fix"])}。</td></tr>')
-        blocks.append(
-            f'<div style="font-size:13px;color:{color};font-weight:bold;margin:8px 0 2px">{head}'
-            f'<span style="font-weight:normal;color:#888">（今天合计 {total:.1f}）</span></div>'
-            f'<table style="width:100%;border-collapse:separate;border-spacing:0 4px">{"".join(rows)}</table>')
-    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:2px">'
-            '今天流日带来的五行</div>' + "".join(blocks) +
-            '<div style="font-size:12px;color:#888">数字是分量，含三合、三会成局的加成；没来的五行是 0。</div></div>')
+                rows.append(f'<tr><td></td><td colspan="3" style="font-size:12px;color:#444;line-height:1.5;padding:0 0 6px">'
+                            f'用好它：{esc(i["use"])}。化解：{esc(i["fix"])}。</td></tr>')
+    return (h2("08", "流日五行分量", "天干、地支本气各 1，藏干 0.3，成局另加")
+            + f'<table style="width:100%;border-collapse:separate;border-spacing:0 4px">{"".join(rows)}</table>'
+            + note("这是今天带来的五行有多少，零就是没来；它和上面的总评分不是一回事，总分还要看冲合刑害、长生和结构。"))
 
 
-def week_calendar(days):
-    cells = []
-    for i, (d, b) in enumerate(days):
-        color = STAR_COLOR[b["stars"]]
-        border = "2px solid #333" if i == 0 else "1px solid #e5e5e5"
-        cells.append(
-            f'<td style="text-align:center;padding:6px 2px;border:{border};border-radius:6px;background:#fff">'
-            f'<div style="font-size:11px;color:#888">{"今天" if i == 0 else "周" + WEEK[d.weekday()]}</div>'
-            f'<div style="font-size:11px;color:#888">{d.month}/{d.day}</div>'
-            f'<div style="font-size:13px;color:#222;margin:2px 0">{esc(b["day_gz"])}</div>'
-            f'<div style="font-size:12px;color:#fff;background:{color};border-radius:10px;'
-            f'padding:1px 0;margin:0 3px">{b["stars"]}★</div></td>')
-    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:6px">'
-            '七天星级</div>'
-            '<table style="width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed">'
-            f'<tr>{"".join(cells)}</tr></table></div>')
+def s_sha(d):
+    kinds = {"吉": "吉神", "中": "中性", "凶": "凶煞"}
+    rows = []
+    for x in sorted(d["sha"], key=lambda x: "吉中凶".index(x["kind"])):
+        w = f"计分 {x['pts']:+.2g}" if x["pts"] else "不计分，只作参考"
+        rows.append(label_row(f"{kinds[x['kind']]} · {x['name']}（{w}{'，' + x['hint'] if x['hint'] else ''}）",
+                              f"{x['note']}。用法：{x['use']}。"))
+    hl = label_row("黄历（择日，不计分）", d["huangli"] + "。")
+    return (h2("09", "神煞与调候", f"以喜忌为主，神煞为辅；今天地支是你的{d['zxj']}")
+            + box("".join(rows) + hl if rows else hl))
 
 
-def month_calendar(month_days, today):
-    """整月日历，每天按星级上色，今天加框。"""
-    head = "".join(f'<td style="text-align:center;font-size:11px;color:#888">{w}</td>' for w in WEEK)
-    cells = ['<td></td>'] * month_days[0][0].weekday()
-    for d, b in month_days:
-        color = STAR_COLOR[b["stars"]]
-        border = "2px solid #222" if d == today else "2px solid transparent"
-        fade = "opacity:0.45;" if d < today else ""
-        cells.append(f'<td style="text-align:center;padding:0"><div style="background:{color};color:#fff;'
-                     f'border:{border};border-radius:6px;font-size:12px;line-height:26px;{fade}">{d.day}</div></td>')
+def s_hours(d):
+    h = d["hours"]
+    rows = []
+    if not any(x["level"] == "好" for x in h["good"]):
+        rows.append(["—", "说明", "07:00 到 23:00 之间没有真正的好时辰，下面标「平」的只是白天相对稳的"])
+    rows += [[esc(x["name"]), x["level"], esc(f"{x['todo']}（{x['why']}）")] for x in h["good"]]
+    rows += [[esc(x["name"]), "留意", esc(f"{x['warn']}（{x['why']}）")] for x in h["bad"]]
+    if h["night"]:
+        rows.append([esc("、".join(h["night"])), "夜里较好", "在睡觉的时段，只照实列出，不建议为此熬夜或早起"])
+    dr = d["dirs"]
+    dirs = (f"当天办事看阳贵：{dr['gui']}" + ("，正好落在你的喜用方位上" if dr["match"] else "") +
+            f"；长期布置看喜用方位：{'、'.join(dr['own'])}。以你当时所在的地方为中心，看真实方向，只作文化参考；"
+            "约谁、时间地点仍按期限、方便和对方安排。")
+    return (h2("10", "时辰与方位", "按目标日期当天的当地钟点")
+            + table(["时辰", "分类", "内容"], rows, ["30%", "14%", "56%"], small=True)
+            + label_row("方位", dirs)
+            + note("时辰按钟点直接取，程序没有按经纬度或时区换算真太阳时；人在哪里就按当地钟点看。"))
+
+
+def s_month(d):
+    mo, cal = d["mo"], d["cal"]
+    cur, new = mo["cur"], mo["new"]
+    jn, jd, left = d["next_jq"]
+    end_cur = mo["date"] - datetime.timedelta(days=1)
+    end_new = mo["end"] - datetime.timedelta(days=1)
+    cells = ['<td></td>'] * cal["days"][0][0].weekday()
+    for x, s in cal["days"]:
+        border = "2px solid #222" if x == d["target"] else "2px solid transparent"
+        cells.append(f'<td style="text-align:center;padding:0"><div style="background:{STAR_COLOR[s]};color:#fff;'
+                     f'border:{border};border-radius:4px;font-size:11px;line-height:16px">{x.day}</div></td>')
     cells += ['<td></td>'] * (-len(cells) % 7)
-    rows = "".join("<tr>" + "".join(cells[i:i + 7]) + "</tr>" for i in range(0, len(cells), 7))
-    legend = " ".join(f'<span style="display:inline-block;width:10px;height:10px;border-radius:2px;'
-                      f'background:{STAR_COLOR[n]};margin:0 2px 0 6px"></span>{n}★' for n in range(1, 6))
-    return ('<div style="margin:0 0 14px"><div style="font-size:15px;font-weight:bold;margin-bottom:6px">'
-            f'{today.month}月星级日历</div>'
-            '<table style="width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed">'
-            f'<tr>{head}</tr>{rows}</table>'
-            f'<div style="font-size:11px;color:#888;margin-top:2px">{legend}</div></div>')
+    grid = "".join("<tr>" + "".join(cells[i:i + 7]) + "</tr>" for i in range(0, len(cells), 7))
+    wk = "".join(f'<td style="text-align:center;font-size:11px;color:#888">{w}</td>' for w in "一二三四五六日")
+    left_good = "、".join(md(x) for x in cal["left_good"]) or "无"
+    return (h2("11", "节气和下个月", "节气月和公历月分开算")
+            + box(
+                label_row("下一个节气", f"{jn} {md(jd)}" + ("（就是今天）" if left == 0 else f"（还有 {left} 天）"))
+                + label_row(f"这个节气月 {cur['gz']}",
+                            f"{mo['prev_jie']} {md(mo['start'])} 到 {md(end_cur)}：你的{d['dm_wx']}处在「{cur['state']}」，"
+                            f"平均分 {cur['mean']:+.1f}（一年平均 {mo['base']:+.1f}，{cur['vs']}），"
+                            f"好日子（4★以上）{cur['good']} 天，差日子（2★以下）{cur['bad']} 天，一星日 {cur['worst']} 天。")
+                + label_row(f"下个节气月 {new['gz']}",
+                            f"{mo['jie']} {md(mo['date'])} 到 {md(end_new)}：{'；'.join(mo['why'])}。平均分 {new['mean']:+.1f}"
+                            f"（{new['vs']}），好日子 {new['good']} 天，差日子 {new['bad']} 天，一星日 {new['worst']} 天。")
+                + label_row("结论", f"{mo['verdict']}。{mo['advice']}。", ACCENT)
+                + label_row(f"公历 {d['target'].month} 月",
+                            f"{md(cal['first'])} 到 {md(cal['last'])} 共 {len(cal['days'])} 天：好日子 {cal['good']} 天，"
+                            f"{md(d['target'])} 排第 {cal['rank']}；之后的好日子：{left_good}。"))
+            + '<table style="width:100%;max-width:320px;border-collapse:separate;border-spacing:2px;table-layout:fixed">'
+            + f"<tr>{wk}</tr>{grid}</table>"
+            + note("节气月从交节那天算起，和公历月起止不同，所以好日子天数不一样。" + DISCLAIMER))
 
 
-def page(card_html, bars_html, cal_html, details_html):
+# ---------- 整页 ----------
+
+PAGES = [  # PDF 分页：前两页日用，后两页依据
+    ("今天怎么用", ["s_overview", "s_cols"]),
+    ("把命理提示接上日常", ["s_concerns", "s_life", "s_week", "s_review"]),
+    ("命盘底色与计分", ["s_background", "s_score", "s_wuxing"]),
+    ("神煞、时辰与月度", ["s_sha", "s_hours", "s_month"]),
+]
+
+
+def _sections(d, names):
+    return "".join(globals()[n](d) for n in names)
+
+
+def email_html(d):
+    body = "".join(_sections(d, names) for _, names in PAGES)
+    sent = (f"{md(d['send_date'])} 晚上发出，说的是 {md(d['target'])} 这一天" if d["send_date"] < d["target"]
+            else f"说的是 {md(d['target'])} 这一天")
     return ('<div style="font-family:-apple-system,BlinkMacSystemFont,\'PingFang SC\',\'Microsoft YaHei\',sans-serif;'
-            'max-width:560px;margin:0 auto;padding:4px;color:#222;background:#fafafa">'
-            f'{card_html}{bars_html}{cal_html}'
-            '<div style="font-size:15px;font-weight:bold;margin:18px 0 4px;padding-top:10px;border-top:1px solid #ddd">'
-            '详细分析</div>'
-            f'{details_html}</div>')
+            'max-width:600px;margin:0 auto;padding:6px;color:#222;background:#fafafa">'
+            f'<div style="font-size:12px;color:#888;margin:0 0 6px">个人命盘日报 · {esc(sent)}</div>'
+            f'{body}</div>')
+
+
+def pdf_html(d):
+    pages = []
+    for i, (title, names) in enumerate(PAGES):
+        pages.append(
+            f'<section style="{"page-break-before:always;" if i else ""}">'
+            f'<div style="display:flex;justify-content:space-between;font-size:12px;color:{ACCENT};'
+            f'border-bottom:1px solid #cfe0d7;padding-bottom:4px;margin-bottom:10px"><b>个人命盘日报</b>'
+            f'<span>{d["target"].isoformat()} · 周{d["wd"]} · {esc(d["day_gz"])}日</span></div>'
+            f'<div style="font-size:22px;font-weight:bold;margin:4px 0 2px">{esc(title)}</div>'
+            f'{_sections(d, names)}</section>')
+    return ('<!doctype html><html><head><meta charset="utf-8"><style>'
+            '@page{size:A4;margin:14mm 13mm 16mm}body{zoom:0.86;font-family:"Noto Sans CJK SC","WenQuanYi Zen Hei",'
+            '"PingFang SC","Microsoft YaHei",sans-serif;color:#222;margin:0}'
+            'table,tr,.box{page-break-inside:avoid}</style></head><body>'
+            + "".join(pages) + '</body></html>')
+
+
+def wechat_lines(d):
+    t, c = d["theme"], d["cols"]
+    step = (f"{d['concerns'][0]['text']}：{d['concerns'][0]['step']}" if d["concerns"] else t["action"] + "。")
+    r = d["review_date"]
+    return [
+        (f"{md(d['target'])} 周{d['wd']} · {d['day_gz']}日 · {stars(d['stars'])} {d['level']}", None),
+        ("今日主线", f"{t['name']}：{t['line']}。{t['explain']}"),
+        ("事业", f"{c['事业']['theme']}行动：{c['事业']['action']}"),
+        ("财运", f"{c['财运']['theme']}要做：{c['财运']['action']}"),
+        ("感情", f"{c['感情']['theme']}{c['感情']['action']}"),
+        (f"{d['step_word']}的一步", step),
+        ("回顾提示", f"今晚复盘问的是 {md(r)} 当天，题目在对话里发，回一串字母就行。"),
+        (None, "完整依据、计分和七天预览见邮件。传统文化参考，不是预言。"),
+    ]
+
+
+def wechat_html(d):
+    out = []
+    for k, v in wechat_lines(d):
+        if v is None:
+            out.append(f'<p style="font-size:16px;font-weight:bold;color:{STAR_COLOR[d["stars"]]};margin:0 0 8px">【{esc(k)}】</p>')
+        elif k is None:
+            out.append(f'<p style="font-size:12px;color:#888;margin:10px 0 0">{esc(v)}</p>')
+        else:
+            out.append(f'<p style="font-size:15px;line-height:1.7;margin:0 0 8px"><b>【{esc(k)}】</b>{esc(v)}</p>')
+    return '<div style="font-family:sans-serif;color:#222">' + "".join(out) + "</div>"
+
+
+def wechat_text(d):
+    return "\n".join(f"【{k}】" if v is None else v if k is None else f"【{k}】{v}" for k, v in wechat_lines(d))
+
+
+def text(d):
+    """纯文字版：--dry-run 打印、定时任务读取用。栏目和数值与邮件一致。"""
+    t, c, h, mo, cal = d["theme"], d["cols"], d["hours"], d["mo"], d["cal"]
+    L = [f"{head_line(d)} · {d['lunar_text']}" + (f" · 大运{d['dayun']}" if d["dayun"] else ""),
+         f"{stars(d['stars'])} {d['stars']}/5 {d['level']}　评分 {d['score']:+.1f}"
+         f"（命盘小计 {d['subtotal']:+.1f}，神煞 {d['sha_adj']:+.1f}）",
+         f"今日主线：{t['name']}，{t['line']}。{t['explain']}", f"今日行动：{t['action']}。"]
+    if d["tip"]:
+        L.append(f"个人设置 · 长期提醒：{d['tip']}")
+    for k in ("事业", "财运", "感情"):
+        x = c[k]
+        L += ["", f"## {k}：{x['theme']}", f"- 命理解读：{x['basis']}", f"- 现实行动：{x['action']}", f"- 留意：{x['note']}"]
+    L += ["", "## 我关心的事"] + ([f"- {x['text']}" + (f"（期限 {x['due']}）" if x["due"] else "") + f"：{x['step']}"
+                                   for x in d["concerns"]] or ["- 没有填写"])
+    if d["missing"]:
+        L.append(f"- 待补信息：{'、'.join(d['missing'])}")
+    L += ["", "## 生活补充"] + [f"- {k}：{v}" for k, v in d["life"]]
+    L += ["", "## 未来七天"] + [f"- {md(w['date'])} 周{w['wd']} {w['gz']} {stars(w['stars'])} {w['struct']}　提示：{w['hint']}"
+                               for w in d["week"]]
+    L += ["", f"## 晚间回顾：{md(d['review_date'])} 晚上 21:37 发当天复盘题"]
+    L += ["", "## 运、年、月的背景"] + [f"- {x['term']}。{x['plain']}" for x in d["bases"]]
+    L += ["", "## 流日计分"] + [f"- {x['pts']:+.1f} {x['term']}" for x in d["items"]]
+    L += [f"- 助力 {d['gain']:+.1f}，消耗 {d['loss']:+.1f}，小计 {d['subtotal']:+.1f}；神煞 {d['sha_adj']:+.1f}；"
+          f"最终 {d['score']:+.1f}，{d['stars']} 星"]
+    L += ["", "## 五行分量"] + [f"- {i['wx']}（{i['group']}，{k}）{i['w']:.1f}" for k in ("喜", "忌") for i in d["wuxing"][k]]
+    L += ["", "## 神煞与调候"] + [f"- {x['name']}（{'计分 %+.2g' % x['pts'] if x['pts'] else '不计分'}）：{x['note']}。用法：{x['use']}。"
+                                for x in d["sha"]] + [f"- 黄历（不计分）：{d['huangli']}"]
+    L += ["", "## 时辰与方位（当地钟点）"]
+    if not any(x["level"] == "好" for x in h["good"]):
+        L.append("- 07:00 到 23:00 之间没有真正的好时辰，标「平」的只是相对稳的")
+    L += [f"- 【{x['level']}】{x['name']}：{x['todo']}（{x['why']}）" for x in h["good"]]
+    L += [f"- 【留意】{x['name']}：{x['warn']}（{x['why']}）" for x in h["bad"]]
+    if h["night"]:
+        L.append(f"- 夜里较好：{'、'.join(h['night'])}（只照实列出，不建议熬夜）")
+    L.append(f"- 阳贵：{d['dirs']['gui']}；喜用方位：{'、'.join(d['dirs']['own'])}")
+    jn, jd, left = d["next_jq"]
+    L += ["", "## 节气和下个月",
+          f"- 下一个节气：{jn} {md(jd)}（还有 {left} 天）",
+          f"- 节气月 {mo['cur']['gz']}（{md(mo['start'])} 起）：平均 {mo['cur']['mean']:+.1f}，好日子 {mo['cur']['good']} 天",
+          f"- 节气月 {mo['new']['gz']}（{md(mo['date'])} 起）：平均 {mo['new']['mean']:+.1f}，好日子 {mo['new']['good']} 天",
+          f"- 结论：{mo['verdict']}。{mo['advice']}。",
+          f"- 公历 {d['target'].month} 月（{md(cal['first'])}–{md(cal['last'])}）：好日子 {cal['good']} 天，"
+          f"{md(d['target'])} 排第 {cal['rank']}",
+          "", DISCLAIMER]
+    return "\n".join(L)

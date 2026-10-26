@@ -56,4 +56,5 @@ jobs:
           MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           MINGPAN_PROFILE: ${{ secrets.MINGPAN_PROFILE }}
+          MINGPAN_PERSONAL: ${{ secrets.MINGPAN_PERSONAL }}
         run: python mingpan/daily.py ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }}

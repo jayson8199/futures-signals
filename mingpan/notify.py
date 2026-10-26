@@ -74,6 +74,11 @@ def send_wechat(title, content, template="txt"):
         return f"微信失败：{type(e).__name__}"
 
 
+def push_split(title, mail_html, wechat_html):
+    """邮件发完整版，微信发摘要；两个渠道各自 try，一个失败不影响另一个。"""
+    return send_mail(title, None, mail_html), send_wechat(title, wechat_html, "html")
+
+
 def push(title, body, markdown=False, html=None):
     if html:
         return send_mail(title, body, html), send_wechat(title, html, "html")
