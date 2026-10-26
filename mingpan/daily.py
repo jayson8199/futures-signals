@@ -995,13 +995,16 @@ def load_profiles():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date", help="YYYY-MM-DD，默认今天（曼谷时间）")
+    ap.add_argument("--date", help="YYYY-MM-DD；默认曼谷时间 18 点前是今天、18 点起是明天（日报前一晚发），--review 默认今天")
     ap.add_argument("--dry-run", action="store_true", help="只打印，不推送")
     ap.add_argument("--html", help="把 HTML 版面另存到这个文件，用来预览")
     ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（固定五题加当天的具体题），不推送")
     args = ap.parse_args()
 
-    date = datetime.date.fromisoformat(args.date) if args.date else datetime.datetime.now(TZ).date()
+    now = datetime.datetime.now(TZ)
+    # 日报前一天晚上发：18 点起默认算明天；复盘题问的是今天
+    default = now.date() + datetime.timedelta(days=1 if now.hour >= 18 and not args.review else 0)
+    date = datetime.date.fromisoformat(args.date) if args.date else default
     for p in load_profiles():
         if args.review:
             qs = review(p, date)

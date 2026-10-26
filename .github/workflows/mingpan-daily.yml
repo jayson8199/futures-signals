@@ -2,16 +2,17 @@ name: 命盘日报
 
 on:
   schedule:
-    # 曼谷时间 06:43 主触发；GitHub 定时常延迟或漏发，07:17、07:53、08:37 三个备用触发，
-    # 当天（曼谷时间）已发送成功时（含手动或 Claude 补发），备用会自动跳过
+    # 前一天晚上发第二天的日报：曼谷时间 21:07 主触发；GitHub 定时常延迟或漏发，
+    # 21:49、22:41 两个备用，第二天早上 06:43 最后保底（那时发的是当天的）。
+    # 这一份已发送成功时（含手动或 Claude 补发），备用会自动跳过
+    - cron: "7 14 * * *"
+    - cron: "49 14 * * *"
+    - cron: "41 15 * * *"
     - cron: "43 23 * * *"
-    - cron: "17 0 * * *"
-    - cron: "53 0 * * *"
-    - cron: "37 1 * * *"
   workflow_dispatch:
     inputs:
       date:
-        description: "用哪一天发送（YYYY-MM-DD，留空为今天）"
+        description: "用哪一天发送（YYYY-MM-DD；留空时曼谷 18 点前为今天，18 点起为明天）"
         default: ""
 
 permissions:
@@ -32,10 +33,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          since=$(date -u -d "$(TZ=Asia/Bangkok date +%Y-%m-%d) 00:00 +0700" +%Y-%m-%dT%H:%M:%SZ)
+          # 要发的这一份（18 点起是明天的，之前是今天的）从它前一天曼谷 18:00 起算有没有发过
+          if [ "$(TZ=Asia/Bangkok date +%H)" -ge 18 ]; then d=$(TZ=Asia/Bangkok date +%Y-%m-%d)
+          else d=$(TZ=Asia/Bangkok date -d yesterday +%Y-%m-%d); fi
+          since=$(date -u -d "$d 18:00 +0700" +%Y-%m-%dT%H:%M:%SZ)
           n=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mingpan-daily.yml \
                 --status success --created ">=$since" --json databaseId -q length)
-          echo "今天（曼谷时间）已成功发送：$n 次"
+          echo "这一份日报已成功发送：$n 次"
           if [ "$n" -gt 0 ]; then echo "skip=1" >> "$GITHUB_OUTPUT"; fi
       - if: steps.check.outputs.skip != '1'
         uses: actions/checkout@v4
