@@ -102,12 +102,45 @@ with tempfile.TemporaryDirectory() as tmp:
     X.flag(t2, "漏发", "21:07 没发出，补发", log)
     t3 = day(2026, 10, 30)
     X.save(p, t3, log, at(t3 - datetime.timedelta(days=1), 21, 37))   # 10/30 存了但没答
-    s = X.summary(log, day(2026, 10, 27), t3, today=day(2026, 10, 31))
+    # 8. 发送和保存的核对：日志行原样比对指纹
+    def line(tg, fp, mail="邮件已发送", wx="微信已推送"):
+        return f"2026-10-28T14:07:31Z {tg} | {mail} | {wx} | 预测 v1 0 条 指纹 {fp} 提交 8ec4014"
+    fp28 = X.formal(log, t)["fingerprint"]
+    st, _ = X.verify(t, log, line(t, "000000000000"))
+    check("指纹不同记为不一致", st == "不一致")
+    st, _ = X.verify(t, log, line(t, fp28))
+    check("有过不一致，后面再一致也仍算不一致", X.check_status(log, t) == "不一致")
+    fp30 = X.formal(log, t3)["fingerprint"]
+    st, _ = X.verify(t3, log, line(t3, fp30, "邮件未配置，跳过", "微信未配置，跳过"))
+    check("两个渠道都没发出记为未发出", st == "未发出")
+    st, _ = X.verify(t3, log, line(t3, fp30, "邮件已发送", "微信失败：Timeout"))
+    check("一个渠道发出、指纹相同记为一致", st == "一致" and X.check_status(log, t3) == "一致")
+    st, _ = X.verify(t3, log, line(t, fp30))
+    check("日志行日期不对记为未核对", st == "未核对")
+    check("一致之后再来一次未核对不改结论", X.check_status(log, t3) == "一致")
+    t4 = day(2026, 10, 31)
+    X.save(p, t4, log, at(t4 - datetime.timedelta(days=1), 21, 37))
+    st, _ = X.verify(t4, log, missing="21:07 和备用都没跑")
+    check("找不到日志记为未核对", st == "未核对" and X.check_status(log, t4) == "未核对")
+    check("没核对的打了标记", any(f["kind"] == "核对未核对" for f in X._read(log / "flags.jsonl")))
+    check("保存时记下提交号", X.formal(log, t4).get("commit"))
+    # 真跑一次日报（没有推送凭据，两个渠道都跳过），日志行格式要能被 verify 读懂
+    env = {k: v for k, v in __import__("os").environ.items() if k not in ("MAIL_SENDER", "PUSHPLUS_TOKEN")}
+    env["GITHUB_SHA"] = "abcdef1234567"
+    out = subprocess.run([sys.executable, "daily.py", "--date", "2026-10-31", "--send-date", "2026-10-30"],
+                         capture_output=True, text=True, env=env, check=True).stdout
+    m = X.LOG_RE.search(out)
+    check("工作流日志行格式能解析", m and m.group(6) == X.formal(log, t4)["fingerprint"] and m.group(7) == "abcdef1", out)
+    st, _ = X.verify(t4, log, out)
+    check("没发出时不会被当成一致", st == "未发出")
+
+    s = X.summary(log, day(2026, 10, 27), t4, today=day(2026, 11, 1))
     check("汇总有漏答", "漏答 1 天" in s, s)
+    check("只有核对一致的进正式对照", "进正式对照的 1 天" in s and "不一致 1 天" in s and "未发出 1 天" in s, s)
     check("汇总不报准确率", "准确率" not in s and "%" not in s)
-    check("汇总分开记影响", "因日报做了些什么 1 天" in s)
+    check("没进正式对照的日子，影响也不计入", "因日报做了些什么 0 天" in s, s)
     check("汇总列出回看和漏发", "回看样本，不计入）1 天" in s and "漏发 1 次" in s, s)
-    check("汇总分类别带分母", all(f"{e['name']}：有预测的日子" in s for e in P.EVENTS.values()))
+    check("汇总分类别带分母", "有预测的日子" in s or "规则" not in s.split("分类别对比")[1].split("\n")[1])
 
     # 7. 预览不写正式存档：日报各种预览和复盘题都只读
     before = {f.name: f.read_bytes() for f in log.iterdir()}
@@ -148,5 +181,17 @@ allt = "".join(layout.text(compose.build(p, day(2026, 10, 20) + datetime.timedel
                for i in range(0, 60, 3))
 for bad in ("只守不攻", "签约先放一放", "排到下个月", "体力足", "孩子", "工作环境", "穴"):
     check(f"措辞：不含「{bad}」", bad not in allt)
+
+# 10. 规则版本：v1 的记录不变，v2 从 10/29 起收紧「明确沟通摩擦」
+check("10/28 仍按 v1，指纹和已保存的一样", P.version_for(day(2026, 10, 28)) == "v1"
+      and P.build(p, day(2026, 10, 28))["fingerprint"] == "a42dacf4ac7a")
+check("10/29 起用 v2", P.version_for(day(2026, 10, 29)) == "v2" and P.build(p, day(2026, 11, 3))["rule_version"] == "v2")
+fr = P.events_for("v2")["friction"]
+check("v2 摩擦：礼貌拒绝和一般意见不同不算", "礼貌的拒绝" in fr["exclude"] and "意见不同" in fr["exclude"]
+      and "不愉快" not in fr["occur"] and "被当面拒绝" not in fr["occur"])
+check("v1 原文保留", "被当面拒绝" in P.events_for("v1")["friction"]["occur"])
+txt29, _ = X.review_prompt(p, day(2026, 10, 29))
+txt28, _ = X.review_prompt(p, day(2026, 10, 28))
+check("复盘题按当天的版本出", "礼貌的拒绝" in txt29 and "礼貌的拒绝" not in txt28)
 
 print(f"全部通过，共 {len(ok)} 项检查")

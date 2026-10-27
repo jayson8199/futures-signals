@@ -2,7 +2,7 @@
 """
 今日预测实验（待验证）：每天从流日和原局、大运、流年、流月的结构里，挑 0 到 2 个第二天能核对的事件。
 
-只是一组事先写死的假设，用来事后对照，不是结论，不参与评分和星级。规则带版本号，版本一旦启用就不改；
+只是一组事先写死的假设，用来事后对照，不是结论，不参与评分和星级。规则带版本号（见 VERSIONS），版本一旦启用就不改；
 要改就新开一个版本，从启用日以后的日期生效，已经保存过的预测不重算。
 
 流程：命盘结构（规则里的信号）→ 候选事件 → 按强度和优先级挑选 → 事先写死的发生和排除标准 → 当晚复盘对应一题。
@@ -10,15 +10,13 @@
 不是古书原话，所以整个实验都标「待验证」。
 
 只预测六类事件，不预测投资、彩票、疾病、灾祸，也不预测别人的心意。
-v1 没有「预期不发生」的规则：没有明确依据就不写「不会发生」，所以每条预测的 expect 都是「发生」。
+v1、v2 都没有「预期不发生」的规则：没有明确依据就不写「不会发生」，所以每条预测的 expect 都是「发生」。
 """
 import hashlib
 import json
 
 import daily as D
 
-RULE_VERSION = "v1"
-RULE_EFFECTIVE = "2026-10-28"   # v1 从这天的目标日期起用
 THRESHOLD = 1.5                  # 净强度到这个数才入选
 MAX_PICKS = 2
 
@@ -51,6 +49,39 @@ EVENTS = {
                  "short": "明显的事务压力（看第 2 题）"},
 }
 CHECKLIST = ["contact", "help", "friction", "reschedule", "money"]   # 复盘时中立勾选的五类；压力直接用第 2 题
+
+# 规则版本：按目标日期选用，已经保存的记录永远按它当时的版本，不重算。改规则只能在这里加新版本并写生效日
+# （生效日必须晚于已经事前保存过的最后一天）。上面的 EVENTS 是 v1 的原文，后面的版本只写改动
+VERSIONS = [
+    ("v1", "2026-10-28", {}),
+    # v2：收紧「明确沟通摩擦」。v1 把被当面拒绝、说话不愉快也算进去，太主观；v2 只算明确的争执、指责，
+    # 或者能说清是哪件事实（期限、金额、谁负责）起的冲突。2026-10-28 已有 v1 的事前记录，所以从 10-29 起用
+    ("v2", "2026-10-29", {"friction": {
+        "occur": "有明确的争执或指责（对方或你明确指责、争吵），或者为一件说得清的事实（期限、金额、谁负责什么）"
+                 "起了冲突，能说出是哪件事、哪句话",
+        "exclude": "正常、礼貌的拒绝；一般的意见不同或讨论；只是觉得对方语气不好、自己心里不舒服；网上看到的争吵",
+        "short": "明确的争执、指责或事实冲突"}}),
+]
+RULE_VERSION = VERSIONS[-1][0]   # 最新版本（只用于说明）
+
+
+def version_for(target):
+    """目标日期用哪个版本：生效日不晚于目标日期的最新一版；比 v1 还早的日期（回看）按 v1。"""
+    v = VERSIONS[0][0]
+    for name, start, _ in VERSIONS:
+        if str(target) >= start:
+            v = name
+    return v
+
+
+def events_for(version):
+    ev = {k: dict(x) for k, x in EVENTS.items()}
+    for name, _, changes in VERSIONS:
+        for k, x in changes.items():
+            ev[k].update(x)
+        if name == version:
+            break
+    return ev
 
 SRC = {
     "taohua": "神煞桃花（咸池）传统主人缘，《三命通会·论咸池》",
@@ -193,6 +224,8 @@ def _signals(p, a):
 def build(p, target, a=None):
     """当天的预测：picks（0 到 2 条）、unselected（没入选的候选和原因）、none_reason。纯计算，不读写文件。"""
     a = a or D.analyse(p, target)
+    ver = version_for(target)
+    evs = events_for(ver)
     sig = _signals(p, a)
     cands = []
     for i, key in enumerate(EVENTS):
@@ -223,9 +256,9 @@ def build(p, target, a=None):
                            "signals": [_sig_dict(s) for s in c["pro"] + c["con"]]})
     preds = []
     for n, c in enumerate(picks, 1):
-        e = EVENTS[c["event"]]
+        e = evs[c["event"]]
         preds.append({
-            "id": f"{target:%Y%m%d}-{RULE_VERSION}-{n}", "n": n, "event": c["event"], "name": e["name"],
+            "id": f"{target:%Y%m%d}-{ver}-{n}", "n": n, "event": c["event"], "name": e["name"],
             "expect": "发生", "net": c["net"],
             "evidence": [_sig_dict(s) for s in c["pro"] + c["con"]],
             "occur": e["occur"], "exclude": e["exclude"],
@@ -236,7 +269,7 @@ def build(p, target, a=None):
     if not preds:
         none_reason = ("这一天六类事件都没有对应的信号。" if not cands else
                        f"有 {len(cands)} 个候选，都没达到入选条件（净强度 ≥{THRESHOLD}，且至少一条主依据），不硬凑。")
-    rec = {"target": target.isoformat(), "rule_version": RULE_VERSION, "threshold": THRESHOLD,
+    rec = {"target": target.isoformat(), "rule_version": ver, "threshold": THRESHOLD,
            "predictions": preds, "unselected": unselected, "none_reason": none_reason}
     rec["text"] = text(rec)
     rec["fingerprint"] = fingerprint(rec)

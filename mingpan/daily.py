@@ -907,8 +907,10 @@ def main():
             continue
         mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_html(d))
         # 日志只打印预测指纹（不打印内容），晚上保存时可以核对发出去的和存档的是同一份
+        # 提交号用工作流自带的 GITHUB_SHA；本机运行时取 git，取不到写 unknown
+        sha = (os.environ.get("GITHUB_SHA") or "")[:7] or __import__("experiment").commit()
         print(f"{date.isoformat()} | {mail} | {wechat} | 预测 {d['predict']['rule_version']} "
-              f"{len(d['predict']['predictions'])} 条 指纹 {d['predict']['fingerprint']}")
+              f"{len(d['predict']['predictions'])} 条 指纹 {d['predict']['fingerprint']} 提交 {sha}")
         # 两个渠道都没发出去时让工作流失败，备用触发会再试；只要有一个成功就不重发，免得重复
         if not any(x.endswith(("已发送", "已推送")) for x in (mail, wechat)) and \
                 not all(x.endswith("跳过") for x in (mail, wechat)):
