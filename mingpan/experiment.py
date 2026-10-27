@@ -21,6 +21,7 @@
   python3 experiment.py summary [--days 7 | --all] --log-dir DIR    汇总
   python3 experiment.py flag    --date 2026-10-28 --kind 漏发 --note "21:07 没发出，21:40 补发" --log-dir DIR
   python3 experiment.py verify  --date 2026-10-28 --log-line "2026-10-28 | 邮件已发送 | … 指纹 a42dacf4ac7a 提交 8ec4014" --log-dir DIR
+  python3 experiment.py status  --date 2026-10-28 --log-dir DIR    看这一天有没有事前记录、核对结果
   python3 experiment.py verify  --date 2026-10-28 --missing "找不到成功的运行或日志里没有指纹" --log-dir DIR
 """
 import argparse
@@ -364,7 +365,7 @@ def summary(log_dir, start=None, end=None, today=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["save", "review", "record", "summary", "flag", "verify"])
+    ap.add_argument("cmd", choices=["save", "review", "record", "summary", "flag", "verify", "status"])
     ap.add_argument("--log-line", help="verify：工作流日志里带「指纹」的那一行，原样传进来")
     ap.add_argument("--missing", help="verify：找不到可核对的日志时写原因，这一天记为未核对")
     ap.add_argument("--date")
@@ -395,6 +396,9 @@ def main():
     elif args.cmd == "summary":
         start = None if args.all else now.date() - datetime.timedelta(days=args.days)
         print(summary(args.log_dir, start, today=now.date()))
+    elif args.cmd == "status":
+        r = formal(args.log_dir, date)
+        print(f"{date}：{'有事前记录，指纹 ' + r['fingerprint'] if r else '没有事前记录'}；核对：{check_status(args.log_dir, date)}")
     elif args.cmd == "verify":
         st, msg = verify(date, args.log_dir, args.log_line, args.missing, now)
         print(f"{date} 核对结果：{st}（{msg}）")
