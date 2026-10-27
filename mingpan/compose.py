@@ -11,7 +11,7 @@ daily.analyse / hours / month_outlook / wuxing_view。事业、财运、感情�
   send_date    什么时候发出（前一晚发时比 target 早一天）
   review_date  晚上复盘问的是哪一天，等于 send_date，不随日报往后挪
 
-个人配置（可选，放在 Secret MINGPAN_PERSONAL 的 JSON 里，不进公开仓库；没有就照常生成）：
+个人配置（可选，用于「近期关注」，放在 Secret MINGPAN_PERSONAL 的 JSON 里，不进公开仓库；没有就照常生成）：
   {"job": "做什么工作，一句话", "relationship": "有伴 / 单身 / 不填",
    "concerns": [{"text": "关心的事", "due": "2026-11-15"}]}   最多 3 项，due 可省略
 """
@@ -19,6 +19,7 @@ import datetime
 import re
 
 import daily as D
+import predict as P
 
 WEEK = "一二三四五六日"
 TEN2GROUP = {"比肩": "比劫", "劫财": "比劫", "偏印": "印", "正印": "印", "食神": "食伤", "伤官": "食伤",
@@ -66,7 +67,7 @@ CAREER_THEME = {
     "官杀": "压力日：按规矩交差，不和上面硬顶。",
 }
 MONEY_THEME = {
-    "财生杀": "钱的事容易变成压力：只守不攻，不添新承诺。",
+    "财生杀": "钱的事容易变成压力：到期的照常处理，新承诺先看清条件。",
     "贪财坏印": "财来坏印：钱的事集中核对，不让它占满心思。",
     "比劫帮身担财": "钱和事多，有人分担：分配先说清楚。",
 }
@@ -190,7 +191,7 @@ def build(p, target, send_date=None, personal=None):
              "basis": basis_text(mi, "逢劫煞（不计分），提示看好财物。" if "劫煞" in shas else ""),
              "action": ("核对一项收支、回款或付款节点，把金额、责任、期限和待确认的条件列清楚。" if caution
                         else m_text + "。"),
-             "note": ("整理和核对照常做；新增支出、借贷、担保和签约先放一放，必要的按实际条件判断。" if caution
+             "note": ("整理和核对照常做；新增支出、借贷、担保或签约，按金额、期限和自己能不能承担来定，条件没看清就先问清楚。" if caution
                       else "；".join(m_more) + "。" if m_more else "已有的付款和期限照常处理。")}
 
     # 感情：只用原程序已有的依据（桃花、孤辰寡宿、日支的冲合刑）
@@ -224,7 +225,7 @@ def build(p, target, send_date=None, personal=None):
             "note": ((th["use"] + "。") if th else "") + "以对方实际说的为准，不猜心意。"
                     + ("" if rel else "（关系状态没填，这栏不假定单身或有伴。）")}
 
-    # 我关心的事（个人配置，最多 3 项）
+    # 近期关注（个人配置，最多 3 项；没填就整栏不显示）
     step = GROUP_STEP[group]
     concerns = []
     for c in (personal.get("concerns") or [])[:3]:
@@ -278,6 +279,7 @@ def build(p, target, send_date=None, personal=None):
     hl_yi = "、".join([x for x in lunar.getDayYi() if x not in D.SKIP_HUANGLI][:4]) or "诸事平常"
     hl_ji = "、".join([x for x in lunar.getDayJi() if x not in D.SKIP_HUANGLI][:4]) or "无"
 
+    pred = P.build(p, target, a)   # 预测实验（待验证），不参与评分
     reminders = p.get("reminders") or []
     short = theme["name"]
     return {
@@ -290,7 +292,8 @@ def build(p, target, send_date=None, personal=None):
         "gain": gain, "loss": loss, "subtotal": gain + loss, "sha_adj": sha_adj,
         "items": sorted(scored, key=lambda x: -abs(x["pts"])), "bases": bases, "sha": a["sha"], "zxj": a["zxj"],
         "theme": theme, "cols": {"事业": career, "财运": money, "感情": love},
-        "concerns": concerns, "missing": missing,
+        "concerns": concerns, "missing": missing, "predict": pred,
+        "obs_word": "明日观察" if send_date < target else "今日观察",
         "life": life, "week": week, "cal": cal, "mo": mo,
         "next_jq": (jq.getName(), jd, (jd - target).days),
         "hours": {"good": good_h, "bad": bad_h, "early": early_h, "night": night_h},

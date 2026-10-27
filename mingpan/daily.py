@@ -90,17 +90,17 @@ DOMAIN_ADVICE = {
     "比劫": {"工作": ("和同事、伙伴碰一碰，分好工一起做，不和人争功", "比劫是同伴，也是竞争"),
              "钱财": ("不借钱给人，不合伙出钱", "比劫主分财"),
              "家人": ("联系兄弟姐妹和老朋友", "比劫是同辈"),
-             "身体": ("运动出汗，活动筋骨", "比劫帮身，体力足"),
+             "身体": ("想活动就运动出汗、活动筋骨", "比劫日传统上读作帮身，实际按自己的体力来"),
              "学习": ("找人讨论、一起学", "同伴日，交流比闷头读有收获")},
     "印": {"工作": ("整理资料、写方案、请教前辈，不拍板新项目", "印主思考和文书，不主决断"),
            "钱财": ("记账、核对账户和合同，不添大额开销", "印日心思在内，不在外求财"),
            "家人": ("多陪长辈，听听他们的意见", "印是长辈和庇护"),
-           "身体": ("补觉、午休，少熬夜", "印主休养，今天养得回来"),
+           "身体": ("补觉、午休，少熬夜", "印日传统上主休养"),
            "学习": ("读书、上课、做研究", "印日吸收快")},
     "食伤": {"工作": ("写东西、出方案、清掉积压的事，开会少抢话", "食伤主表达和执行，也容易话多惹人"),
              "钱财": ("有想法先记下来，不急着掏钱落实", "食伤生财，但今天是想法多过把握"),
              "家人": ("说话软一点，有不满先放一放", "食伤日口快，容易伤人"),
-             "身体": ("早点睡，别熬夜赶工", "食伤泄日主之气，最耗神"),
+             "身体": ("早点睡，别熬夜赶工", "食伤日传统上读作耗神，累不累看自己感受"),
              "学习": ("把学到的写下来、讲出来", "输出日，讲一遍比看三遍记得牢")},
     "财": {"工作": ("处理具体事务、对数核账，不接超出能力的活", "财是实务，接多了累身"),
            "钱财": ("记账、守住已有的，不追加、不冒进", "财日对钱敏感，容易贪也容易计较"),
@@ -108,9 +108,9 @@ DOMAIN_ADVICE = {
            "身体": ("按时吃饭，别为事忙到误饭点", "财日事务多，容易顾不上自己"),
            "学习": ("学点实用的，比如理财、管理", "财日适合学能落地的东西")},
     "官杀": {"工作": ("按规矩办事，交代的事先做完，不和上面硬顶", "官杀是压力和规矩"),
-             "钱财": ("只守不攻，不签字担保", "官杀日外部压力大，守住就是赚"),
+             "钱财": ("到期的照常处理；新的借贷、担保先看清金额和期限再定", "官杀日传统上读作外部压力"),
              "家人": ("回家少带情绪，压力找人说说", "压力日容易把火撒在家里"),
-             "身体": ("放松肩颈，早睡，别硬扛", "官杀克身，最耗体力"),
+             "身体": ("放松肩颈，早睡，别硬扛", "官杀日传统上读作压力，累不累看自己感受"),
              "学习": ("复习、考证，学规则和流程", "官杀主规矩，适合打基础")},
 }
 # 心态的心理学视角：十神对应的倾向 → 心理学上叫什么、怎么回事、一个有研究支持的具体做法（只管心态和纪律，不给买卖时机）
@@ -172,7 +172,8 @@ EXERCISE = {
            "太冲穴（脚背上大脚趾和二脚趾之间往上约两指）"),
 }
 POS = ["年", "月", "日", "时"]
-POS_DOMAIN = {"年": "大环境", "月": "工作环境", "日": "自己和身体", "时": "孩子和后续计划"}
+# 宫位只是命理上的对应（年柱大环境、月柱门户提纲、日柱自己、时柱后续），说成意象，不当成现实里一定会变的事
+POS_DOMAIN = {"年": "大环境", "月": "外部安排", "日": "自己和身边的人", "时": "后续的事"}
 FLOW_DOMAIN = {"大运": "这十年的主线", "流年": "今年的事", "流月": "这个月的事"}
 GROUP_SHORT = {"比劫": "同伴和竞争", "印": "贵人和休养", "食伤": "表达和消耗", "财": "钱财和实务", "官杀": "压力和考验"}
 STARS = {1: "宜守", 2: "偏弱", 3: "平", 4: "偏旺", 5: "旺"}
@@ -318,17 +319,17 @@ def month_outlook(p, date):
         pair, where = frozenset(z + zz), f"原局{'、'.join(ps)}支{zz}"
         dom = "、".join(POS_DOMAIN[x] for x in ps)
         if zz != z and pair in CHONG:
-            why.append(f"冲{where}（{dom}有变动）")
+            why.append(f"冲{where}（{dom}的变动意象）")
         elif pair in HE:
             hw = he_wx(pair, pillars[1][1])
             why.append(f"合{where}，合出{hw}（{xj(hw)}，" + (f"{dom}有人帮衬）" if hw in xi else f"{dom}容易被人情牵着走）"))
         elif zz == z and z in ZI_XING:
             why.append(f"和{where}自刑（{dom}方面容易自己跟自己较劲）")
-    advice = {"明显转好": "该推进的事可以排到下个月，但照样守住自己定的规矩",
+    advice = {"明显转好": "具体的事仍按自己的期限和准备情况安排，不必为此推后",
               "略有好转": "压力会松一点，可以稳步推进",
               "和这个月差不多": "节奏不用变，照现在的计划走",
               "略有转差": "要紧的事尽量在交节前办完",
-              "明显转差": f"要紧的事尽量在{nxt.getName()}之前办完，进了新月份以守为主"}[verdict]
+              "明显转差": f"有期限的事照原计划办；进了{nxt.getName()}以后，新的承诺先看清条件再接"}[verdict]
     return {"jie": nxt.getName(), "date": mid, "start": start, "end": end, "prev_jie": lunar.getPrevJie().getName(),
             "cur": cur, "new": new, "verdict": verdict, "base": base,
             "why": why, "advice": advice}
@@ -374,7 +375,7 @@ def analyse(p, date):
              else "囚" if KE[me] == lead else "死")
     pt(f"本月{lm}，{lead}当令，你的{me}处在「{state}」",
        "这个月是哪种五行当家，决定你整个月的底气。"
-       + ("你底气足，扛得住事。" if state in "旺相" else "你底气弱，整个月以守为主，别逞强。" if state in "囚死"
+       + ("你底气足，扛得住事。" if state in "旺相" else "你底气弱，事情量力安排、留出余量。" if state in "囚死"
           else "你底气一般，量力而行。"))
     def gz_desc(gz):
         g1, g2 = ten_god(dm, gz[0])[0], ten_god(dm, CANG[gz[1]][0])[0]
@@ -477,11 +478,11 @@ def analyse(p, date):
                     "有的压力反而会被冲散，所以不扣分；但变动本身要花精力应付。" if zw in ji else
                     f"被冲的{z}属{zw}，是你的喜用：冲伤的是帮你的东西，这一分扣得实在。" if zw in xi else
                     f"被冲的{z}属{zw}，是闲神，只算变动本身，扣一半。")
-            pt(f"{zhi}冲{name(z)}", f"冲就是对撞，{domain(z)}方面容易有变动"
-               + ("；日支是你自己，今天别拍板大事、别签字。" if hits_day else "，计划留点余地。") + whom, cv)
+            pt(f"{zhi}冲{name(z)}", f"冲就是对撞，命理上读作{domain(z)}一侧的变动意象，现实里变不变看实际"
+               + ("；日支是你自己，拍板和签字前多核对一遍条件。" if hits_day else "，计划留点余地。") + whom, cv)
             if hits_day:
                 avoid.append("做重大决定、签字、远行")
-                extra["工作"].append("日支被冲，不拍板、不签字")
+                extra["工作"].append("日支被冲，拍板和签字前多核对一遍条件")
                 extra["家人"].append("日支被冲，和家人有分歧先缓一缓")
             elif "月" in natal:
                 extra["工作"].append("冲到工作宫，安排容易变，留好余地")
@@ -567,7 +568,7 @@ def analyse(p, date):
             ("比劫", "财", is_ji("财") and is_xi("比劫"), 0.3, "比劫帮身担财",
              "钱和事多，有同伴分担：找信得过的人一起扛，钱的分配先说清楚"),
             ("财", "官杀", is_ji("财") and is_ji("官杀"), -0.5, "财生杀",
-             "钱的事变成压力：财去生七杀，账单、贷款、生意上的事今天容易变成心理负担。只守不攻，不添新的财务承诺"),
+             "钱的事变成压力：财去生七杀，账单、贷款、生意上的事今天容易变成心理负担。到期的照常处理，新的财务承诺先看清金额、期限和自己的现金流再定"),
             ("财", "印", is_ji("财") and is_xi("印") and not tan_cai and not has("比劫"), -0.5, "贪财坏印",
              "钱的事来坏你的印：想静心学习、想清楚的时候容易被钱分心。钱的事只核对、不新增，把整块时间留给想事")):
         if cond and has(a_) and has(b_) and (today(a_) or today(b_)):
@@ -674,7 +675,7 @@ def analyse(p, date):
                 "食神制杀": "压力上门，靠本事顶住：把事做出来，做完一两件就停",
                 "伤官佩印": "想法多，有印收着：先学再说，先想清楚再出手",
                 "比劫帮身担财": "钱和事多，有人分担：找信得过的人一起扛",
-                "财生杀": "钱的事变成压力：只守不攻，不添新的财务承诺",
+                "财生杀": "钱的事变成压力：到期的照常处理，新承诺先看清条件再定",
                 "贪财坏印": "想静心却被钱分心：钱的事只核对、不新增，时间留给想事"}[structs[0]]
     else:
         gist = f"{god}在上、{zgod}在下：{GROUP_THEME[group]}是明面上的事，{GROUP_SHORT[zgroup]}是底子"
@@ -687,7 +688,7 @@ def analyse(p, date):
     body_wx = heavy if heavy and weight[heavy] >= 1.5 else max(weight, key=weight.get)
     body = [HEALTH[body_wx]]
     if frozenset(zhi + day_zhi) in CHONG:
-        body.append("日支是身体宫，今天被冲，留意睡眠和小磕碰。")
+        body.append("日支被冲，按自己的状态安排，累了就早点休息。")
 
     domains = []
     for k in DOMAINS:
@@ -787,7 +788,7 @@ def hours(p, lunar):
             why.append("贵人时")
         god, group = ten_god(dm, CANG[z][0])
         todo = "求人帮忙、约人谈事" if noble else HOUR_TODO[group]
-        warn = "冲日支，别做决定、别签字" if chong else HOUR_WARN.get(star, "少做决定、别冲动")
+        warn = "冲日支，做决定、签字前多核对一遍" if chong else HOUR_WARN.get(star, "少做决定、别冲动")
         rows.append({"sc": sc, "idx": idx, "name": f"{z}时 " + ("23:00-00:59" if z == "子" else f"{t.getMinHm()}-{t.getMaxHm()}"),
                      "why": "，".join(why + [f"{god}时"]), "todo": todo, "warn": warn})
     awake = [r for r in rows if r["name"][0] in AWAKE]
@@ -871,7 +872,8 @@ def main():
     ap.add_argument("--html", help="把邮件 HTML 另存到这个文件，用来预览")
     ap.add_argument("--pdf", help="生成 PDF 到这个文件（需要本机有 Playwright 和 Chromium）")
     ap.add_argument("--personal", help="个人配置 JSON 文件（本地测试用），默认读 Secret MINGPAN_PERSONAL")
-    ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（固定五题加当天的具体题），不推送")
+    ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（老题、事件勾选、观察判断、日报影响），不推送")
+    ap.add_argument("--log-dir", help="预测实验存档目录（只读，复盘题用事前保存的那份）；日报本身从不写存档")
     args = ap.parse_args()
 
     now = datetime.datetime.now(TZ)
@@ -884,18 +886,10 @@ def main():
     personal = load_personal(args.personal)
     for p in load_profiles():
         if args.review:
-            qs = review(p, date)
-            print(f"**{date.month}/{date.day} 复盘**，回一串像 3BCBA ABBA 的答案（前五个固定题，空格后是今天的具体题）：")
-            print("1. 整体：1 很差　2 偏差　3 一般　4 不错　5 很好")
-            print("2. 压力：A 很大　B 有一些　C 基本没有")
-            print("3. 精力：A 很累或身体不舒服　B 一般　C 精力好")
-            print("4. 人际：A 有摩擦或是非　B 平常　C 顺，有人帮忙")
-            print("5. 日报：A 有用，照着做了　B 看了，没怎么用上　C 没看")
-            for i, (_, q, opts) in enumerate(qs, 6):
-                print(f"{i}. {q}：{opts}")
-            print("想多说一句就写在最后，比如「3BCBA ABBA 上午开会被批评」；"
-                  "也可以按「完成：…　有用：…　不合适：…　明天：…」写，符合的和不符合的都记。")
-            print("KEYS " + "|".join(f"{k}={q}" for k, q, _ in qs))
+            import experiment
+            txt, keys = experiment.review_prompt(p, date, args.log_dir)
+            print(txt)
+            print(keys)
             continue
         d = compose.build(p, date, send_date, personal)
         mail_html = layout.email_html(d)
@@ -912,7 +906,9 @@ def main():
         if args.pdf or args.html:
             continue
         mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_html(d))
-        print(f"{date.isoformat()} | {mail} | {wechat}")
+        # 日志只打印预测指纹（不打印内容），晚上保存时可以核对发出去的和存档的是同一份
+        print(f"{date.isoformat()} | {mail} | {wechat} | 预测 {d['predict']['rule_version']} "
+              f"{len(d['predict']['predictions'])} 条 指纹 {d['predict']['fingerprint']}")
         # 两个渠道都没发出去时让工作流失败，备用触发会再试；只要有一个成功就不重发，免得重复
         if not any(x.endswith(("已发送", "已推送")) for x in (mail, wechat)) and \
                 not all(x.endswith("跳过") for x in (mail, wechat)):
@@ -922,7 +918,7 @@ def main():
 PDF_FOOTER = ('<div style="font-size:8px;color:#999;width:100%;text-align:center">'
               '传统文化参考 · 现实事项结合事实判断　|　<span class="pageNumber"></span> / <span class="totalPages"></span></div>')
 PDF_JS = """const {chromium}=require('playwright');(async()=>{const [src,out,foot]=process.argv.slice(1);
-const b=await chromium.launch();const p=await b.newPage();await p.goto('file://'+src);
+const b=await chromium.launch();const p=await b.newPage({viewport:{width:695,height:1000}});await p.goto('file://'+src);
 await p.pdf({path:out,format:'A4',printBackground:true,displayHeaderFooter:true,headerTemplate:'<span></span>',
 footerTemplate:foot,margin:{top:'14mm',bottom:'16mm',left:'13mm',right:'13mm'}});await b.close();})();"""
 
@@ -940,7 +936,7 @@ def write_pdf(page_html, path, d):
         return
     with sync_playwright() as pw:
         b = pw.chromium.launch()
-        pg = b.new_page()
+        pg = b.new_page(viewport={"width": 695, "height": 1000})
         pg.set_content(page_html, wait_until="load")
         pg.pdf(path=path, format="A4", print_background=True, display_header_footer=True,
                header_template="<span></span>", footer_template=PDF_FOOTER,
