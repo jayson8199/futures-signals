@@ -203,7 +203,9 @@ for i in range(0, 400, 20):
     tgt = day(2025, 11, 1) + datetime.timedelta(days=i)
     d = compose.build(p, tgt, tgt - datetime.timedelta(days=1))
     h = layout.wechat_html(d)
-    old = "".join(f"【{k}】" if v is None else v if k is None else f"【{k}】{v}" for k, v in layout.wechat_lines(d))
+    n = d["stars"]   # 标题拆成日期干支一行、星级一行，星级行加「n / 5 星 · 等级」，其余逐字照旧
+    head = f"【{layout.md(tgt)} 周{d['wd']} · {d['day_gz']}日】" + layout.stars(n) + f"{n} / 5 星 · {d['level']}"
+    old = "".join(head if v is None else v if k is None else f"【{k}】{v}" for k, v in layout.wechat_lines(d))
     new = wx_text(h)
     check(f"{tgt} 微信文字和原来一致（算/不算只是分行）", new == old, (new, old))
     tags = re.findall(r"<(p|div|span)\b([^>]*)>", h)
@@ -212,6 +214,9 @@ for i in range(0, 400, 20):
     sizes = [int(x) for x in re.findall(r"font-size:(\d+)px", h)]
     check(f"{tgt} 正文 18px、最小 16px", 18 in sizes and min(sizes) >= 16, sizes)
     check(f"{tgt} 行距 1.75-1.9", "line-height:1.8" in h)
+    check(f"{tgt} 星级单独一行、实心空心分开上色", f'class="mp-on" style="background-color:#ffffff;color:{layout.WX_STAR_ON[0]};' in h
+          and (n == 5 or f'class="mp-off" style="background-color:#ffffff;color:{layout.WX_STAR_OFF[0]};' in h)
+          and "white-space:nowrap" in h and "font-size:26px" in h)
     check(f"{tgt} 深色模式成对换色", "prefers-color-scheme: dark" in h and "background-color:#1c1c1e!important;color:#ececec!important" in h)
     for x in d["predict"]["predictions"]:
         check(f"{tgt} 算/不算分行", re.search(r">算：[^<]*；</p><p[^>]*>不算：", h) is not None)

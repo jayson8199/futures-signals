@@ -874,7 +874,7 @@ def main():
     ap.add_argument("--personal", help="个人配置 JSON 文件（本地测试用），默认读 Secret MINGPAN_PERSONAL")
     ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（老题、事件勾选、观察判断、日报影响），不推送")
     ap.add_argument("--wechat-test", action="store_true",
-                    help="只往微信发一份标「可读性测试」的样稿：内容按原来前一晚发出时的样子重算，不发邮件，日志行不进核对")
+                    help="只往微信发一份测试样稿（标题和横幅标 WECHAT_TEST_LABEL，默认「可读性测试」）：内容按原来前一晚发出时的样子重算，不发邮件，日志行不进核对")
     ap.add_argument("--log-dir", help="预测实验存档目录（只读，复盘题用事前保存的那份）；日报本身从不写存档")
     args = ap.parse_args()
 
@@ -911,10 +911,12 @@ def main():
             continue
         if args.wechat_test:
             # 只发微信，不发邮件；日志行不以日期开头、没有「预测 vN」，experiment.py verify 不会把它当正式发送
-            banner = f"可读性测试：{date.month}/{date.day} 日报的重发样稿，内容与原来发出的一致，只改了显示样式。"
-            wechat = notify.send_wechat("【可读性测试】" + d["subject"], layout.wechat_html(d, banner), "html")
+            label = os.environ.get("WECHAT_TEST_LABEL", "").strip()
+            label = label if label not in ("", "1") else "可读性测试"
+            banner = f"{label}：{date.month}/{date.day} 日报的重发样稿，内容与原来发出的一致，只改了显示样式。"
+            wechat = notify.send_wechat(f"【{label}】" + d["subject"], layout.wechat_html(d, banner), "html")
             sha = (os.environ.get("GITHUB_SHA") or "")[:7] or __import__("experiment").commit()
-            print(f"可读性测试 {date.isoformat()}（按 {send_date.isoformat()} 晚上发出时重算）| {wechat} | 未发邮件 | "
+            print(f"{label} {date.isoformat()}（按 {send_date.isoformat()} 晚上发出时重算）| {wechat} | 未发邮件 | "
                   f"规则 {d['predict']['rule_version']} 观察 {len(d['predict']['predictions'])} 条 "
                   f"指纹（仅对照）{d['predict']['fingerprint']} 提交 {sha}")
             if not wechat.endswith("已推送"):

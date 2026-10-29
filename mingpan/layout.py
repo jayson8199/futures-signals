@@ -353,12 +353,14 @@ def obs_lines(d):
 # 认 prefers-color-scheme 的环境再整体换成深底亮字。不设透明度，也不用固定白字配透明底。
 WX_LIGHT = {"bg": "#ffffff", "fg": "#1a1a1a", "sub": "#4a4a4a"}
 WX_DARK = {"bg": "#1c1c1e", "fg": "#ececec", "sub": "#c4c4c4"}
-WX_STAR = {1: ("#b03a2e", "#ff8a80"), 2: ("#a85a0c", "#ffb74d"), 3: ("#56626a", "#b8c4cc"),
-           4: ("#1e7a45", "#81c784"), 5: ("#196f3d", "#66bb6a")}
+# 星级：已得实心★用金色（浅底深金、深底亮金），未得空心☆用中性灰，各自一个 class 和颜色；
+# 样式全被清理时仍能靠实心/空心形状加「n / 5 星」数字看懂
+WX_STAR_ON = ("#8a5a00", "#ffc940")
+WX_STAR_OFF = ("#5f6368", "#a8adb3")
 WX_STYLE = ("<style>@media (prefers-color-scheme: dark){"
             f".mpw,.mpw *{{background-color:{WX_DARK['bg']}!important;color:{WX_DARK['fg']}!important}}"
             f".mpw .mp-sub{{color:{WX_DARK['sub']}!important}}"
-            + "".join(f".mpw .mp-s{n}{{color:{c[1]}!important}}" for n, c in WX_STAR.items())
+            + f".mpw .mp-on{{color:{WX_STAR_ON[1]}!important}}.mpw .mp-off{{color:{WX_STAR_OFF[1]}!important}}"
             + "}</style>")
 
 
@@ -378,9 +380,15 @@ def wechat_html(d, banner=None):
                "padding:8px 12px;border:2px solid #b03a2e;border-radius:6px")] if banner else []
     for k, v in wechat_lines(d):
         if v is None:
-            st = esc(stars(d["stars"]))
-            body = esc(k).replace(st, _wx("span", st, "font-weight:700", f"mp-s{d['stars']}", WX_STAR[d["stars"]][0]), 1)
-            out.append(_wx("p", f"【{body}】", "font-size:19px;font-weight:700;line-height:1.6;margin:0 0 20px"))
+            n = d["stars"]   # 日期干支一行，星级单独一行：五颗星不拆行，后面跟加粗的「n / 5 星 · 等级」
+            out.append(_wx("p", f"【{esc(md(d['target']))} 周{esc(d['wd'])} · {esc(d['day_gz'])}日】",
+                           "font-size:19px;font-weight:700;line-height:1.6;margin:0 0 6px"))
+            st = "font-size:26px;line-height:1.3;letter-spacing:5px;font-weight:400"
+            row = (_wx("span", _wx("span", "★" * n, st, "mp-on", WX_STAR_ON[0])
+                       + _wx("span", "☆" * (5 - n), st, "mp-off", WX_STAR_OFF[0]),
+                       "white-space:nowrap;display:inline-block;margin-right:8px")
+                   + _wx("span", f"{n} / 5 星 · {esc(d['level'])}", "font-size:18px;font-weight:700;vertical-align:3px"))
+            out.append(_wx("p", row, "line-height:1.6;margin:0 0 20px"))
         elif k is None:
             out.append(_wx("p", esc(v), "font-size:16px;line-height:1.75;margin:4px 0 0", "mp-sub", WX_LIGHT["sub"]))
         elif k in preds:

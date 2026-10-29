@@ -15,7 +15,7 @@ on:
         description: "用哪一天发送（YYYY-MM-DD；留空时曼谷 18 点前为今天，18 点起为明天）"
         default: ""
       wechat_test:
-        description: "填 1 时只往微信发一份标「可读性测试」的样稿（不发邮件，不算正式发送）；平时留空"
+        description: "填 1 时只往微信发一份标「可读性测试」的样稿，填别的文字就用它做标注（不发邮件，不算正式发送）；平时留空"
         default: ""
 
 permissions:
@@ -60,4 +60,5 @@ jobs:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
           MINGPAN_PROFILE: ${{ secrets.MINGPAN_PROFILE }}
           MINGPAN_PERSONAL: ${{ secrets.MINGPAN_PERSONAL }}
+          WECHAT_TEST_LABEL: ${{ github.event.inputs.wechat_test }}
         run: python mingpan/daily.py ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }} ${{ github.event.inputs.wechat_test && '--wechat-test' || '' }}
