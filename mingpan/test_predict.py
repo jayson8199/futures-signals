@@ -194,4 +194,46 @@ txt29, _ = X.review_prompt(p, day(2026, 10, 29))
 txt28, _ = X.review_prompt(p, day(2026, 10, 28))
 check("复盘题按当天的版本出", "礼貌的拒绝" in txt29 and "礼貌的拒绝" not in txt28)
 
+# 11. 微信可读性：每个元素底色字色成对、字号行距、算/不算分行；文字和原来一样；实际发送函数用的就是它
+import contextlib, html as H, io, re
+import notify
+def wx_text(h):
+    return H.unescape(re.sub(r"<[^>]+>", "", re.sub(r"<style>.*?</style>", "", h, flags=re.S)))
+for i in range(0, 400, 20):
+    tgt = day(2025, 11, 1) + datetime.timedelta(days=i)
+    d = compose.build(p, tgt, tgt - datetime.timedelta(days=1))
+    h = layout.wechat_html(d)
+    old = "".join(f"【{k}】" if v is None else v if k is None else f"【{k}】{v}" for k, v in layout.wechat_lines(d))
+    new = wx_text(h)
+    check(f"{tgt} 微信文字和原来一致（算/不算只是分行）", new == old, (new, old))
+    tags = re.findall(r"<(p|div|span)\b([^>]*)>", h)
+    check(f"{tgt} 每个元素底色字色成对", all("background-color:" in a and ";color:" in a for _, a in tags))
+    check(f"{tgt} 不设透明度、不用透明底", "opacity" not in h and "transparent" not in h)
+    sizes = [int(x) for x in re.findall(r"font-size:(\d+)px", h)]
+    check(f"{tgt} 正文 18px、最小 16px", 18 in sizes and min(sizes) >= 16, sizes)
+    check(f"{tgt} 行距 1.75-1.9", "line-height:1.8" in h)
+    check(f"{tgt} 深色模式成对换色", "prefers-color-scheme: dark" in h and "background-color:#1c1c1e!important;color:#ececec!important" in h)
+    for x in d["predict"]["predictions"]:
+        check(f"{tgt} 算/不算分行", re.search(r">算：[^<]*；</p><p[^>]*>不算：", h) is not None)
+sent = {}
+real = notify.send_wechat, notify.send_mail
+notify.send_wechat = lambda t, c, tpl="txt": sent.setdefault("wx", []).append((t, c, tpl)) or "微信已推送"
+notify.send_mail = lambda *a: sent.setdefault("mail", []).append(a) or "邮件已发送"
+try:
+    for argv in (["--date", "2026-10-30", "--send-date", "2026-10-29"], ["--date", "2026-10-30", "--wechat-test"]):
+        sys.argv = ["daily.py", *argv]
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            D.main()
+        sent.setdefault("log", []).append(buf.getvalue())
+finally:
+    notify.send_wechat, notify.send_mail = real
+d30 = compose.build(p, day(2026, 10, 30), day(2026, 10, 29))
+check("正式发送用新样式", sent["wx"][0][1] == layout.wechat_html(d30) and sent["wx"][0][2] == "html")
+check("测试只发微信、不发邮件", len(sent["wx"]) == 2 and len(sent["mail"]) == 1)
+check("测试标题和横幅标「可读性测试」", sent["wx"][1][0].startswith("【可读性测试】") and "可读性测试：10/30" in sent["wx"][1][1])
+check("测试样稿按前一晚重算，内容和正式一致", wx_text(sent["wx"][1][1]).endswith(wx_text(layout.wechat_html(d30))))
+check("10/30 指纹不变", d30["predict"]["fingerprint"] == "4d5b377d2051" and "4d5b377d2051" in sent["log"][1])
+check("测试日志行不会被当成正式发送", X.LOG_RE.search(sent["log"][1]) is None and X.LOG_RE.search(sent["log"][0]) is not None)
+
 print(f"全部通过，共 {len(ok)} 项检查")

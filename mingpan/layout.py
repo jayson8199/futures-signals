@@ -348,16 +348,52 @@ def obs_lines(d):
             for x in r["predictions"]]
 
 
-def wechat_html(d):
-    out = []
+# 微信（PushPlus html 模板）：深色模式下 PushPlus 页面会变黑，以前只给了深色字没给底色，于是黑底深字看不清。
+# 现在每个元素都成对写「底色 + 字色」（内联，浅色白底深字），样式被清理或不认 @media 时也是白卡片深字；
+# 认 prefers-color-scheme 的环境再整体换成深底亮字。不设透明度，也不用固定白字配透明底。
+WX_LIGHT = {"bg": "#ffffff", "fg": "#1a1a1a", "sub": "#4a4a4a"}
+WX_DARK = {"bg": "#1c1c1e", "fg": "#ececec", "sub": "#c4c4c4"}
+WX_STAR = {1: ("#b03a2e", "#ff8a80"), 2: ("#a85a0c", "#ffb74d"), 3: ("#56626a", "#b8c4cc"),
+           4: ("#1e7a45", "#81c784"), 5: ("#196f3d", "#66bb6a")}
+WX_STYLE = ("<style>@media (prefers-color-scheme: dark){"
+            f".mpw,.mpw *{{background-color:{WX_DARK['bg']}!important;color:{WX_DARK['fg']}!important}}"
+            f".mpw .mp-sub{{color:{WX_DARK['sub']}!important}}"
+            + "".join(f".mpw .mp-s{n}{{color:{c[1]}!important}}" for n, c in WX_STAR.items())
+            + "}</style>")
+
+
+def _wx(tag, body, css="", cls="", fg=None):
+    """一个微信块：底色和字色总是成对内联。"""
+    c = f'background-color:{WX_LIGHT["bg"]};color:{fg or WX_LIGHT["fg"]};'
+    a = f' class="{cls}"' if cls else ""
+    return f'<{tag}{a} style="{c}{css}">{body}</{tag}>'
+
+
+def wechat_html(d, banner=None):
+    sec = "margin:0 0 20px;padding:0"
+    label = "font-size:18px;font-weight:700;line-height:1.6;margin:0 0 4px"
+    para = "font-size:18px;line-height:1.8;margin:0"
+    preds = {f"{d['obs_word']}{x['n']}": x for x in d["predict"]["predictions"]}
+    out = [_wx("p", esc(banner), "font-size:16px;font-weight:700;line-height:1.7;margin:0 0 16px;"
+               "padding:8px 12px;border:2px solid #b03a2e;border-radius:6px")] if banner else []
     for k, v in wechat_lines(d):
         if v is None:
-            out.append(f'<p style="font-size:16px;font-weight:bold;color:{STAR_COLOR[d["stars"]]};margin:0 0 8px">【{esc(k)}】</p>')
+            st = esc(stars(d["stars"]))
+            body = esc(k).replace(st, _wx("span", st, "font-weight:700", f"mp-s{d['stars']}", WX_STAR[d["stars"]][0]), 1)
+            out.append(_wx("p", f"【{body}】", "font-size:19px;font-weight:700;line-height:1.6;margin:0 0 20px"))
         elif k is None:
-            out.append(f'<p style="font-size:12px;color:#888;margin:10px 0 0">{esc(v)}</p>')
+            out.append(_wx("p", esc(v), "font-size:16px;line-height:1.75;margin:4px 0 0", "mp-sub", WX_LIGHT["sub"]))
+        elif k in preds:
+            x = preds[k]   # 文字和纯文字版一样，只是名称、「算」「不算」各占一行
+            rows = [_wx("p", f"【{esc(k)}】{esc(x['name'])}。", label),
+                    _wx("p", "算：" + esc(x["occur"]) + "；", para),
+                    _wx("p", "不算：" + esc(x["exclude"]) + "（待验证）", para)]
+            out.append(_wx("div", "".join(rows), sec))
         else:
-            out.append(f'<p style="font-size:15px;line-height:1.7;margin:0 0 8px"><b>【{esc(k)}】</b>{esc(v)}</p>')
-    return '<div style="font-family:sans-serif;color:#222">' + "".join(out) + "</div>"
+            out.append(_wx("div", _wx("p", f"【{esc(k)}】", label) + _wx("p", esc(v), para), sec))
+    return WX_STYLE + _wx("div", "".join(out),
+                          "font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:18px;"
+                          "line-height:1.8;padding:18px 16px;word-break:break-word;overflow-wrap:anywhere", "mpw")
 
 
 def wechat_text(d):

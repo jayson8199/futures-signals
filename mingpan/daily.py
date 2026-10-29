@@ -873,11 +873,15 @@ def main():
     ap.add_argument("--pdf", help="生成 PDF 到这个文件（需要本机有 Playwright 和 Chromium）")
     ap.add_argument("--personal", help="个人配置 JSON 文件（本地测试用），默认读 Secret MINGPAN_PERSONAL")
     ap.add_argument("--review", action="store_true", help="只打印这一天的复盘题（老题、事件勾选、观察判断、日报影响），不推送")
+    ap.add_argument("--wechat-test", action="store_true",
+                    help="只往微信发一份标「可读性测试」的样稿：内容按原来前一晚发出时的样子重算，不发邮件，日志行不进核对")
     ap.add_argument("--log-dir", help="预测实验存档目录（只读，复盘题用事前保存的那份）；日报本身从不写存档")
     args = ap.parse_args()
 
     now = datetime.datetime.now(TZ)
     send_date = datetime.date.fromisoformat(args.send_date) if args.send_date else now.date()
+    if args.wechat_test and args.date and not args.send_date:   # 测试样稿沿用原来前一晚发出时的措辞
+        send_date = datetime.date.fromisoformat(args.date) - datetime.timedelta(days=1)
     # 日报前一天晚上发：18 点起默认算明天；复盘题问的是发送当天，不随日报往后挪
     late = now.hour >= 18 if not args.send_date else False
     default = send_date + datetime.timedelta(days=1 if late and not args.review else 0)
@@ -904,6 +908,17 @@ def main():
             print(d["subject"] + "\n\n" + layout.text(d))
             continue
         if args.pdf or args.html:
+            continue
+        if args.wechat_test:
+            # 只发微信，不发邮件；日志行不以日期开头、没有「预测 vN」，experiment.py verify 不会把它当正式发送
+            banner = f"可读性测试：{date.month}/{date.day} 日报的重发样稿，内容与原来发出的一致，只改了显示样式。"
+            wechat = notify.send_wechat("【可读性测试】" + d["subject"], layout.wechat_html(d, banner), "html")
+            sha = (os.environ.get("GITHUB_SHA") or "")[:7] or __import__("experiment").commit()
+            print(f"可读性测试 {date.isoformat()}（按 {send_date.isoformat()} 晚上发出时重算）| {wechat} | 未发邮件 | "
+                  f"规则 {d['predict']['rule_version']} 观察 {len(d['predict']['predictions'])} 条 "
+                  f"指纹（仅对照）{d['predict']['fingerprint']} 提交 {sha}")
+            if not wechat.endswith("已推送"):
+                sys.exit(1)
             continue
         mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_html(d))
         # 日志只打印预测指纹（不打印内容），晚上保存时可以核对发出去的和存档的是同一份
