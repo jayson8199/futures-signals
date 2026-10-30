@@ -25,7 +25,7 @@
 
 | 板块 | 文件 | 归属 |
 |---|---|---|
-| 每日扫描主流程 | `scanner/scan.py` `run_daily.py` `build_site.py` `stats.py` `macd8.py` `history.py` `backfill.py` `notify.py` `oversold_live.py`；`daily.yml` `notify-test.yml` | 「每日扫描」对话 |
+| 每日扫描主流程 | `scanner/scan.py` `run_daily.py` `build_site.py` `stats.py` `macd8.py` `history.py` `backfill.py` `notify.py` `oversold_live.py` `macro_fetch.py` `macro_clock.py` `macro_page.py`；`daily.yml` `notify-test.yml` `macro.yml` | 「每日扫描」对话 |
 | 加权指数 / K 线形态图 | `scanner/weighted*.py` `chart.py` `chart_page.py` `fetch_long.py`；`weighted-rebuild.yml` `bydate-debug.yml` `trend-data.yml` | 「加权指数 / K 线形态图」对话 |
 | 二区定律 | `scanner/erqu_*.py`；`erqu.yml` `erqu-live.yml` | 建它的那个对话 |
 | 命盘日报 | `mingpan/` 整个目录；`mingpan-daily.yml` | 「命盘」对话（跑在曼谷电脑上） |
@@ -49,7 +49,7 @@
 
 - `data/`：**全部由 Actions 生成**，不要手改。
   `data/YYYY-MM-DD.json` 每日快照；`data/history/` 长期日线；`data/weighted/` `data/weighted_tushare/` 加权指数；
-  `data/oversold/` 「跌够久」纸面实盘状态；`data/erqu/` 二区定律记录；`data/long/` 趋势回测长数据。
+  `data/oversold/` 「跌够久」纸面实盘状态；`data/erqu/` 二区定律记录；`data/long/` 趋势回测长数据；`data/macro/` 宏观时钟数据（PMI/CPI/PPI/M2/Shibor 等）。
 - `experiments/`：实验输出和探测日志，可以参考，不当正式结论。
 - `site/`：`build_site.py` 生成，已 gitignore，不提交；GitHub Pages 由 Actions 部署。
 - `mingpan/`：`daily.py` 生成日报并推送，`rules.md` 是解读口径，`profile.json` 只是占位，真实资料在 Secret 里。
