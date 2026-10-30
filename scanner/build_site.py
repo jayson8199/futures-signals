@@ -193,10 +193,19 @@ def spark(closes, w=72, h=20):
             f"<polyline fill='none' stroke='{color}' stroke-width='1.5' points='{pts}'/></svg>")
 
 
+def _macro_banner(root=""):
+    """每页顶部的宏观时钟横幅（scanner/macro_page.py），出错时静默不显示"""
+    try:
+        import macro_page
+        return macro_page.banner_html(root)
+    except Exception:
+        return ""
+
+
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("macro.html", "宏观时钟", "macro"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -205,7 +214,7 @@ def layout(title, body, nav_on, root="", desc=""):
 <style>{CSS}</style></head><body>
 <div class="top"><div class="in"><a class="brand" href="{root}index.html">{SITE_TITLE}<small>国内期货 54 品种 · 量仓价三维自动扫描 · 每交易日收盘后更新</small></a>
 <nav class="nav">{nav_html}<button type="button" id="themeBtn" aria-label="切换深浅色">深色</button></nav></div></div>
-<div class="wrap">{body}
+<div class="wrap">{_macro_banner(root)}{body}
 <div class="ft">信号判定：量·仓·价三维分类 ｜ 三档标注依据：400天历史回测（13014个信号）｜ 白富美经全年数据验证对后市方向无显著预测力，降级观察 ｜ 数据来源：新浪财经（akshare）｜ 理论参考：北大期货班八种形态<br>
 本站内容为程序自动生成，仅供学习交流，不构成任何投资建议。页面生成时间：{gen}（北京时间）</div>
 </div>
@@ -1061,6 +1070,11 @@ def main():
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
     (out / "cta.html").write_text(layout(f"趋势回测 · {SITE_TITLE}", cta_body(), "cta"), encoding="utf-8")
+    try:
+        import macro_page
+        (out / "macro.html").write_text(layout(f"宏观时钟 · {SITE_TITLE}", macro_page.macro_body(), "macro"), encoding="utf-8")
+    except Exception as e:
+        print(f"[警告] 宏观时钟页面生成失败：{e}")
     try:
         (out / "oversold.html").write_text(layout(f"跌够久实盘 · {SITE_TITLE}", oversold_body(), "oversold"), encoding="utf-8")
     except Exception as e:

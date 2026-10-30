@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: macro
@@ -26,11 +27,21 @@ jobs:
           cache-dependency-path: scanner/requirements.txt
       - run: pip install -r scanner/requirements.txt
       - run: python scanner/macro_fetch.py
+      - name: 重算各时期历史统计
+        run: python scanner/macro_clock.py analyze || echo "::warning::宏观时钟统计失败，沿用旧结果"
       - name: 提交数据
+        id: commit
         run: |
           git config user.name "futures-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/macro
-          git commit -m "data: 宏观数据 $(date -u +%F)" || exit 0
-          git pull --rebase origin main || true
-          git push
+          git add data/macro experiments/macro_clock_compare.json
+          if git commit -m "data: 宏观数据 $(date -u +%F)"; then
+            git pull --rebase origin main || true
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 触发网站重建
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/daily.yml/dispatches" -f ref=main -f 'inputs[rounds]=1' -f 'inputs[force]=false'
