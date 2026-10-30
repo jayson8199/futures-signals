@@ -50,7 +50,47 @@ def load_macro():
         "cpi": pd.Series(cpi["全国-同比增长"].values, index=cpi["月份"].map(_month)),
         "ppi": pd.Series(ppi["当月同比增长"].values, index=ppi["月份"].map(_month)),
     }).sort_index()
-    return m.astype(float)
+    m = m.astype(float)
+    # 货币 + 信用（泽平宏观改良版）：货币=Shibor 3M（月均，越低越宽松）；信用=M2 同比、社融 12 月滚动和同比
+    try:
+        sh = pd.read_csv(MAC / "shibor3m.csv")
+        sh["m"] = pd.to_datetime(sh["报告日"]).dt.to_period("M")
+        m["shibor3m"] = sh.groupby("m")["利率"].mean()
+    except Exception:
+        pass
+    try:
+        y = pd.read_csv(MAC / "cn_us_yield.csv")
+        y["m"] = pd.to_datetime(y["日期"]).dt.to_period("M")
+        m["cgb10"] = y.groupby("m")["中国国债收益率10年"].mean()
+    except Exception:
+        pass
+    try:
+        m2 = pd.read_csv(MAC / "m2.csv")
+        m["m2"] = pd.Series(m2["货币和准货币(M2)-同比增长"].values, index=m2["月份"].map(_month)).astype(float)
+    except Exception:
+        pass
+    try:
+        sf = pd.read_csv(MAC / "shrzgm.csv")
+        sf_s = pd.Series(sf["社会融资规模增量"].values, index=sf["月份"].astype(str).map(lambda x: pd.Period(f"{x[:4]}-{x[4:6]}", freq="M"))).astype(float).sort_index()
+        roll = sf_s.rolling(12).sum()
+        m["tsf12"] = roll.pct_change(12) * 100
+    except Exception:
+        pass
+    return m.sort_index()
+
+
+def classify_mc(m, money_col, credit_col, rule):
+    """货币松紧 × 信用松紧：宽货币+紧信用=衰退；宽+宽=复苏；紧货币+宽信用=过热；紧+紧=滞胀"""
+    money_loose = direction(m[money_col], rule) < 0  # 利率下行 = 货币宽松
+    credit_loose = direction(m[credit_col], rule) > 0
+    ok = m[money_col].notna() & m[credit_col].notna() & direction(m[money_col], rule).notna() & direction(m[credit_col], rule).notna()
+    ph = pd.Series(index=m.index, dtype=object)
+    ph[money_loose & ~credit_loose] = "衰退"
+    ph[money_loose & credit_loose] = "复苏"
+    ph[~money_loose & credit_loose] = "过热"
+    ph[~money_loose & ~credit_loose] = "滞胀"
+    ph[~ok] = None
+    return ph
 
 
 def direction(x, rule):
@@ -101,7 +141,11 @@ def window_ret(R, cols, start, end):
 
 
 def evaluate(m, R, infl, rule):
-    ph = classify(m, infl, rule)
+    if infl.startswith("mc:"):
+        _, money_col, credit_col = infl.split(":")
+        ph = classify_mc(m, money_col, credit_col, rule)
+    else:
+        ph = classify(m, infl, rule)
     comm = [c for c in R.columns if c not in FIN]
     groups = {"商品等权": comm, **SECT, "股指IF": ["IF0"]}
     rows = []
@@ -145,11 +189,15 @@ def evaluate(m, R, infl, rule):
 
 def current(m):
     res = {}
+    for mc in ("mc:shibor3m:m2", "mc:shibor3m:tsf12"):
+        _, a, b = mc.split(":")
+        ph = classify_mc(m, a, b, "ma3_vs_3ago").dropna()
+        res[f"{mc}|ma3_vs_3ago"] = {"month": str(ph.index[-1]), "phase": ph.iloc[-1], "last6": [f"{k}:{v}" for k, v in ph.iloc[-6:].items()]}
     for infl in ("ppi", "cpi"):
         for rule in ("ma3_vs_3ago", "ma3_vs_ma12"):
             ph = classify(m, infl, rule).dropna()
             res[f"{infl}|{rule}"] = {"month": str(ph.index[-1]), "phase": ph.iloc[-1], "last6": [f"{k}:{v}" for k, v in ph.iloc[-6:].items()]}
-    tail = m.iloc[-7:]
+    tail = m[["pmi", "cpi", "ppi"] + [c for c in ("shibor3m", "m2", "tsf12") if c in m]].iloc[-7:]
     res["latest_values"] = {str(k): {c: (None if pd.isna(v) else round(float(v), 2)) for c, v in r.items()} for k, r in tail.iterrows()}
     return res
 
@@ -162,7 +210,7 @@ def main():
         return
     R = load_prices()
     res = {"note": "错开=按公布日（次月17日起）才可用的真实可交易口径；同期=第t月本身（不可交易，用来看循环论证）", "now": current(m), "results": {}}
-    for infl in ("ppi", "cpi"):
+    for infl in ("ppi", "cpi", "mc:shibor3m:m2", "mc:shibor3m:tsf12", "mc:cgb10:m2"):
         for rule in ("ma3_vs_3ago", "ma3_vs_ma12"):
             res["results"][f"{infl}|{rule}"] = evaluate(m, R, infl, rule)
     (ROOT / "experiments" / "macro_clock_compare.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
