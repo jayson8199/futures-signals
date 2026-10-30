@@ -47,6 +47,11 @@ def main():
         ("pmi_em", "macro_china_pmi", {}),
         ("lpr", "macro_china_lpr", {}),
         ("rrr", "macro_china_reserve_requirement_ratio", {}),
+        # 货币 + 信用（泽平宏观改良版时钟）
+        ("m2", "macro_china_money_supply", {}),
+        ("shrzgm", "macro_china_shrzgm", {}),
+        ("shibor3m", "rate_interbank", {"market": "上海银行同业拆借市场", "symbol": "Shibor人民币", "indicator": "3月"}),
+        ("cn_us_yield", "bond_zh_us_rate", {"start_date": "20100101"}),
     ]
     for f in dir(ak):  # 核心 CPI：名字里带 core 的都试一遍
         if f.startswith("macro_china") and "core" in f:
