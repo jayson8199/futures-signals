@@ -1,0 +1,11 @@
+akshare 1.20.21
+['option_cffex_hs300_daily_sina', 'option_cffex_hs300_list_sina', 'option_cffex_hs300_spot_sina', 'option_cffex_sz50_daily_sina', 'option_cffex_sz50_list_sina', 'option_cffex_sz50_spot_sina', 'option_cffex_zz1000_daily_sina', 'option_cffex_zz1000_list_sina', 'option_cffex_zz1000_spot_sina']
+IF0 {'2026-10-28': {'open': 4020.0, 'high': 4046.0, 'low': 4005.4, 'close': 4027.2, '成交量': 68017, '持仓量': 176426, '动态结算价': 0.0}, '2026-10-29': {'open': 4021.8, 'high': 4021.8, 'low': 3970.4, 'close': 3980.4, '成交量': 76556, '持仓量': 181641, '动态结算价': 0.0}, '2026-10-30': {'open': 3936.4, 'high': 4000.8, 'low': 3914.2, 'close': 3928.0, '成交量': 94604, '持仓量': 182758, '动态结算价': 0.0}}
+沪深300 {'2026-10-28': {'open': 4084.615, 'close': 4083.87}, '2026-10-29': {'open': 4075.473, 'close': 4041.838}, '2026-10-30': {'open': 3985.236, 'close': 3985.501}}
+io2611P3950 75.8
+io2611P4000 99.8
+io2611P4050 130.8
+io2611P3950 75.8
+io2611P4000 99.8
+io2611P4050 130.8
+合约列表样例 {'沪深300指数': ['io2611', 'io2612', 'io2703', 'io2709', 'io2701', 'io2706']}
