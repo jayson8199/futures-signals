@@ -351,7 +351,7 @@ def capital_model(n_future=8, n_sims=10000, seed=7):
     return res
 
 
-def ho_weekly_stop(y0, y1, stop=None, sym="IH0"):
+def ho_weekly_stop(y0, y1, stop=None, sym="IH0", idx_stop=None):
     """同 ho_weekly，加权利金止损：持有期间（周四、周五）若认沽价值跌到 买入价×(1−stop) 即止损离场。
     只有日线，用两天的指数最高价估算持有期间认沽的最低价值；只要最高价触及就算止损（不知道日内先后顺序，偏保守）。
     止损成交价 = 止损价 − 1 跳。"""
@@ -374,7 +374,17 @@ def ho_weekly_stop(y0, y1, stop=None, sym="IH0"):
         p0, p1 = bs_put(S0, K, T0, R, v), bs_put(S1, K, T1, R, v)
         pnl = ((p1 - otick) - (p0 + otick)) * omult - 30
         stopped = False
-        if stop is not None:
+        if idx_stop is not None:
+            # 指数价格止损：持有期间指数最高价 ≥ 买入时指数 ×(1+idx_stop) 即止损，按该指数价位估算认沽价值卖出（先看周四，再看周五）
+            lvl_px = S0 * (1 + idx_stop)
+            Tm = ((exp - t.date()).days) / 365
+            for day, Tx in ((t, Tm), (fri, T1)):
+                if float(ix.loc[day, "high"]) >= lvl_px:
+                    stopped = True
+                    px = bs_put(lvl_px, K, Tx, R, v)
+                    pnl = ((px - otick) - (p0 + otick)) * omult - 30
+                    break
+        if stop is not None and not stopped:
             Tm = ((exp - t.date()).days) / 365
             worst = min(bs_put(float(ix.loc[t, "high"]), K, Tm, R, v), bs_put(float(ix.loc[fri, "high"]), K, T1, R, v))
             lvl = p0 * (1 - stop)
