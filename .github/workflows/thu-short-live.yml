@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       cmd:
-        description: "auto 或 probe"
+        description: "auto / preview / probe"
         default: "auto"
       date:
         description: "处理日期 YYYY-MM-DD（留空=今天）"
@@ -46,6 +46,7 @@ jobs:
         run: |
           CMD="${{ github.event.inputs.cmd || 'auto' }}"
           if [ "$CMD" = "probe" ]; then mkdir -p data/thu_short; python scanner/thu_short_live.py probe 2>&1 | tee data/thu_short/probe.txt; exit 0; fi
+          if [ "$CMD" = "preview" ]; then python scanner/thu_short_live.py preview; exit 0; fi
           python scanner/thu_short_live.py auto ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }}
       - name: 提交记录
         id: commit
