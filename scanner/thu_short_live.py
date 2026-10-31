@@ -9,6 +9,7 @@
   A. 期货：IF 主力连续，周三收盘价开空 → 周五收盘价平仓
      成本 = 开仓 万0.23 + 平昨 万0.23 + 每边 1 跳(0.2 点)；乘数 300
      若周三到周五之间主力换月（升贴水跳变 >0.5%），平仓盈亏改按沪深300指数同期涨跌折算
+     止损（2026-11-01 用户加）：浮亏达到一手保证金（按 12% 计）的 50%，即 IF 比开仓价上涨 6%，按该价 + 1 跳止损（用周四、周五日最高价判断）
   B. 期权：沪深300股指期权 IO，周三收盘买入平值认沽 → 周五收盘卖出
      合约 = 周三沪深300收盘价就近的行权价（50 点一档）；到期月取当月，若本周就是到期周则取次月
      价格优先用新浪的真实日收盘价；拿不到时用 Black-Scholes 估算（隐波 = 前 20 日实际波动 ×1.1），记录里标明来源
@@ -97,6 +98,8 @@ def opt_low(code, day):
 
 
 STOP = 0.5  # 权利金亏 50% 止损
+MARGIN = 0.12
+FUT_STOP_PCT = STOP * MARGIN  # 期货：亏掉保证金的 50% = 价格反向 6%
 
 
 # ---------------- 定价兜底 ----------------
@@ -169,7 +172,7 @@ def do_open(day, F, I, st):
                   "opened_at": now_cn().strftime("%Y-%m-%d %H:%M")}
     o = st["open"]
     msg = (f"【周四做空·纸面实盘】{day}（周三）收盘开仓\n"
-           f"A 期货：IF 主力 {fpx:.1f} 开空 1 手（周五收盘平仓）\n"
+           f"A 期货：IF 主力 {fpx:.1f} 开空 1 手（周五收盘平仓；止损价 {fpx * (1 + FUT_STOP_PCT):.1f}，即亏掉一手保证金的一半）\n"
            f"B 期权：买入 {code}（沪深300 平值认沽，行权价 {K}）1 手，权利金 {o['opt_open']:.1f} 点 = {o['opt_open'] * OMULT:.0f} 元（{o['opt_src_open']}），止损价 {o['opt_open'] * (1 - STOP):.1f}\n"
            f"沪深300 收盘 {S:.2f}\n纸面记录，非投资建议。{SITE}thushort.html")
     return msg
@@ -183,6 +186,12 @@ def do_close(day, F, I, st):
     b1 = fpx / S1 - 1
     roll = abs(b1 - b0) > 0.005
     move = (S1 / o["idx_open"] - 1) * o["fut_open"] if roll else fpx - o["fut_open"]
+    fut_stop_day = None
+    lvl = o["fut_open"] * (1 + FUT_STOP_PCT)
+    for d in [x for x in F.index if o["open_date"] < x <= day]:
+        if "high" in F.columns and float(F.loc[d, "high"]) >= lvl:
+            fut_stop_day, move, fpx = d, lvl + TICK - o["fut_open"], lvl + TICK
+            break
     fut_pnl = (-move - o["fut_open"] * FEE * 2 - 2 * TICK) * MULT
     real = opt_close(o["opt_code"], day)
     exp = date.fromisoformat(o["expiry"])
@@ -205,7 +214,7 @@ def do_close(day, F, I, st):
             src = f"止损（{d[5:]} {lo_src} {lo:.1f} ≤ {stop_lvl:.1f}）"
             break
     opt_pnl = ((p1 - OTICK) - (o["opt_open"] + OTICK)) * OMULT - OFEE * 2 if stop_day is None else (p1 - (o["opt_open"] + OTICK)) * OMULT - OFEE * 2
-    tr = {**o, "close_date": day, "fut_close": fpx, "idx_close": S1, "roll_fix": roll, "fut_pnl": round(fut_pnl), "fut_ret_pct": round(-move / o["fut_open"] * 100, 2),
+    tr = {**o, "close_date": day, "fut_close": fpx, "idx_close": S1, "roll_fix": roll, "fut_stop_day": fut_stop_day, "fut_pnl": round(fut_pnl), "fut_ret_pct": round(-move / o["fut_open"] * 100, 2),
           "opt_close": p1, "opt_src_close": src, "opt_stop_day": stop_day, "opt_pnl": round(opt_pnl), "opt_ret_pct": round(opt_pnl / (o["opt_open"] * OMULT) * 100, 1),
           "idx_ret_pct": round((S1 / o["idx_open"] - 1) * 100, 2), "closed_at": now_cn().strftime("%Y-%m-%d %H:%M")}
     st["trades"].append(tr)
@@ -213,7 +222,7 @@ def do_close(day, F, I, st):
     s = summary(st)
     msg = (f"【周四做空·纸面实盘】{day} 收盘平仓\n"
            f"沪深300 {o['idx_open']:.2f} → {S1:.2f}（{tr['idx_ret_pct']:+.2f}%）\n"
-           f"A 期货：{o['fut_open']:.1f} → {fpx:.1f}，本笔 {'+' if fut_pnl >= 0 else ''}{fut_pnl:,.0f} 元{'（换月，按指数折算）' if roll else ''}\n"
+           f"A 期货：{o['fut_open']:.1f} → {fpx:.1f}{'（触发止损）' if fut_stop_day else ''}，本笔 {'+' if fut_pnl >= 0 else ''}{fut_pnl:,.0f} 元{'（换月，按指数折算）' if roll else ''}\n"
            f"B 期权：{o['opt_code']} {o['opt_open']:.1f} → {p1:.1f}{'（触发 50% 止损）' if stop_day else ''}，本笔 {'+' if opt_pnl >= 0 else ''}{opt_pnl:,.0f} 元（{tr['opt_ret_pct']:+.1f}%，{src}）\n"
            f"累计 {s['笔数']} 笔：期货 {s['期货']['累计元']:+,} 元（赚 {s['期货']['赚钱笔数']} 笔），期权 {s['期权']['累计元']:+,} 元（赚 {s['期权']['赚钱笔数']} 笔）\n"
            f"纸面记录，非投资建议。{SITE}thushort.html")
