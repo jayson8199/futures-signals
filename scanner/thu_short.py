@@ -271,3 +271,77 @@ def stat(name, kind, label, pnl, cap, cap_name):
             "单次最大亏损元": int(s.min()), "最大回撤元": int(mdd), "投入资金元": int(cap), "投入口径": cap_name,
             "累计/投入": round(float(s.sum() / cap), 2), "累计/最大回撤": round(float(s.sum() / -mdd), 2) if mdd < 0 else None,
             "每次平均/波动": round(float(s.mean() / s.std()), 2) if s.std() else None}
+
+
+# ---------------- 资金模型（2026-11-01 用户要求）----------------
+def ho_weekly(y0, y1):
+    """上证50 买平值认沽（周四开盘→周五收盘，BS 估算，与 run()/run_hist() 同口径）逐周：(日期, 每手权利金元, 每手盈亏元)"""
+    name, mult, tick, icode, ocode, omult, kstep, otick = FUT["IH0"]
+    ix = load_idx(icode)
+    ix["rv20"] = ix["close"].pct_change().rolling(20).std() * math.sqrt(242)
+    out = []
+    for t in ix.index[(ix.index.year >= y0) & (ix.index.year <= y1) & (ix.index.weekday == 3)]:
+        fri = t + pd.Timedelta(days=1)
+        if fri not in ix.index:
+            continue
+        S0, S1 = float(ix.loc[t, "open"]), float(ix.loc[fri, "close"])
+        prev = ix.index[ix.index < t]
+        v = float(ix.loc[prev[-1], "rv20"]) * 1.1
+        if math.isnan(v):
+            continue
+        exp = pick_expiry(fri.date())
+        T0, T1 = ((exp - t.date()).days + 0.25) / 365, ((exp - fri.date()).days) / 365
+        K = round(S0 / kstep) * kstep
+        p0, p1 = bs_put(S0, K, T0, R, v), bs_put(S1, K, T1, R, v)
+        out.append((t.strftime("%Y-%m-%d"), p0 * omult, ((p1 - otick) - (p0 + otick)) * omult - 30))
+    return out
+
+
+def capital_sim(weeks, principal=4500.0, reserve=4500.0, reinvest=0.5):
+    """weeks: [(日期, 每手权利金, 每手盈亏)]；本金能买几手买几手；赚了一半滚入本金、一半落袋；
+    本金连一手都买不起时动用维护金（只一次）；维护金用完仍买不起则停止"""
+    P, Rv, bank = principal, reserve, 0.0
+    log = []
+    for d, cost, pnl in weeks:
+        lots = int(P // cost)
+        if lots == 0 and Rv > 0:
+            P += Rv
+            Rv = 0.0
+            lots = int(P // cost)
+        if lots == 0:
+            log.append({"日期": d, "手数": 0, "本周盈亏": 0, "本金": round(P), "落袋": round(bank), "维护金余额": round(Rv), "备注": "资金不足一手，停止"})
+            continue
+        g = lots * pnl
+        if g > 0:
+            P += g * reinvest
+            bank += g * (1 - reinvest)
+        else:
+            P += g
+        log.append({"日期": d, "手数": lots, "每手权利金": round(cost), "本周盈亏": round(g), "本金": round(P), "落袋": round(bank), "维护金余额": round(Rv)})
+    return {"本金": round(P), "落袋": round(bank), "维护金余额": round(Rv), "合计": round(P + bank + Rv), "log": log}
+
+
+def capital_model(n_future=8, n_sims=10000, seed=7):
+    import random
+    rnd = random.Random(seed)
+    w26 = ho_weekly(2026, 2026)
+    base = capital_sim(w26)
+    hist = ho_weekly(2016, 2025)
+    def project(pool):
+        # 从样本里随机抽未来 n_future 周的"每手收益率"，权利金按 2026 年 10 月的平均水平
+        cost_now = sum(c for _, c, _ in w26[-8:]) / 8
+        rets = [p / c for _, c, p in pool]
+        finals = []
+        for _ in range(n_sims):
+            fut = [(f"F{i + 1}", cost_now, cost_now * rnd.choice(rets)) for i in range(n_future)]
+            st = base
+            r = capital_sim(w26 + fut)
+            finals.append(r["合计"])
+        finals.sort()
+        q = lambda x: finals[int(x * (len(finals) - 1))]
+        return {"5%": q(0.05), "25%": q(0.25), "中位数": q(0.5), "75%": q(0.75), "95%": q(0.95), "低于投入9000的概率%": round(sum(1 for x in finals if x < 9000) / len(finals) * 100, 1)}
+    res = {"截至10月底": {k: v for k, v in base.items() if k != "log"}, "逐周": base["log"],
+           "情景A_延续2026": project(w26), "情景B_回到2016-2025常态": project(hist),
+           "说明": f"2026-01~10 共 {len(w26)} 周按估算价格逐周模拟；11–12 月按 {n_future} 周（11/5~12/24，12/31 周四次日元旦休市不做）用两种情景各随机模拟 {n_sims} 次"}
+    (ROOT / "experiments" / "ho_capital_model.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    return res
