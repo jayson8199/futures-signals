@@ -78,9 +78,14 @@ def q_summary(qe):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fetch", action="store_true")
+    ap.add_argument("--rules", action="store_true", help="只跑规律大比较")
     args = ap.parse_args()
     if args.fetch:
         fetch()
+    if args.rules:
+        for r in rules_compare():
+            print(r)
+        return
     d = load()
     res = {"数据截止": d["date"].iloc[-1].strftime("%Y-%m-%d")}
     y26 = d[d["date"].dt.year == 2026]
@@ -107,6 +112,113 @@ def main():
     out = ROOT / "experiments" / "calendar_stats.json"
     out.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps({k: v for k, v in res.items() if "明细" not in k and "逐年" not in k}, ensure_ascii=False, indent=1))
+
+
+# ---------------- 规律大比较（2026-11-01 加） ----------------
+def rules_compare():
+    """把各种日历规律放在一起比：每条规律算 上涨/下跌 概率、和同周期基准相比的偏离（z 值）、
+    2005–2014 / 2015–2025 / 2026 三段是否方向一致、2005–2025 中有几年方向成立。"""
+    import math
+    d = pd.read_csv(CSV)
+    d["date"] = pd.to_datetime(d["date"])
+    d = d[d["date"] >= "2004-06-01"].sort_values("date").reset_index(drop=True)
+    d["wd"] = d["date"].dt.weekday
+    d["gapdays"] = (d["date"] - d["date"].shift()).dt.days
+    d["ym"] = d["date"].dt.to_period("M")
+    d["q"] = d["date"].dt.to_period("Q")
+    C, O = d["close"].values, d["open"].values
+    n = len(d)
+    rules = []  # (类别, 名称, 事件列表[(date, ret%)], 基准口径)
+
+    def add(cat, name, idx_pairs, base):
+        ev = []
+        for a, b, kind in idx_pairs:  # 从 a 的 kind(open/prevclose) 到 b 的收盘
+            if a < 1 or b >= n:
+                continue
+            start = O[a] if kind == "open" else C[a - 1]
+            ev.append((d["date"].iloc[b], (C[b] / start - 1) * 100))
+        rules.append((cat, name, ev, base))
+
+    WD = ["周一", "周二", "周三", "周四", "周五"]
+    for k in range(5):
+        idx = d.index[d["wd"] == k]
+        add("单日涨跌（收盘 vs 前收）", WD[k], [(i, i, "prev") for i in idx], "1d")
+        add("单日阴阳（收盘 vs 当天开盘）", WD[k], [(i, i, "open") for i in idx], "intra")
+    # 连续两天：X 开盘 → 次日收盘（两天都是同一周相邻交易日）
+    for k in range(4):
+        idx = [i for i in d.index[d["wd"] == k] if i + 1 < n and d["wd"].iloc[i + 1] == k + 1 and d["gapdays"].iloc[i + 1] == 1]
+        add("两天（前天开盘 → 次日收盘）", f"{WD[k]}开→{WD[k + 1]}收", [(i, i + 1, "open") for i in idx], "2d_open")
+    # 整周
+    wk = d.groupby(d["date"].dt.to_period("W"))
+    add("整周", "周一开盘→周五收盘", [(g.index[0], g.index[-1], "open") for _, g in wk if g["wd"].iloc[0] == 0 and g["wd"].iloc[-1] == 4], "week_open")
+    add("整周", "上周五收盘→本周五收盘", [(g.index[0], g.index[-1], "prev") for _, g in wk if g["wd"].iloc[-1] == 4], "week")
+    # 月初月末
+    mg = list(d.groupby("ym"))
+    add("月份位置", "每月第 1 个交易日", [(g.index[0], g.index[0], "prev") for _, g in mg], "1d")
+    add("月份位置", "每月前 3 个交易日", [(g.index[0], g.index[min(2, len(g) - 1)], "prev") for _, g in mg], "3d")
+    add("月份位置", "每月最后 1 个交易日", [(g.index[-1], g.index[-1], "prev") for _, g in mg], "1d")
+    add("月份位置", "每月最后 3 个交易日", [(g.index[-3], g.index[-1], "prev") for _, g in mg if len(g) >= 3], "3d")
+    # 季末
+    qg = list(d.groupby("q"))
+    add("季度", "季末最后 1 个交易日", [(g.index[-1], g.index[-1], "prev") for _, g in qg], "1d")
+    add("季度", "季末最后 5 个交易日", [(g.index[-5], g.index[-1], "prev") for _, g in qg if len(g) >= 5], "5d")
+    add("季度", "新季度第 1 个交易日", [(g.index[0], g.index[0], "prev") for _, g in qg], "1d")
+    # 节假日
+    post = d.index[d["gapdays"] >= 5]
+    add("节假日", "长假（休市≥5天）后第 1 天", [(i, i, "prev") for i in post], "1d")
+    add("节假日", "长假前最后 1 天", [(i - 1, i - 1, "prev") for i in post if i - 1 >= 1], "1d")
+    add("节假日", "长假前最后 3 天", [(i - 3, i - 1, "prev") for i in post if i - 3 >= 1], "3d")
+    # 自然月（整月）
+    for m in range(1, 13):
+        add("自然月（整月涨跌）", f"{m} 月", [(g.index[0], g.index[-1], "prev") for p, g in mg if p.month == m], "month")
+
+    # 基准：同长度的任意区间的上涨概率（2005–2025）
+    base_p = {}
+    r1 = pd.Series(C).pct_change()
+    def up_rate(series):
+        s = series[(d["date"] >= "2005-01-01") & (d["date"] < "2026-01-01")].dropna()
+        return float((s > 0).mean())
+    base_p["1d"] = up_rate(r1)
+    base_p["intra"] = up_rate(pd.Series(C / O - 1))
+    base_p["2d_open"] = up_rate(pd.Series(C) / pd.Series(O).shift(1) - 1)
+    base_p["3d"] = up_rate(pd.Series(C).pct_change(3))
+    base_p["5d"] = up_rate(pd.Series(C).pct_change(5))
+    base_p["week"] = base_p["5d"]
+    base_p["week_open"] = up_rate(pd.Series(C) / pd.Series(O).shift(4) - 1)
+    base_p["month"] = up_rate(pd.Series(C).pct_change(21))
+
+    out = []
+    for cat, name, ev, base in rules:
+        e = pd.DataFrame(ev, columns=["date", "ret"])
+        def seg(a, b):
+            s = e[(e["date"] >= a) & (e["date"] < b)]["ret"]
+            return s
+        full = seg("2005-01-01", "2026-01-01")
+        if len(full) < 10:
+            continue
+        p_up = float((full > 0).mean())
+        p0 = base_p[base]
+        z = (p_up - p0) / math.sqrt(p0 * (1 - p0) / len(full))
+        direction = "涨" if p_up >= p0 else "跌"
+        def rate(s):
+            return round(float((s > 0).mean() * 100), 1) if len(s) else None
+        a, b, c = seg("2005-01-01", "2015-01-01"), seg("2015-01-01", "2026-01-01"), seg("2026-01-01", "2027-01-01")
+        years_ok, years_n = 0, 0
+        for y, g in full.groupby(e.loc[full.index, "date"].dt.year):
+            if len(g) == 0:
+                continue
+            years_n += 1
+            r = (g > 0).mean()
+            years_ok += int((r > p0) if direction == "涨" else (r < p0))
+        out.append({"类别": cat, "规律": name, "样本": int(len(full)), "上涨概率": round(p_up * 100, 1), "基准上涨概率": round(p0 * 100, 1),
+                    "偏向": direction, "偏离": round((p_up - p0) * 100, 1), "z": round(z, 2), "平均涨跌%": round(float(full.mean()), 3),
+                    "2005-14上涨%": rate(a), "2015-25上涨%": rate(b), "2026上涨%": rate(c), "2026样本": int(len(c)),
+                    "方向成立年数": f"{years_ok}/{years_n}"})
+    out.sort(key=lambda r: -abs(r["z"]))
+    (ROOT / "experiments" / "calendar_rules.json").write_text(json.dumps({"rules": out, "base": {k: round(v * 100, 1) for k, v in base_p.items()},
+                                                                       "note": "z 为与同周期基准上涨概率之差的二项检验统计量；共比较 %d 条规律，|z|>3 才较可信（多重比较）" % len(out)},
+                                                                      ensure_ascii=False, indent=1), encoding="utf-8")
+    return out
 
 
 if __name__ == "__main__":
