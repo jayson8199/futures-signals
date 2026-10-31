@@ -351,11 +351,11 @@ def capital_model(n_future=8, n_sims=10000, seed=7):
     return res
 
 
-def ho_weekly_stop(y0, y1, stop=None):
+def ho_weekly_stop(y0, y1, stop=None, sym="IH0"):
     """同 ho_weekly，加权利金止损：持有期间（周四、周五）若认沽价值跌到 买入价×(1−stop) 即止损离场。
     只有日线，用两天的指数最高价估算持有期间认沽的最低价值；只要最高价触及就算止损（不知道日内先后顺序，偏保守）。
     止损成交价 = 止损价 − 1 跳。"""
-    name, mult, tick, icode, ocode, omult, kstep, otick = FUT["IH0"]
+    name, mult, tick, icode, ocode, omult, kstep, otick = FUT[sym]
     ix = load_idx(icode)
     ix["rv20"] = ix["close"].pct_change().rolling(20).std() * math.sqrt(242)
     out = []
