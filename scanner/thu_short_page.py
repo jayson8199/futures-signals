@@ -11,7 +11,7 @@ def body():
     st = L.load_state()
     s = L.summary(st)
     t = st["trades"]
-    head = ("<div class='hd'><div><h1>周四做空 · 纸面实盘</h1><div class='sub'>每周三收盘开空 → 周五收盘平仓 ｜ A：沪深300 股指期货 IF 一手 ｜ B：沪深300 股指期权 买平值认沽一手 ｜ "
+    head = ("<div class='hd'><div><h1>周四做空 · 纸面实盘</h1><div class='sub'>每周三收盘开空 → 周五收盘平仓 ｜ A：沪深300 股指期货 IF 一手 ｜ B：沪深300 股指期权 买平值认沽一手（权利金亏 50% 止损）｜ "
             f"{st['start']} 起 ｜ 纸面记录，不构成投资建议</div></div></div>")
     def money(x):
         return f"{'+' if x > 0 else ''}{x:,.0f}"
@@ -24,7 +24,7 @@ def body():
     o = st["open"]
     if o:
         now = (f"<div class='card' style='border-left:4px solid var(--cyan)'><h3>当前持仓 · {o['open_date']}（周三）收盘开</h3>"
-               f"<div>A 期货：IF 主力 <b>{o['fut_open']:.1f}</b> 空 1 手 ｜ B 期权：<b>{o['opt_code']}</b>（行权价 {o['K']}，到期 {o['expiry']}）买 1 手，权利金 <b>{o['opt_open']:.1f}</b> 点（{o['opt_src_open']}）</div>"
+               f"<div>A 期货：IF 主力 <b>{o['fut_open']:.1f}</b> 空 1 手 ｜ B 期权：<b>{o['opt_code']}</b>（行权价 {o['K']}，到期 {o['expiry']}）买 1 手，权利金 <b>{o['opt_open']:.1f}</b> 点（{o['opt_src_open']}），止损价 {o['opt_open'] * 0.5:.1f}</div>"
                f"<div class='muted' style='margin-top:6px'>沪深300 开仓时 {o['idx_open']:.2f}，本周五收盘平仓。</div></div>")
     else:
         nxt = "下一个周三收盘" if t else f"{st['start']}（周三）收盘"
@@ -59,7 +59,7 @@ def body():
         f"<td class='muted' style='font-size:11px'>{x['opt_src_open']}/{x['opt_src_close']}</td></tr>" for x in reversed(t))
     table = (f"<div class='card'><h3>逐笔记录</h3><div class='tbl' style='border-radius:8px'><table><thead><tr><th>周三 → 周五</th><th>沪深300</th><th>A 期货 开→平</th><th>A 盈亏（元）</th>"
              f"<th>B 合约</th><th>B 权利金 开→平</th><th>B 盈亏（元）</th><th>期权价格来源</th></tr></thead><tbody>{rows or '<tr><td colspan=8 class=muted>还没有完成的交易</td></tr>'}</tbody></table></div>"
-             "<div class='muted' style='font-size:11.5px;margin-top:6px'>* 周三到周五之间主力合约换月，期货盈亏按沪深300指数同期涨跌折算。期权价格优先用新浪的真实日收盘价，拿不到时用公式估算。</div></div>")
+             "<div class='muted' style='font-size:11.5px;margin-top:6px'>* 周三到周五之间主力合约换月，期货盈亏按沪深300指数同期涨跌折算。期权价格优先用新浪的真实日收盘价，拿不到时用公式估算。B 期权设 50% 止损：周四、周五任一天最低价跌到买入价一半，即按止损价卖出。</div></div>")
     ref = ""
     try:
         v = json.loads((ROOT / "experiments" / "thu_short_variants_2026.json").read_text(encoding="utf-8"))
