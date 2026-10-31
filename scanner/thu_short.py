@@ -297,17 +297,21 @@ def ho_weekly(y0, y1):
     return out
 
 
-def capital_sim(weeks, principal=4500.0, reserve=4500.0, reinvest=0.5):
+def capital_sim(weeks, principal=4500.0, reserve=4500.0, reinvest=0.5, cap=1.0):
     """weeks: [(日期, 每手权利金, 每手盈亏)]；本金能买几手买几手；赚了一半滚入本金、一半落袋；
     本金连一手都买不起时动用维护金（只一次）；维护金用完仍买不起则停止"""
     P, Rv, bank = principal, reserve, 0.0
     log = []
+    def n_lots(P, cost):
+        # 每周最多动用本金的 cap 比例；但只要本金够一手，至少买一手
+        k = int(P * cap // cost)
+        return max(k, 1) if P >= cost else 0
     for d, cost, pnl in weeks:
-        lots = int(P // cost)
+        lots = n_lots(P, cost)
         if lots == 0 and Rv > 0:
             P += Rv
             Rv = 0.0
-            lots = int(P // cost)
+            lots = n_lots(P, cost)
         if lots == 0:
             log.append({"日期": d, "手数": 0, "本周盈亏": 0, "本金": round(P), "落袋": round(bank), "维护金余额": round(Rv), "备注": "资金不足一手，停止"})
             continue
