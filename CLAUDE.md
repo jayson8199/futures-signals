@@ -25,11 +25,11 @@
 
 | 板块 | 文件 | 归属 |
 |---|---|---|
-| 每日扫描主流程 | `scanner/scan.py` `run_daily.py` `build_site.py` `stats.py` `macd8.py` `history.py` `backfill.py` `notify.py` `oversold_live.py` `macro_fetch.py` `macro_clock.py` `macro_page.py`；`daily.yml` `notify-test.yml` `macro.yml` | 「每日扫描」对话 |
+| 每日扫描主流程 | `scanner/scan.py` `run_daily.py` `build_site.py` `stats.py` `macd8.py` `history.py` `backfill.py` `notify.py` `oversold_live.py` `macro_fetch.py` `macro_clock.py` `macro_page.py` `thu_short_live.py` `thu_short_page.py`；`daily.yml` `notify-test.yml` `macro.yml` `thu-short-live.yml` | 「每日扫描」对话 |
 | 加权指数 / K 线形态图 | `scanner/weighted*.py` `chart.py` `chart_page.py` `fetch_long.py`；`weighted-rebuild.yml` `bydate-debug.yml` `trend-data.yml` | 「加权指数 / K 线形态图」对话 |
 | 二区定律 | `scanner/erqu_*.py`；`erqu.yml` `erqu-live.yml` | 建它的那个对话 |
 | 命盘日报 | `mingpan/` 整个目录；`mingpan-daily.yml` | 「命盘」对话（跑在曼谷电脑上） |
-| 实验 / 回测 | `scanner/trend_backtest.py` `season_stats.py` `events_cal.py` `probe_sources.py` `tushare_probe.py`；`probe.yml` `tushare-probe.yml`；`experiments/` | 谁建的谁维护，不确定就问用户 |
+| 实验 / 回测 | `scanner/trend_backtest.py` `season_stats.py` `calendar_stats.py` `thu_short.py` `events_cal.py` `probe_sources.py` `tushare_probe.py`；`probe.yml` `tushare-probe.yml` `calendar-stats.yml`；`experiments/` | 谁建的谁维护，不确定就问用户 |
 
 - 不是自己板块的文件，默认**不改**。确实要改，先告诉用户，让他去知会另一个对话。
 - 改 `daily.yml` 或 `scanner/build_site.py` 之前，**必须先告知用户**，得到同意再动。
@@ -49,7 +49,7 @@
 
 - `data/`：**全部由 Actions 生成**，不要手改。
   `data/YYYY-MM-DD.json` 每日快照；`data/history/` 长期日线；`data/weighted/` `data/weighted_tushare/` 加权指数；
-  `data/oversold/` 「跌够久」纸面实盘状态；`data/erqu/` 二区定律记录；`data/long/` 趋势回测长数据；`data/macro/` 宏观时钟数据（PMI/CPI/PPI/M2/Shibor 等）。
+  `data/oversold/` 「跌够久」纸面实盘状态；`data/erqu/` 二区定律记录；`data/long/` 趋势回测长数据；`data/macro/` 宏观时钟数据（PMI/CPI/PPI/M2/Shibor 等）；`data/thu_short/` 「周四做空」纸面实盘记录；`data/index/` 上证/沪深300 等指数日线。
 - `experiments/`：实验输出和探测日志，可以参考，不当正式结论。
 - `site/`：`build_site.py` 生成，已 gitignore，不提交；GitHub Pages 由 Actions 部署。
 - `mingpan/`：`daily.py` 生成日报并推送，`rules.md` 是解读口径，`profile.json` 只是占位，真实资料在 Secret 里。
@@ -69,6 +69,7 @@
 - **八种形态**（`scan.py`）和 **MACD 八策略**（`macd8.py`）的判定逻辑与原 Kimi 版完全一致，这是用户的硬要求。要改先问。
 - **K 线形态图**（`chart.py`）按《王刚期货交易体系手册》（第二版）的规则标注；手册是用户上课笔记整理的，有疑问问用户，不要自己发明规则。
 - **跌够久**纸面实盘参数 2026-10-17 已封存，不再调整。
+- **周四做空**纸面实盘（周三收盘开空、周五收盘平；IF 一手 + IO 平值认沽一手）2026-11-04 起，规则来自 2026 年样本内统计，用户计划 2027 年按实盘结果再调整，之前不改。
 - **二区定律**来自用户上过的课：先回测验证，再决定要不要正式用。
 - **命盘**解读按 `mingpan/rules.md`；改口径要同步改 `daily.py`（文件开头有说明）。
 

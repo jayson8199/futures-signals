@@ -205,7 +205,7 @@ def _macro_banner(root=""):
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
     nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("macro.html", "宏观时钟", "macro"), ("method.html", "方法说明", "method")]
+           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort"), ("macro.html", "宏观时钟", "macro"), ("method.html", "方法说明", "method")]
     nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
@@ -1070,6 +1070,11 @@ def main():
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
     (out / "cta.html").write_text(layout(f"趋势回测 · {SITE_TITLE}", cta_body(), "cta"), encoding="utf-8")
+    try:
+        import thu_short_page
+        (out / "thushort.html").write_text(layout(f"周四做空实盘 · {SITE_TITLE}", thu_short_page.body(), "thushort"), encoding="utf-8")
+    except Exception as e:
+        print(f"[警告] 周四做空页面生成失败：{e}")
     try:
         import macro_page
         (out / "macro.html").write_text(layout(f"宏观时钟 · {SITE_TITLE}", macro_page.macro_body(), "macro"), encoding="utf-8")
