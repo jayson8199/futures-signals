@@ -128,10 +128,72 @@ def run(year):
     return out
 
 
+
+
+def run_hist(y0=2005, y1=2026):
+    """逐年回测：指数口径（周四开盘→周五收盘，代表期货去掉升贴水后的收益），2018 年起另附期货实际价格口径；期权按 BS 估算"""
+    res = {}
+    for sym, (name, mult, tick, icode, ocode, omult, kstep, otick) in FUT.items():
+        ix = load_idx(icode)
+        ix["rv20"] = ix["close"].pct_change().rolling(20).std() * math.sqrt(242)
+        try:
+            f = load_fut(sym)
+        except Exception:
+            f = None
+        per = {}
+        for t in ix.index[(ix.index.year >= y0) & (ix.index.year <= y1) & (ix.index.weekday == 3)]:
+            fri = t + pd.Timedelta(days=1)
+            if fri not in ix.index:
+                continue
+            S0, S1 = float(ix.loc[t, "open"]), float(ix.loc[fri, "close"])
+            if S0 <= 0:
+                continue
+            r = (S1 / S0 - 1) * 100
+            cost_pct = (FEE * 2 + 2 * tick / S0) * 100
+            y = t.year
+            p = per.setdefault(y, {"周数": 0, "下跌周": 0, "做空%": [], "期货%": [], "期权%": []})
+            p["周数"] += 1
+            p["下跌周"] += int(r < 0)
+            p["做空%"].append(-r - cost_pct)
+            if f is not None and t in f.index and fri in f.index:
+                o, c = float(f.loc[t, "open"]), float(f.loc[fri, "close"])
+                b0, b1 = o / S0 - 1, c / S1 - 1
+                fr = r if abs(b1 - b0) > 0.005 else (c / o - 1) * 100
+                p["期货%"].append(-fr - cost_pct)
+            if ocode:
+                prev = ix.index[ix.index < t]
+                v = float(ix.loc[prev[-1], "rv20"]) * 1.1 if len(prev) and not math.isnan(ix.loc[prev[-1], "rv20"]) else 0.2
+                exp = pick_expiry(fri.date())
+                T0, T1 = ((exp - t.date()).days + 0.25) / 365, ((exp - fri.date()).days) / 365
+                K = round(S0 / kstep) * kstep
+                p0, p1 = bs_put(S0, K, T0, R, v), bs_put(S1, K, T1, R, v)
+                if p0 > 0:
+                    p["期权%"].append(((p1 - otick) - (p0 + otick) - 30 / omult) / p0 * 100)
+        rows = {}
+        for y, p in sorted(per.items()):
+            s = pd.Series(p["做空%"])
+            rows[y] = {"周数": p["周数"], "指数下跌周": p["下跌周"], "下跌占比%": round(p["下跌周"] / p["周数"] * 100, 1),
+                       "做空每周平均%": round(s.mean(), 3), "做空全年累计%": round(s.sum(), 2),
+                       "期货口径全年累计%": round(sum(p["期货%"]), 2) if p["期货%"] else None,
+                       "期权每周平均占权利金%": round(sum(p["期权%"]) / len(p["期权%"]), 1) if p["期权%"] else None,
+                       "期权赚钱周占比%": round(sum(1 for x in p["期权%"] if x > 0) / len(p["期权%"]) * 100, 0) if p["期权%"] else None}
+        res[sym] = {"name": name, "years": rows}
+    (ROOT / "experiments" / "thu_short_hist.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    return res
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--year", type=int, default=2026)
+    ap.add_argument("--hist", action="store_true")
     a = ap.parse_args()
-    res = run(a.year)
-    for k, v in res.items():
-        print(json.dumps(v["summary"], ensure_ascii=False))
+    if a.hist:
+        res = run_hist()
+        for k, v in res.items():
+            print("==", v["name"])
+            for y, r in v["years"].items():
+                print(y, r)
+    else:
+        res = run(a.year)
+        for k, v in res.items():
+            print(json.dumps(v["summary"], ensure_ascii=False))
