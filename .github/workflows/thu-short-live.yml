@@ -45,7 +45,7 @@ jobs:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
         run: |
           CMD="${{ github.event.inputs.cmd || 'auto' }}"
-          if [ "$CMD" = "probe" ]; then python scanner/thu_short_live.py probe; exit 0; fi
+          if [ "$CMD" = "probe" ]; then mkdir -p data/thu_short; python scanner/thu_short_live.py probe 2>&1 | tee data/thu_short/probe.txt; exit 0; fi
           python scanner/thu_short_live.py auto ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }}
       - name: 提交记录
         id: commit
