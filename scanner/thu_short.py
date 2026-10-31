@@ -197,3 +197,77 @@ if __name__ == "__main__":
         res = run(a.year)
         for k, v in res.items():
             print(json.dumps(v["summary"], ensure_ascii=False))
+
+
+def variants(year=2026):
+    """同一年内比较不同做法的投入产出：期货（不同进出场时点）与期权（平值认沽 / 虚值认沽 / 熊市价差），
+    期权用 BS 估算并加简单偏斜（虚值认沽每虚值 1% 隐波 +1 个点）"""
+    out = []
+    for sym, (name, mult, tick, icode, ocode, omult, kstep, otick) in FUT.items():
+        f = load_fut(sym)
+        ix = load_idx(icode)
+        ix["rv20"] = ix["close"].pct_change().rolling(20).std() * math.sqrt(242)
+        thu = [t for t in f.index if t.year == year and t.weekday() == 3 and (t + pd.Timedelta(days=1)) in f.index and t in ix.index and (t + pd.Timedelta(days=1)) in ix.index]
+        def fut_case(label, legs, intraday):
+            pnl = []
+            for t in thu:
+                fri = t + pd.Timedelta(days=1)
+                wed = f.index[f.index < t][-1]
+                pts = {"wed_c": f.loc[wed, "close"], "thu_o": f.loc[t, "open"], "thu_c": f.loc[t, "close"], "fri_o": f.loc[fri, "open"], "fri_c": f.loc[fri, "close"]}
+                i_pts = {"wed_c": ix.loc[ix.index[ix.index < t][-1], "close"], "thu_o": ix.loc[t, "open"], "thu_c": ix.loc[t, "close"], "fri_o": ix.loc[fri, "open"], "fri_c": ix.loc[fri, "close"]}
+                a, b = legs
+                fa, fb = float(pts[a]), float(pts[b])
+                ia, ib = float(i_pts[a]), float(i_pts[b])
+                if abs((fb / ib) - (fa / ia)) > 0.005:  # 换月
+                    move = (ib / ia - 1) * fa
+                else:
+                    move = fb - fa
+                fee = fa * (FEE + (0.000345 if intraday else FEE))
+                pnl.append((-move - fee - 2 * tick) * mult)
+            cap = float(f[f.index.year == year]["close"].mean()) * mult * 0.12
+            out.append(stat(name, "期货", label, pnl, cap, "一手保证金(12%)"))
+        fut_case("周四开盘→周五收盘（隔夜）", ("thu_o", "fri_c"), False)
+        fut_case("周三收盘→周五收盘（提前一天）", ("wed_c", "fri_c"), False)
+        fut_case("周四开盘→周四收盘（只做日内）", ("thu_o", "thu_c"), True)
+        fut_case("周四收盘→周五收盘（只拿隔夜+周五）", ("thu_c", "fri_c"), False)
+        if not ocode:
+            continue
+        def opt_case(label, otm_buy, otm_sell):
+            pnl, caps = [], []
+            for t in thu:
+                fri = t + pd.Timedelta(days=1)
+                S0, S1 = float(ix.loc[t, "open"]), float(ix.loc[fri, "close"])
+                prev = ix.index[ix.index < t]
+                v = float(ix.loc[prev[-1], "rv20"]) * 1.1
+                exp = pick_expiry(fri.date())
+                T0, T1 = ((exp - t.date()).days + 0.25) / 365, ((exp - fri.date()).days) / 365
+                def leg(otm):
+                    K = round(S0 * (1 - otm) / kstep) * kstep
+                    vv = v + max(0.0, (S0 - K) / S0) * 1.0  # 偏斜：每虚值 1% 加 1 个波动率点
+                    return bs_put(S0, K, T0, R, vv), bs_put(S1, K, T1, R, vv)
+                b0, b1 = leg(otm_buy)
+                net0, net1 = b0, b1
+                fees = 15
+                if otm_sell is not None:
+                    s0, s1 = leg(otm_sell)
+                    net0, net1 = b0 - s0, b1 - s1
+                    fees = 30
+                ticks = 2 * otick * (2 if otm_sell is not None else 1)
+                pnl.append((net1 - net0 - ticks) * omult - fees * 2)
+                caps.append(net0 * omult)
+            out.append(stat(name, "期权", label, pnl, sum(caps) / len(caps), "平均权利金（最大亏损）"))
+        opt_case("买平值认沽", 0.0, None)
+        opt_case("买虚值 2% 认沽", 0.02, None)
+        opt_case("熊市价差：买平值、卖虚值 3% 认沽", 0.0, 0.03)
+    (ROOT / "experiments" / f"thu_short_variants_{year}.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    return out
+
+
+def stat(name, kind, label, pnl, cap, cap_name):
+    s = pd.Series(pnl)
+    cum = s.cumsum()
+    mdd = float((cum - cum.cummax()).min())
+    return {"品种": name, "工具": kind, "做法": label, "次数": int(len(s)), "赚钱次数": int((s > 0).sum()), "累计元": int(s.sum()),
+            "单次最大亏损元": int(s.min()), "最大回撤元": int(mdd), "投入资金元": int(cap), "投入口径": cap_name,
+            "累计/投入": round(float(s.sum() / cap), 2), "累计/最大回撤": round(float(s.sum() / -mdd), 2) if mdd < 0 else None,
+            "每次平均/波动": round(float(s.mean() / s.std()), 2) if s.std() else None}
