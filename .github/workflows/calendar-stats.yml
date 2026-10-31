@@ -1,0 +1,33 @@
+name: 上证日历统计（手动）
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: calendar-stats
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scanner/requirements.txt
+      - run: pip install -r scanner/requirements.txt
+      - run: python scanner/calendar_stats.py --fetch
+      - name: 提交结果
+        run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/index experiments/calendar_stats.json
+          git commit -m "上证日历统计 $(date -u +%F)" || exit 0
+          git pull --rebase origin main || true
+          git push
