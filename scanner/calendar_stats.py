@@ -20,13 +20,20 @@ CSV = ROOT / "data" / "index" / "sh000001.csv"
 WD = ["周一", "周二", "周三", "周四", "周五"]
 
 
+INDICES = {"sh000001": "上证指数", "sh000300": "沪深300", "sh000016": "上证50", "sh000905": "中证500", "sh000852": "中证1000"}
+
+
 def fetch():
     import akshare as ak
-    df = ak.stock_zh_index_daily(symbol="sh000001")
-    df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
     CSV.parent.mkdir(parents=True, exist_ok=True)
-    df[["date", "open", "high", "low", "close", "volume"]].to_csv(CSV, index=False)
-    print(f"上证指数 {len(df)} 行 {df['date'].iloc[0]} ~ {df['date'].iloc[-1]}")
+    for code, name in INDICES.items():
+        try:
+            df = ak.stock_zh_index_daily(symbol=code)
+            df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
+            df[["date", "open", "high", "low", "close", "volume"]].to_csv(CSV.parent / f"{code}.csv", index=False)
+            print(f"{name} {len(df)} 行 {df['date'].iloc[0]} ~ {df['date'].iloc[-1]}")
+        except Exception as e:
+            print(f"{name} 失败：{e}")
 
 
 def load():
