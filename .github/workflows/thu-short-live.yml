@@ -1,0 +1,65 @@
+name: 周四做空纸面实盘
+
+on:
+  schedule:
+    # 北京时间 周三、周五 16:20 / 17:20 / 18:50（第一次没拿到当天数据时后两次补跑；已处理过会自动跳过）
+    - cron: "20 8 * * 3,5"
+    - cron: "20 9 * * 3,5"
+    - cron: "50 10 * * 3,5"
+    # 周一 16:20：兜底处理"周五休市"的平仓
+    - cron: "20 8 * * 1"
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "auto 或 probe"
+        default: "auto"
+      date:
+        description: "处理日期 YYYY-MM-DD（留空=今天）"
+        default: ""
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: thu-short-live
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scanner/requirements.txt
+      - run: pip install -r scanner/requirements.txt
+      - name: 运行
+        env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: |
+          CMD="${{ github.event.inputs.cmd || 'auto' }}"
+          if [ "$CMD" = "probe" ]; then python scanner/thu_short_live.py probe; exit 0; fi
+          python scanner/thu_short_live.py auto ${{ github.event.inputs.date && format('--date {0}', github.event.inputs.date) || '' }}
+      - name: 提交记录
+        id: commit
+        run: |
+          git config user.name "futures-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/thu_short || true
+          if git commit -m "周四做空纸面实盘 $(date -u +%F)"; then
+            git pull --rebase origin main || true
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 触发网站重建
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/daily.yml/dispatches" -f ref=main -f 'inputs[rounds]=1' -f 'inputs[force]=false'
