@@ -349,3 +349,37 @@ def capital_model(n_future=8, n_sims=10000, seed=7):
            "说明": f"2026-01~10 共 {len(w26)} 周按估算价格逐周模拟；11–12 月按 {n_future} 周（11/5~12/24，12/31 周四次日元旦休市不做）用两种情景各随机模拟 {n_sims} 次"}
     (ROOT / "experiments" / "ho_capital_model.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     return res
+
+
+def ho_weekly_stop(y0, y1, stop=None):
+    """同 ho_weekly，加权利金止损：持有期间（周四、周五）若认沽价值跌到 买入价×(1−stop) 即止损离场。
+    只有日线，用两天的指数最高价估算持有期间认沽的最低价值；只要最高价触及就算止损（不知道日内先后顺序，偏保守）。
+    止损成交价 = 止损价 − 1 跳。"""
+    name, mult, tick, icode, ocode, omult, kstep, otick = FUT["IH0"]
+    ix = load_idx(icode)
+    ix["rv20"] = ix["close"].pct_change().rolling(20).std() * math.sqrt(242)
+    out = []
+    for t in ix.index[(ix.index.year >= y0) & (ix.index.year <= y1) & (ix.index.weekday == 3)]:
+        fri = t + pd.Timedelta(days=1)
+        if fri not in ix.index:
+            continue
+        S0, S1 = float(ix.loc[t, "open"]), float(ix.loc[fri, "close"])
+        prev = ix.index[ix.index < t]
+        v = float(ix.loc[prev[-1], "rv20"]) * 1.1
+        if math.isnan(v):
+            continue
+        exp = pick_expiry(fri.date())
+        T0, T1 = ((exp - t.date()).days + 0.25) / 365, ((exp - fri.date()).days) / 365
+        K = round(S0 / kstep) * kstep
+        p0, p1 = bs_put(S0, K, T0, R, v), bs_put(S1, K, T1, R, v)
+        pnl = ((p1 - otick) - (p0 + otick)) * omult - 30
+        stopped = False
+        if stop is not None:
+            Tm = ((exp - t.date()).days) / 365
+            worst = min(bs_put(float(ix.loc[t, "high"]), K, Tm, R, v), bs_put(float(ix.loc[fri, "high"]), K, T1, R, v))
+            lvl = p0 * (1 - stop)
+            if worst <= lvl:
+                stopped = True
+                pnl = ((lvl - otick) - (p0 + otick)) * omult - 30
+        out.append((t.strftime("%Y-%m-%d"), p0 * omult, pnl, stopped, ((p1 - otick) - (p0 + otick)) * omult - 30))
+    return out
