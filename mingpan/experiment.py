@@ -6,8 +6,9 @@
   predictions.jsonl   每天的预测，事前保存。字段：generated_at、target、rule_version、kind、fingerprint、全文等
                       kind：事前（目标日期开始前保存，计入统计）/ 回看（目标日期开始后才算的，只展示不计入）
                             / 更正（同一天内容变了，追加一条更正，原来那条照旧算数）
-  observations.jsonl  每晚的回答：中立勾选的事件、每条预测的判断、日报的影响、事实备注；同一天再答就追加，以最后一条为准
-  ratings.csv         原来的五道固定题加具体题，格式不变（老分析脚本照常能用）
+  observations.jsonl  每晚的回答：中立勾选的事件（第 6 题）、每条预测的判断（7、8）、日报的影响（9、10）、事实备注；
+                      补答时追加一条合并后的完整记录，以最后一条为准；没答的题留空，不当「没发生」
+  ratings.csv         原来的五道固定题加具体题（11-14），列不变；整体 A-E 存成 1-5；没答的留空
   flags.jsonl         程序故障、漏发等标记
   verifications.jsonl 发送和保存是不是同一份：日报工作流日志里打印「预测版本、条数、指纹、提交」，
                       21:37 的任务把那一行原样交给 verify，和事前保存的指纹比对。结果只有三种：
@@ -17,7 +18,10 @@
 用法（都在 mingpan 目录下运行）：
   python3 experiment.py save    --date 2026-10-28 --log-dir DIR    事前保存（已存在就沿用，不覆盖）
   python3 experiment.py review  --date 2026-10-28 [--log-dir DIR]  打印当晚复盘题
-  python3 experiment.py record  --date 2026-10-28 --answer "3BCBA ABBA / 13 / A / AB 客户改到周五" --log-dir DIR
+  python3 experiment.py record  --date 2026-10-28 --answer "1C 2B 3A 4B 5B 6D 7A 9A 10B 备注：客户改到周五" --log-dir DIR
+                               逐题回答（题号+选项，可只答一部分以后补；补答不覆盖已记的题，冲突报错，要改加 --correct）；
+                               老格式「3BCBA ABBA / 13 / A / AB」照收
+  python3 experiment.py check   --date 2026-10-28 --answer "…" [--log-dir DIR]  只解析、念给命主确认，不写任何东西
   python3 experiment.py summary [--days 7 | --all] --log-dir DIR    汇总
   python3 experiment.py flag    --date 2026-10-28 --kind 漏发 --note "21:07 没发出，21:40 补发" --log-dir DIR
   python3 experiment.py verify  --date 2026-10-28 --log-line "2026-10-28 | 邮件已发送 | … 指纹 a42dacf4ac7a 提交 8ec4014" --log-dir DIR
@@ -31,6 +35,7 @@ import datetime
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import daily as D
@@ -165,105 +170,280 @@ def day_record(p, target, log_dir=None):
     return r
 
 
-def review_prompt(p, target, log_dir=None):
-    """当晚复盘题：老的五题加具体题（格式不变），再加中立勾选、观察判断、日报影响。返回 (文字, KEYS 行)。"""
-    qs = D.review(p, target)
+# 逐题选择题（2026-11-01 起）：题号固定，回「题号+选项」，像 1C 2B 6AD；老的「3BCBA ABBA / 13 / A / AB」照收。
+# 1-5 基础题，6 实际发生了哪些（多选），7、8 当天事前观察（没有就不答），9、10 日报的影响，11-14 选答（时辰和命理细项）。
+BASIC = [("overall", "整体感受", [("A", "很差"), ("B", "偏差"), ("C", "一般"), ("D", "不错"), ("E", "很好")]),
+         ("pressure", "压力", [("A", "很大"), ("B", "有一些"), ("C", "基本没有")]),
+         ("energy", "精力", [("A", "很累或身体不舒服"), ("B", "一般"), ("C", "精力好")]),
+         ("people", "人际", [("A", "有摩擦或是非"), ("B", "平常"), ("C", "顺，有人帮忙")]),
+         ("helpful", "日报", [("A", "有用，照着做了"), ("B", "看了，没怎么用上"), ("C", "没看")])]
+# 第 6 题选项对应 predict.CHECKLIST 的顺序；例子只解释标准，不是说今天发生过
+EVENT_EXAMPLE = {"contact": "老朋友来电问近况算；群消息、广告、工作通知不算",
+                 "help": "有人发来有用的资料算；点赞、客套话、付钱买的服务不算",
+                 "friction": "为金额、期限明确争执或被明确指责算；礼貌的拒绝、一般意见不同、只是觉得语气不好不算",
+                 "reschedule": "对方临时改约、临时塞来当天要办的事算；自己拖延、自己改计划不算",
+                 "money": "计划外的退款、罚款、有人开口借钱算；已知账单、自己的消费不算"}
+EXAMPLE_BY_VERSION = {"v1": {"friction": "明确争执、被当面拒绝、说话不愉快算；正常讨论的分歧、猜对方语气不算"}}   # 按存档的规则版本
+EV_NONE, EV_UNKNOWN = "F", "G"
+OUTCOME_OPTS = [("A", "发生了，自然发生的"),
+                ("B", "发生了，是看了日报后自己行动促成的（例：看了日报主动约人谈，对方才给了资料）"),
+                ("C", "没发生（提前注意了所以没发生，也选 C）"), ("D", "说不清"),
+                ("E", "没有相关机会（例：今天整天没碰上相关的人和事）")]
+Q_EVENTS, Q_OBS, Q_ACTED, Q_EFFECT = 6, (7, 8), 9, 10
+SPEC_KEYS = ["good_hour", "bad_hour", "control_hour", "claim"]          # 11-14
+Q_SPEC = {k: n for n, k in enumerate(SPEC_KEYS, 11)}
+OLD_RE = re.compile(r"^([1-5])\s*([ABCabc])([ABCabc])([ABCabc])([ABCabc])(?:\s+([ABCabc]+)(?=\s|$))?\s*(.*)$", re.S)
+
+
+def questions(p, target, log_dir=None):
+    """这一天的题目表（题号固定）。返回 (题目列表, 当天预测记录, 具体题)。没有的题 available=False。"""
     rec = day_record(p, target, log_dir)
-    preds = rec["predictions"]
-    L = [f"**{target.month}/{target.day} 复盘**，四段用斜杠隔开，像 `3BCBA ABBA / 13 / {'A' * len(preds) or '-'} / AB 一句事实`。"
-         "只答第一段也行（老格式照收）。",
-         "",
-         "**第一段 · 老题**",
-         "1. 整体：1 很差　2 偏差　3 一般　4 不错　5 很好",
-         "2. 压力：A 很大　B 有一些　C 基本没有",
-         "3. 精力：A 很累或身体不舒服　B 一般　C 精力好",
-         "4. 人际：A 有摩擦或是非　B 平常　C 顺，有人帮忙",
-         "5. 日报：A 有用，照着做了　B 看了，没怎么用上　C 没看"]
-    L += [f"{i}. {q}：{opts}" for i, (_, q, opts) in enumerate(qs, 6)]
-    L += ["", "**第二段 · 今天实际发生了哪些**（先照实记，别回头看预测）：写数字，可多选；都没有写 0，记不清写 ?"]
+    spec = {k: (q, opts) for k, q, opts in D.review(p, target)}
     evs = P.events_for(rec["rule_version"])
-    L += [f"{i}. {evs[k]['short']}（不算：{evs[k]['exclude']}）" for i, k in enumerate(P.CHECKLIST, 1)]
-    L.append("「明显事务压力」不用勾，直接看第 2 题，选 A 就算发生。")
-    L += ["", "**第三段 · 对一下观察**（每条一个字母）"]
+    qs = [dict(n=n, key=k, title=t, opts=o, multi=False, available=True) for n, (k, t, o) in enumerate(BASIC, 1)]
+    ex = {**EVENT_EXAMPLE, **EXAMPLE_BY_VERSION.get(rec["rule_version"], {})}
+    opts = [("ABCDE"[i], f"{evs[k]['short']}（例：{ex[k]}）") for i, k in enumerate(P.CHECKLIST)]
+    qs.append(dict(n=Q_EVENTS, key="events", title="今天实际发生了哪些（多选，字母连写，如 6AD；先照实记，别回头看预测）",
+                   opts=opts + [(EV_NONE, "以上都没有"), (EV_UNKNOWN, "记不清")], multi=True, available=True))
+    preds = rec["predictions"]
+    for i, n in enumerate(Q_OBS):
+        x = preds[i] if i < len(preds) else None
+        qs.append(dict(n=n, key=x["id"] if x else f"obs{i + 1}", pred=x, opts=OUTCOME_OPTS, multi=False,
+                       available=bool(x), title=f"观察{i + 1}「{evs[x['event']]['short']}」" if x else ""))
+    qs.append(dict(n=Q_ACTED, key="acted", title="今天有没有因为日报做了什么", multi=False, available=True,
+                   opts=[("A", "没有"), ("B", "有（例：照日报先把账核了一遍）")]))
+    qs.append(dict(n=Q_EFFECT, key="effect", title="日报对你的效果", multi=False, available=True,
+                   opts=[("A", "有具体帮助"), ("B", "没什么影响"), ("C", "添了担心、反复查看或拖延")]))
+    for k in SPEC_KEYS:
+        q, o = spec.get(k, ("", ""))
+        qs.append(dict(n=Q_SPEC[k], key=k, title=q, multi=False, available=bool(q), optional=True,
+                       opts=[(x[0], x[2:]) for x in o.split("　") if x]))
+    return qs, rec, spec
+
+
+def review_prompt(p, target, log_dir=None):
+    """当晚复盘题：逐题编号、每个选项一行。返回 (文字, KEYS 行)。只读，不写存档。"""
+    qs, rec, spec = questions(p, target, log_dir)
+    preds = rec["predictions"]
+
+    def block(q):
+        return ["", f"**{q['n']}. {q['title']}**"] + [f"- {a} {t}" for a, t in q["opts"]]
+
+    L = [f"**{target.month}/{target.day} 复盘**（选择题）回复题号加选项，例如 `1C 2B 3A`，多选题字母连写如 `6AD`；"
+         "可以换行，大小写、中文标点都行。先答前 5 题也可以，其余可稍后补。", "", "**—— 基础题 ——**"]
+    for q in qs[:5]:
+        L += block(q)
+    L += ["", "**—— 实际发生 ——**（例子只是解释标准，不是说今天发生过）"] + block(qs[5])
+    L += ["", "**—— 对一下观察 ——**（当天事前保存的观察，每条选一个）"]
     if preds:
-        L += [f"{x['question']}" for x in preds]
-        L.append("因为提前注意了、所以没发生，也选 C；看了日报主动去问、去找而得到的，选 B。")
+        for q in qs[6:8]:
+            if q["available"]:
+                L += block(q)
+        if len(preds) < 2:
+            L += ["", "（第 8 题这一天没有，不用答。）"]
     else:
-        L.append(f"这一天没有观察项：{rec['none_reason']}第三段写 - 就行。")
+        L.append(f"这一天没有观察项：{rec['none_reason']}第 7、8 题不用答。")
     if rec["kind"] != "事前":
         L.append(f"（这一天的预测是{'回看样本' if rec['kind'] == '回看' else '现算的，没有事前保存'}，照样记，但不计入统计。）")
     elif check_status(log_dir, target) != "一致":
         L.append(f"（这一天发出去的和事前保存的还没核对上：{check_status(log_dir, target)}。照样记，核对不上就不计入正式对照。）")
-    L += ["", "**第四段 · 日报的影响**（两个字母）",
-          "① 今天有没有因为日报做了什么：A 没有　B 有",
-          "② 效果：A 有具体帮助　B 没什么影响　C 添了担心、反复查看或拖延",
-          "最后可以接一句事实，比如「客户临时改到周五」。"]
-    keys = "KEYS " + "|".join(f"{k}={q}" for k, q, _ in qs)
+    L += ["", "**—— 日报的影响 ——**"] + block(qs[8]) + block(qs[9])
+    L += ["", "**—— 选答 ——**（时辰和命理细项，可以稍后补）"]
+    for q in qs[10:]:
+        L += block(q) if q["available"] else ["", f"**{q['n']}.** 这一天没有这题。"]
+    L += ["", "最后可以写「备注：一句事实」，比如「备注：客户临时改到周五」。"]
+    keys = "KEYS " + "|".join(f"{k}={spec[k][0]}" for k in SPEC_KEYS if k in spec)
     return "\n".join(L), keys
 
 
 # ---------- 记录回答 ----------
 
-def parse(p, target, raw, log_dir=None):
-    """解析回答。返回 (rating 行, observation, 错误列表)。老格式（没有斜杠）只出 rating 行。"""
-    errs = []
-    s = raw.strip().replace("／", "/").replace("？", "?")
-    parts = [x.strip() for x in s.split("/", 3)]
-    qs = D.review(p, target)
-    m = re.match(r"^([1-5])\s*([ABCabc])([ABCabc])([ABCabc])([ABCabc])(?:\s+([ABCabc]+)(?=\s|$))?\s*(.*)$", parts[0], re.S)
+def _old_to_new(qs, rec, s):
+    """老格式（3BCBA ABBA，或加三段斜杠）换成逐题答案字符串；返回 (字符串, 错误)。"""
+    parts = [x.strip() for x in s.replace("／", "/").split("/", 3)]
+    m = OLD_RE.match(parts[0])
     if not m:
-        return None, None, ["第一段要像 3BCBA ABBA：先一个 1 到 5 的数字，再四个 A/B/C 字母，空格后是具体题的字母"]
+        return None, ["第一段要像 3BCBA ABBA：先一个 1 到 5 的数字，再四个 A/B/C 字母，空格后是具体题的字母"]
+    errs = []
+    toks = [f"1{'ABCDE'[int(m.group(1)) - 1]}"] + [f"{n}{m.group(n)}" for n in range(2, 6)]
+    spec_keys = [q["key"] for q in qs[10:] if q["available"]]
     spec = (m.group(6) or "").upper()
-    if len(spec) > len(qs):
-        errs.append(f"具体题只有 {len(qs)} 道，答了 {len(spec)} 个字母")
-    head_note = m.group(7).strip()
+    if len(spec) > len(spec_keys):
+        errs.append(f"具体题只有 {len(spec_keys)} 道，答了 {len(spec)} 个字母")
+    toks += [f"{Q_SPEC[k]}{v}" for k, v in zip(spec_keys, spec)]
+    note = m.group(7).strip()
+    if len(parts) > 1:
+        if note:
+            errs.append(f"第一段多了文字「{note}」，事实备注请放在最后")
+        if len(parts) < 4:
+            return None, errs + ["新格式要四段：老题 / 发生了哪些 / 观察判断 / 影响"]
+        ev = parts[1].replace(" ", "").replace("？", "?")
+        if ev == "0":
+            toks.append(f"{Q_EVENTS}{EV_NONE}")
+        elif ev == "?":
+            toks.append(f"{Q_EVENTS}{EV_UNKNOWN}")
+        elif re.fullmatch(r"[1-5]+", ev):
+            toks.append(f"{Q_EVENTS}" + "".join("ABCDE"[int(c) - 1] for c in dict.fromkeys(ev)))
+        else:
+            errs.append("第二段写 1 到 5 的数字（可多选），都没有写 0，记不清写 ?")
+        oc, preds = parts[2].replace(" ", "").upper(), rec["predictions"]
+        if not preds:
+            if oc not in ("-", ""):
+                errs.append("这一天没有观察项，第三段写 - 就行")
+        elif len(oc) != len(preds) or any(c not in OUTCOME for c in oc):
+            errs.append(f"第三段要 {len(preds)} 个字母（A 到 E），每条观察一个")
+        else:
+            toks += [f"{n}{c}" for n, c in zip(Q_OBS, oc)]
+        m4 = re.match(r"^([ABab])\s*([ABCabc])\s*(.*)$", parts[3], re.S)
+        if not m4:
+            errs.append("第四段先写两个字母：① A 没有 / B 有，② A 有帮助 / B 没影响 / C 添担心")
+        else:
+            toks += [f"{Q_ACTED}{m4.group(1).upper()}", f"{Q_EFFECT}{m4.group(2).upper()}"]
+            note = m4.group(3).strip()
+    return " ".join(toks) + (f" 备注：{note}" if note else ""), errs
+
+
+DATE_RE = re.compile(r"^\s*(?:(\d{4})\s*[-/.年]\s*)?(\d{1,2})\s*[/月.-]\s*(\d{1,2})\s*[日号]?\s*(?:复盘)?[:：，,\s]")
+
+
+def parse(p, target, raw, log_dir=None):
+    """解析回答（逐题格式或老格式）。返回 (答案 {题号: 字母}, 备注, 错误列表, 题目表, 预测记录)。不写任何东西。"""
+    qs, rec, _ = questions(p, target, log_dir)
+    s = unicodedata.normalize("NFKC", raw or "").strip()
+    if not s:
+        return {}, "", ["回答是空的"], qs, rec
+    if OLD_RE.match(s.split("/")[0].strip()):
+        s, errs = _old_to_new(qs, rec, s)
+        if s is None:
+            return {}, "", errs, qs, rec
+    else:
+        errs = []
+    m = DATE_RE.match(s + " ")
+    if m:
+        y = int(m.group(1)) if m.group(1) else target.year
+        try:
+            d = datetime.date(y, int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            d = None
+        if d != target:
+            errs.append(f"回答里写的日期是 {m.group(0).strip()}，要记的是 {target.month}/{target.day}，请确认是哪一天")
+        s = s[m.end() - 1:] if m.end() <= len(s) else ""
+    body, note = (re.split(r"备注\s*[:：]?", s, maxsplit=1) + [""])[:2]
+    body = re.sub(r"[第题]", " ", body)
+    body = re.sub(r"[,，。.;；、:：!！\s]+", " ", body).upper()
+    byn = {q["n"]: q for q in qs}
+    ans, spans = {}, []
+    for m in re.finditer(r"(\d{1,2})\s*([A-Z](?:\s*[A-Z])*)", body):
+        spans.append(m.span())
+        n, v = int(m.group(1)), re.sub(r"\s", "", m.group(2))
+        q = byn.get(n)
+        if not q:
+            errs.append(f"没有第 {n} 题（题号是 1 到 14）")
+            continue
+        if not q["available"]:
+            errs.append(f"这一天没有第 {n} 题（{'当天只有 ' + str(len(rec['predictions'])) + ' 条观察' if n in Q_OBS else '当天没有这道选答题'}）")
+            continue
+        valid = [a for a, _ in q["opts"]]
+        bad = [c for c in v if c not in valid]
+        if bad:
+            errs.append(f"第 {n} 题没有选项 {''.join(bad)}（可选 {valid[0]}–{valid[-1]}）")
+            continue
+        v = "".join(dict.fromkeys(v)) if q["multi"] else v
+        if not q["multi"] and len(v) > 1:
+            errs.append(f"第 {n} 题只能选一个，写了 {v}")
+            continue
+        if q["multi"] and len(v) > 1 and (EV_NONE in v or EV_UNKNOWN in v):
+            errs.append(f"第 {n} 题选了 {EV_NONE}（都没有）或 {EV_UNKNOWN}（记不清）就不能再选别的")
+            continue
+        if n in ans and ans[n] != v:
+            errs.append(f"第 {n} 题写了两次（{ans[n]} 和 {v}），请只留一个")
+            continue
+        ans[n] = v
+    rest = body
+    for a, b in reversed(spans):
+        rest = rest[:a] + " " + rest[b:]
+    if rest.strip():
+        errs.append(f"看不懂「{rest.strip()}」：每题写题号加字母，如 1C；一句事实请写在「备注：」后面")
+    if not ans and not note.strip() and not errs:
+        errs.append("没找到任何答案，要写成题号加字母，如 1C 2B")
+    return ans, note.strip(), errs, qs, rec
+
+
+def existing(p, target, log_dir, qs=None, rec=None):
+    """存档里这一天已经记下的答案，换成 {题号: 字母} 和备注。"""
+    if qs is None:
+        qs, rec, _ = questions(p, target, log_dir)
+    out, note = {}, ""
+    path = Path(log_dir) / "ratings.csv"
+    row = next((r for r in csv.DictReader(path.open(encoding="utf-8")) if r["date"] == str(target)), None) \
+        if path.exists() else None
+    if row:
+        if row.get("overall"):
+            out[1] = "ABCDE"[int(row["overall"]) - 1]
+        for n, (k, _, _) in enumerate(BASIC[1:], 2):
+            if row.get(k):
+                out[n] = row[k]
+        for k, n in Q_SPEC.items():
+            if row.get(k):
+                out[n] = row[k]
+        note = row.get("note", "")
+    obs = [o for o in _read(Path(log_dir) / "observations.jsonl") if o["date"] == str(target)]
+    if obs:
+        o = obs[-1]
+        ev = o.get("events") or []
+        if ev == ["none"]:
+            out[Q_EVENTS] = EV_NONE
+        elif ev == ["unknown"]:
+            out[Q_EVENTS] = EV_UNKNOWN
+        elif ev:
+            out[Q_EVENTS] = "".join("ABCDE"[P.CHECKLIST.index(k)] for k in ev)
+        for q in qs[6:8]:
+            if q["available"] and o.get("outcomes", {}).get(q["key"]):
+                out[q["n"]] = o["outcomes"][q["key"]]
+        if o.get("acted"):
+            out[Q_ACTED] = o["acted"]
+        if o.get("effect"):
+            out[Q_EFFECT] = o["effect"]
+        note = o.get("note") or note
+    return out, note
+
+
+def describe(qs, ans, note=""):
+    """把答案逐题念出来，方便确认；没答的列出题号。"""
+    L = []
+    for q in qs:
+        if q["n"] in ans:
+            opt = dict(q["opts"])
+            L.append(f"{q['n']}. {q['title'].split('（')[0]}：" + "、".join(f"{c} {opt[c].split('（')[0]}" for c in ans[q["n"]]))
+    todo = [str(q["n"]) for q in qs if q["available"] and q["n"] not in ans]
+    if note:
+        L.append(f"备注：{note}")
+    L.append("还没答：" + ("、".join(todo) if todo else "无") + ("（其中 11 以后是选答）" if any(int(x) > 10 for x in todo) else ""))
+    return "\n".join(L)
+
+
+def build_rows(target, qs, rec, ans, note, raw):
+    """合并后的答案换成 ratings.csv 一行和 observations 一条（没答 6-10 题就不出观察记录）。缺答留空，不当「没发生」。"""
     row = dict.fromkeys(RATING_COLS, "")
-    row.update(date=str(target), overall=m.group(1), pressure=m.group(2).upper(), energy=m.group(3).upper(),
-               people=m.group(4).upper(), helpful=m.group(5).upper())
-    for (k, q, _), v in zip(qs, spec):
-        row[k] = v
-    row["claim_text"] = next((q for k, q, _ in qs if k == "claim"), "")
-    if len(parts) == 1:
-        row["note"] = head_note
-        return row, None, errs
-    if head_note:
-        errs.append(f"第一段多了文字「{head_note}」，事实备注请放在最后")
-    if len(parts) < 4:
-        errs.append("新格式要四段：老题 / 发生了哪些 / 观察判断 / 影响")
-        return row, None, errs
-    rec = day_record(p, target, log_dir)
-    ev_raw = parts[1].replace(" ", "")
-    if ev_raw == "0":
-        events = ["none"]
-    elif ev_raw == "?":
-        events = ["unknown"]
-    elif re.fullmatch(r"[1-5]+", ev_raw):
-        events = [P.CHECKLIST[int(c) - 1] for c in dict.fromkeys(ev_raw)]
-    else:
-        errs.append("第二段写 1 到 5 的数字（可多选），都没有写 0，记不清写 ?")
-        events = []
-    oc = parts[2].replace(" ", "").upper()
-    preds = rec["predictions"]
-    if not preds:
-        if oc not in ("-", ""):
-            errs.append("这一天没有观察项，第三段写 - 就行")
-        outcomes = {}
-    elif len(oc) != len(preds) or any(c not in OUTCOME for c in oc):
-        errs.append(f"第三段要 {len(preds)} 个字母（A 到 E），每条观察一个")
-        outcomes = {}
-    else:
-        outcomes = {x["id"]: c for x, c in zip(preds, oc)}
-    m4 = re.match(r"^([ABab])\s*([ABCabc])\s*(.*)$", parts[3], re.S)
-    if not m4:
-        errs.append("第四段先写两个字母：① A 没有 / B 有，② A 有帮助 / B 没影响 / C 添担心")
-        acted = effect = note = ""
-    else:
-        acted, effect, note = m4.group(1).upper(), m4.group(2).upper(), m4.group(3).strip()
-    row["note"] = note
-    obs = {"date": str(target), "raw": raw, "events": events, "pressure_high": row["pressure"] == "A",
+    row.update(date=str(target), note=note)
+    if 1 in ans:
+        row["overall"] = str("ABCDE".index(ans[1]) + 1)
+    for n, (k, _, _) in enumerate(BASIC[1:], 2):
+        row[k] = ans.get(n, "")
+    for k, n in Q_SPEC.items():
+        row[k] = ans.get(n, "")
+    row["claim_text"] = next((q["title"] for q in qs if q["key"] == "claim"), "")
+    if not any(n in ans for n in range(Q_EVENTS, Q_EFFECT + 1)):
+        return row, None
+    ev = ans.get(Q_EVENTS, "")
+    events = (["none"] if ev == EV_NONE else ["unknown"] if ev == EV_UNKNOWN
+              else [P.CHECKLIST["ABCDE".index(c)] for c in ev])
+    obs = {"date": str(target), "raw": raw, "format": "逐题", "answered": sorted(ans), "events": events,
+           "pressure_high": ans.get(2) == "A" if 2 in ans else None,
            "rule_version": rec["rule_version"], "prediction_kind": rec["kind"], "fingerprint": rec["fingerprint"],
-           "outcomes": outcomes, "acted": acted, "effect": effect, "note": note}
-    return row, obs, errs
+           "outcomes": {q["key"]: ans[q["n"]] for q in qs[6:8] if q["available"] and q["n"] in ans},
+           "acted": ans.get(Q_ACTED, ""), "effect": ans.get(Q_EFFECT, ""), "note": note}
+    return row, obs
 
 
 def upsert_rating(row, log_dir):
@@ -278,15 +458,32 @@ def upsert_rating(row, log_dir):
         w.writerows(rows)
 
 
-def record(p, target, raw, log_dir, now=None):
-    row, obs, errs = parse(p, target, raw, log_dir)
+def check(p, target, raw, log_dir=None):
+    """只解析、合并、念出来，不写任何东西（给命主确认用，也给预览用）。返回 (能不能记, 文字)。"""
+    ans, note, errs, qs, rec = parse(p, target, raw, log_dir)
     if errs:
         return False, "；".join(errs)
+    old, old_note = existing(p, target, log_dir, qs, rec) if log_dir else ({}, "")
+    return True, describe(qs, {**old, **ans}, note or old_note)
+
+
+def record(p, target, raw, log_dir, now=None, correct=False):
+    """记下回答。可以只答一部分、以后补：补答只加没答过的题；和已记的答案冲突就报错，除非 correct=True（命主明确说要改）。"""
+    ans, note, errs, qs, rec = parse(p, target, raw, log_dir)
+    if errs:
+        return False, "；".join(errs)
+    old, old_note = existing(p, target, log_dir, qs, rec)
+    clash = [f"第 {n} 题已经记过 {old[n]}，这次写的是 {v}" for n, v in sorted(ans.items()) if n in old and old[n] != v]
+    if clash and not correct:
+        return False, "；".join(clash) + "。要改的话请明确说改哪题，没改的题不动"
+    merged = {**old, **ans}
+    note = old_note if not note or note == old_note else (f"{old_note}；{note}" if old_note and not correct else note)
+    row, obs = build_rows(target, qs, rec, merged, note, raw)
     upsert_rating(row, log_dir)
-    if obs:
+    if obs and (any(n in ans for n in range(Q_EVENTS, Q_EFFECT + 1)) or note != old_note):
         obs["recorded_at"] = (now or _now()).isoformat(timespec="seconds")
         _append(Path(log_dir) / "observations.jsonl", obs)
-    return True, "已记录" + ("（老格式，只记了第一段）" if not obs else "")
+    return True, "已记录。\n" + describe(qs, merged, note)
 
 
 # ---------- 汇总 ----------
@@ -365,7 +562,8 @@ def summary(log_dir, start=None, end=None, today=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["save", "review", "record", "summary", "flag", "verify", "status"])
+    ap.add_argument("cmd", choices=["save", "review", "record", "check", "summary", "flag", "verify", "status"])
+    ap.add_argument("--correct", action="store_true", help="record：命主明确要改已记的答案时才用")
     ap.add_argument("--log-line", help="verify：工作流日志里带「指纹」的那一行，原样传进来")
     ap.add_argument("--missing", help="verify：找不到可核对的日志时写原因，这一天记为未核对")
     ap.add_argument("--date")
@@ -378,7 +576,7 @@ def main():
     args = ap.parse_args()
     now = _now()
     date = datetime.date.fromisoformat(args.date) if args.date else now.date()
-    if args.cmd != "review" and not args.log_dir:
+    if args.cmd not in ("review", "check") and not args.log_dir:
         sys.exit("要写存档或读存档，必须用 --log-dir 指定目录")
     p = D.load_profiles()[0]
     if args.cmd == "save":
@@ -389,8 +587,13 @@ def main():
         print(txt)
         print(keys)
     elif args.cmd == "record":
-        ok, msg = record(p, date, args.answer or "", args.log_dir, now)
+        ok, msg = record(p, date, args.answer or "", args.log_dir, now, args.correct)
         print(msg)
+        if not ok:
+            sys.exit(2)
+    elif args.cmd == "check":
+        ok, msg = check(p, date, args.answer or "", args.log_dir)
+        print(("可以记：\n" if ok else "有问题：") + msg)
         if not ok:
             sys.exit(2)
     elif args.cmd == "summary":

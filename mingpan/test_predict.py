@@ -84,8 +84,10 @@ with tempfile.TemporaryDirectory() as tmp:
     check("老格式不写观察", not (log / "observations.jsonl").exists())
     n27 = len(D.review(p, day(2026, 10, 27)))
     okk, m = X.record(p, day(2026, 10, 27), "4BCBA ABBA 改了一下", log)
+    check("同一天再答、答案不同会报冲突，不悄悄覆盖", not okk and "第 1 题已经记过" in m, m)
+    okk, m = X.record(p, day(2026, 10, 27), "4BCBA ABBA 改了一下", log, correct=True)
     rows = (log / "ratings.csv").read_text(encoding="utf-8").splitlines()
-    check("同一天再答改那一行", okk and len(rows) == 2 and rows[1].startswith("2026-10-27,4"))
+    check("明确要改时改那一行", okk and len(rows) == 2 and rows[1].startswith("2026-10-27,4"))
     preds28 = X.formal(log, t)["predictions"]
     ans = f"3BCBA AB / 13 / {'A' * len(preds28) or '-'} / BA 下午客户改到周五, 很突然"
     okk, m = X.record(p, t, ans, log)
@@ -154,7 +156,8 @@ with tempfile.TemporaryDirectory() as tmp:
     txt, _ = X.review_prompt(p, t, log)
     txt_now, _ = X.review_prompt(p, t, None)
     P.THRESHOLD = old
-    check("复盘题用事前保存的那份", "没有事前保存" not in txt and txt.count("观察") < txt_now.count("观察"))
+    check("复盘题用事前保存的那份", "没有事前保存" not in txt and txt.count("**7.") + txt.count("**8.")
+          < txt_now.count("**7.") + txt_now.count("**8."))
 
 # 8. 微信、邮件、PDF、纯文字一致；日期跟着发送日期变
 for i in range(0, 400, 20):
@@ -240,5 +243,80 @@ check("测试标题和横幅标「可读性测试」", sent["wx"][1][0].startswi
 check("测试样稿按前一晚重算，内容和正式一致", wx_text(sent["wx"][1][1]).endswith(wx_text(layout.wechat_html(d30))))
 check("10/30 指纹不变", d30["predict"]["fingerprint"] == "4d5b377d2051" and "4d5b377d2051" in sent["log"][1])
 check("测试日志行不会被当成正式发送", X.LOG_RE.search(sent["log"][1]) is None and X.LOG_RE.search(sent["log"][0]) is not None)
+
+# 12. 逐题选择题：0/1/2 条观察的题目和解析映射、部分回答和补答、冲突、日期、无机会/记不清、预览隔离
+with tempfile.TemporaryDirectory() as tmp:
+    log = Path(tmp)
+    days = {0: day(2026, 10, 28), 1: day(2026, 10, 29), 2: day(2026, 11, 3)}
+    for t in days.values():
+        X.save(p, t, log, at(t - datetime.timedelta(days=1), 21, 37))
+    for k, t in days.items():
+        check(f"{k} 条观察的样本日", len(X.formal(log, t)["predictions"]) == k)
+        txt, keys = X.review_prompt(p, t, log)
+        check(f"{k} 条：题号固定，观察题按实际条数出", ("**7." in txt) == (k >= 1) and ("**8." in txt) == (k == 2)
+              and "**9. " in txt and "**10. " in txt and "**1. 整体感受**" in txt, txt)
+        check(f"{k} 条：每个选项单独一行", "\n- A 很差\n- B 偏差\n- C 一般\n- D 不错\n- E 很好" in txt)
+        check(f"{k} 条：有答法提示，没有四段斜杠", "例如 `1C 2B 3A`" in txt and "先答前 5 题也可以" in txt
+              and "四段" not in txt and "斜杠" not in txt)
+        check(f"{k} 条：容易混淆的题带例子", all(w in txt for w in ("有用的资料算", "点赞", "明确争执",
+                                                         "对方临时改约", "自己拖延", "计划外的退款", "已知账单")))
+        check(f"{k} 条：摩擦的例子按存档的规则版本", ("一般意见不同" in txt) == (P.version_for(t) == "v2")
+              and ("正常讨论的分歧" in txt) == (P.version_for(t) == "v1"))
+        check(f"{k} 条：选答放末尾", txt.index("选答") > txt.index("**10. ") and keys.startswith("KEYS"))
+        if k:
+            check(f"{k} 条：观察题 B 有例子", "自己行动促成的（例：" in txt)
+    before = {f.name: f.read_bytes() for f in log.iterdir()}
+    t0, t1, t2 = days[0], days[1], days[2]
+    bad = lambda t, a: not X.record(p, t, a, log)[0]
+    check("0 条观察的日子答第 7 题报错", bad(t0, "1C 7A") and "没有第 7 题" in X.check(p, t0, "1C 7A", log)[1])
+    check("1 条观察的日子答第 8 题报错", bad(t1, "8A") and "只有 1 条观察" in X.check(p, t1, "8A", log)[1])
+    check("重复题号冲突报错", bad(t2, "1C 2B 1D") and "写了两次" in X.check(p, t2, "1C 2B 1D", log)[1])
+    check("重复题号相同答案不算冲突", X.check(p, t2, "1C 1c", log)[0])
+    check("非法选项报错", bad(t2, "2D") and "没有选项 D" in X.check(p, t2, "2D", log)[1])
+    check("单选题写两个字母报错", bad(t2, "3AB"))
+    check("都没有/记不清不能和别的同选", bad(t2, "6AF") and bad(t2, "6GB"))
+    check("日期对不上报错", bad(t2, "11/2 1C") and "11/3" in X.check(p, t2, "11/2 1C", log)[1])
+    check("日期对得上照收", X.check(p, t2, "11月3日 1C", log)[0] and X.check(p, t2, "2026-11-03：1C", log)[0])
+    check("看不懂的字会说出来", bad(t2, "1C 还行吧") and "还行吧" in X.check(p, t2, "1C 还行吧", log)[1])
+    okc, desc = X.check(p, t2, "１ｃ，２Ｂ。\n3a、4b；5B 6ad 7b 8e 9b 10c 备注：客户临时改到周五", log)
+    check("全角、中文标点、换行、大小写都认", okc and "1. 整体感受：C 一般" in desc and "7. 观察1" in desc, desc)
+    after = {f.name: f.read_bytes() for f in log.iterdir()}
+    check("出错和 check 预览都不写存档", before == after)
+
+    ok1, m1 = X.record(p, t2, "1c 2a 3b 4b 5b", log)
+    row = next(r for r in __import__("csv").DictReader((log / "ratings.csv").open(encoding="utf-8")))
+    check("只答前 5 题：整体 C 存成 3，其余留空", ok1 and row["overall"] == "3" and row["pressure"] == "A"
+          and row["good_hour"] == "" and row["claim"] == "", row)
+    check("只答前 5 题不写观察记录", not (log / "observations.jsonl").exists())
+    check("记录后说还没答哪些", "还没答：6、7、8、9、10" in m1, m1)
+    ok2, m2 = X.record(p, t2, "6ad 7b 9b 备注：客户临时改到周五", log)
+    o = X._read(log / "observations.jsonl")[-1]
+    ids = [x["id"] for x in X.formal(log, t2)["predictions"]]
+    check("补答事件和观察：分开记录", ok2 and o["events"] == ["contact", "reschedule"] and o["outcomes"] == {ids[0]: "B"}
+          and o["acted"] == "B" and o["effect"] == "", o)
+    check("没答的观察留空，不当没发生", ids[1] not in o["outcomes"])
+    row = next(r for r in __import__("csv").DictReader((log / "ratings.csv").open(encoding="utf-8")))
+    check("补答不动已记的前 5 题", row["overall"] == "3" and row["pressure"] == "A" and "改到周五" in row["note"])
+    ok3, m3 = X.record(p, t2, "1d 8e", log)
+    check("补答和已记冲突就报错，什么也不写", not ok3 and "第 1 题已经记过 C" in m3
+          and len(X._read(log / "observations.jsonl")) == 1, m3)
+    ok4, _ = X.record(p, t2, "8e 10c 11a", log)
+    o = X._read(log / "observations.jsonl")[-1]
+    check("再补一次：合并成完整记录，原答案不丢", ok4 and o["outcomes"] == {ids[0]: "B", ids[1]: "E"}
+          and o["events"] == ["contact", "reschedule"] and o["acted"] == "B" and o["effect"] == "C")
+    ok5, _ = X.record(p, t2, "1d", log, correct=True)
+    row = next(r for r in __import__("csv").DictReader((log / "ratings.csv").open(encoding="utf-8")))
+    check("明确要改才改，只改那一题", ok5 and row["overall"] == "4" and row["good_hour"] == "A" and row["pressure"] == "A")
+    okg, _ = X.record(p, t1, "6g 7d 9a", log)
+    o = X._read(log / "observations.jsonl")[-1]
+    check("记不清、说不清照实记，不当没发生", okg and o["events"] == ["unknown"]
+          and list(o["outcomes"].values()) == ["D"], o)
+    oke, _ = X.record(p, t0, "6f 9a 10b", log)
+    o = X._read(log / "observations.jsonl")[-1]
+    check("0 条观察的日子：都没有记 none，观察为空", oke and o["events"] == ["none"] and o["outcomes"] == {})
+    okold, mo = X.record(p, day(2026, 11, 4), "3BCBA AB / 0 / - / AB", log)
+    check("老四段格式在新代码下照收（没有事前记录也能记）", okold, mo)
+    s = X.summary(log, t0, t2, today=day(2026, 11, 5))
+    check("汇总照常能出", "预测实验汇总" in s and "准确率" not in s, s)
 
 print(f"全部通过，共 {len(ok)} 项检查")
