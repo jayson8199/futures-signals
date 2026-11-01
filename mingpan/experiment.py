@@ -529,27 +529,31 @@ def summary(log_dir, start=None, end=None, today=None):
     L.append(f"正式对照共 {len(preds)} 条观察（预期发生 {len(preds)} 条，预期不发生 0 条：现有规则没有这类）。")
     L.append(f"能判断 {judge} 条：自然发生 {cnt['A']}，受阅读影响发生 {cnt['B']}，没发生 {cnt['C']}；"
              f"无法判断 {cnt['D']}，没有相关机会 {cnt['E']}，漏答 {cnt['漏答']}。后两类和漏答不算命中也不算落空。")
-    L.append("分类别对比（发生天数 / 有效天数；有效天数只算回答了第二段、没写「记不清」的日子；"
+    L.append("分类别对比（发生天数 / 有效天数；五类事实只算第 6 题答了 A–E 或 F（都没有）、没选 G（记不清）的日子；"
+             "明显事务压力只看第 2 题，答了 A/B/C 的日子才进分母，A「很大」算发生；没答的不进分母；"
              "各规则版本的事件界定不同，分开列）：")
-    answered = [d for d in days_formal if d in obs_by and obs_by[d]["events"] and obs_by[d]["events"] != ["unknown"]]
+    ev_ok = [d for d in days_formal if d in obs_by and obs_by[d]["events"] and obs_by[d]["events"] != ["unknown"]]
+    pr_ok = [d for d in days_formal if rated.get(d, {}).get("pressure") in ("A", "B", "C")]
     unknown = sum(1 for d in days_formal if d in obs_by and obs_by[d]["events"] == ["unknown"])
     rec_of = {d: next(r for r in allrec if r["target"] == d and r["kind"] == "事前") for d in days_formal}
-    for ver in dict.fromkeys(rec_of[d]["rule_version"] for d in answered):
-        vd = [d for d in answered if rec_of[d]["rule_version"] == ver]
-        L.append(f"规则 {ver}（{len(vd)} 天）")
+    for ver in dict.fromkeys(rec_of[d]["rule_version"] for d in sorted(ev_ok + pr_ok)):
+        ve = [d for d in ev_ok if rec_of[d]["rule_version"] == ver]
+        vp = [d for d in pr_ok if rec_of[d]["rule_version"] == ver]
+        L.append(f"规则 {ver}（第 6 题有效 {len(ve)} 天，第 2 题有效 {len(vp)} 天）")
         for k, e in P.events_for(ver).items():
+            vd = vp if k == "pressure" else ve
             pd = [d for d in vd if any(x["event"] == k for x in rec_of[d]["predictions"])]
             nd = [d for d in vd if d not in pd]
 
             def happened(d):
                 if k == "pressure":
-                    return rated.get(d, {}).get("pressure") == "A"
+                    return rated[d]["pressure"] == "A"
                 return k in obs_by[d]["events"]
 
             L.append(f"- {e['name']}：有预测的日子 {sum(map(happened, pd))}/{len(pd)}，"
                      f"没预测的日子 {sum(map(happened, nd))}/{len(nd)}")
     if unknown:
-        L.append(f"第二段写「记不清」的 {unknown} 天，不进上面的分母。")
+        L.append(f"第 6 题选「记不清」的 {unknown} 天，不进五类事实的分母。")
     obs_in = [obs_by[d] for d in days_formal if d in obs_by]
     L.append("日报的影响（分开记，不和准不准混算）：因日报做了些什么 "
              f"{sum(o['acted'] == 'B' for o in obs_in)} 天；效果：有具体帮助 {sum(o['effect'] == 'A' for o in obs_in)} 天，"

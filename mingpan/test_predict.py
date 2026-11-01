@@ -319,4 +319,23 @@ with tempfile.TemporaryDirectory() as tmp:
     s = X.summary(log, t0, t2, today=day(2026, 11, 5))
     check("汇总照常能出", "预测实验汇总" in s and "准确率" not in s, s)
 
+# 13. 汇总里缺答的处理：压力只看第 2 题有没有答，五类事实只看第 6 题；正式日（核对一致）才算
+with tempfile.TemporaryDirectory() as tmp:
+    log = Path(tmp)
+    ta, tb = day(2026, 10, 29), day(2026, 10, 30)
+    for t in (ta, tb):
+        r = X.save(p, t, log, at(t - datetime.timedelta(days=1), 21, 37))[0]
+        X.verify(t, log, f"{t} | 邮件已发送 | 微信已推送 | 预测 {r['rule_version']} {len(r['predictions'])} 条 指纹 {r['fingerprint']}")
+    X.record(p, ta, "6F", log)                # 答了第 6 题「都没有」，漏答第 2 题
+    X.record(p, tb, "1C 2A 3B 4B 5B", log)    # 答了第 2 题「很大」，没答第 6 题
+    s = X.summary(log, ta, tb, today=day(2026, 11, 1))
+    import re as _re
+    def frac(name):
+        m = _re.search(name + r"：有预测的日子 (\d+)/(\d+)，没预测的日子 (\d+)/(\d+)", s)
+        return (int(m.group(1)) + int(m.group(3)), int(m.group(2)) + int(m.group(4))) if m else None
+    check("缺答第 2 题的日子不进压力分母，没答第 6 题但答了 2A 的日子进", frac("明显事务压力") == (1, 1), s)
+    check("没答第 6 题的日子不进五类事实分母，答了 6F 的日子进且算没发生",
+          all(frac(n) == (0, 1) for n in ("非工作主动联系", "具体外部帮助", "明确沟通摩擦", "外部导致的改期或临时任务", "计划外财务事项")), s)
+    check("汇总写明第 6 题和第 2 题", "第 6 题有效 1 天，第 2 题有效 1 天" in s and "第二段" not in s, s)
+
 print(f"全部通过，共 {len(ok)} 项检查")
