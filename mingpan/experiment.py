@@ -309,8 +309,9 @@ DATE_RE = re.compile(r"^\s*(?:(\d{4})\s*[-/.年]\s*)?(\d{1,2})\s*[/月.-]\s*(\d{
 def parse(p, target, raw, log_dir=None):
     """解析回答（逐题格式或老格式）。返回 (答案 {题号: 字母}, 备注, 错误列表, 题目表, 预测记录)。不写任何东西。"""
     qs, rec, _ = questions(p, target, log_dir)
-    s = unicodedata.normalize("NFKC", raw or "").strip()
-    if not s:
+    raw_body, raw_note = (re.split(r"备注\s*[:：]?", raw or "", maxsplit=1) + [None])[:2]
+    s = unicodedata.normalize("NFKC", raw_body).strip()     # 备注原样保留，只把答案部分的全角字母、数字换成半角
+    if not s and not raw_note:
         return {}, "", ["回答是空的"], qs, rec
     if OLD_RE.match(s.split("/")[0].strip()):
         s, errs = _old_to_new(qs, rec, s)
@@ -329,6 +330,8 @@ def parse(p, target, raw, log_dir=None):
             errs.append(f"回答里写的日期是 {m.group(0).strip()}，要记的是 {target.month}/{target.day}，请确认是哪一天")
         s = s[m.end() - 1:] if m.end() <= len(s) else ""
     body, note = (re.split(r"备注\s*[:：]?", s, maxsplit=1) + [""])[:2]
+    if raw_note is not None:
+        note = raw_note
     body = re.sub(r"[第题]", " ", body)
     body = re.sub(r"[,，。.;；、:：!！\s]+", " ", body).upper()
     byn = {q["n"]: q for q in qs}
@@ -408,13 +411,17 @@ def existing(p, target, log_dir, qs=None, rec=None):
     return out, note
 
 
+SHORT = {Q_EVENTS: "实际发生", Q_ACTED: "因日报做了什么", Q_EFFECT: "日报的效果", 11: "好时辰", 12: "避开时辰",
+         13: "对照时辰", 14: "最重的一条说法"}
+
+
 def describe(qs, ans, note=""):
     """把答案逐题念出来，方便确认；没答的列出题号。"""
     L = []
     for q in qs:
         if q["n"] in ans:
             opt = dict(q["opts"])
-            L.append(f"{q['n']}. {q['title'].split('（')[0]}：" + "、".join(f"{c} {opt[c].split('（')[0]}" for c in ans[q["n"]]))
+            L.append(f"{q['n']}. {SHORT.get(q['n'], q['title'])}：" + "、".join(f"{c} {opt[c].split('（')[0]}" for c in ans[q["n"]]))
     todo = [str(q["n"]) for q in qs if q["available"] and q["n"] not in ans]
     if note:
         L.append(f"备注：{note}")
