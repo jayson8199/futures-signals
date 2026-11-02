@@ -235,5 +235,19 @@
  "price_1330": 3633.918,
  "baseline_1330": "好",
  "fixed_at": "2026-11-02 15:33",
- "z5_window": "13:00-13:35"
+ "z5_window": "13:00-13:35",
+ "open_official": 3614.311,
+ "close_official": 3638.031,
+ "actual": "涨",
+ "correct_z2": true,
+ "correct_final": true,
+ "correct_b1030": false,
+ "correct_b1330": true,
+ "correct_always_up": true,
+ "settled": true,
+ "settled_at": "2026-11-02 17:54",
+ "trade": "多",
+ "pnl_gross_pct": 0.1132,
+ "pnl_net_pct": 0.0862,
+ "short_ref_pct": null
 }
