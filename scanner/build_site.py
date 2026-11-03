@@ -341,7 +341,8 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None
             if st and st[0] == D and st[1] == p and st[2] >= 2:
                 tags.append(("watch", f"连续{st[2]}天"))
             tag_html = "".join(f"<span class='tag tag-{c}'>{t}</span>" for c, t in tags)
-            body += (f"<tr><td class='b'>{it['symbol']}</td><td>{it['name']}</td><td class='muted'>{it['exchange']}</td>"
+            exchange = SYMBOLS.get(it["symbol"], (it["name"], it["exchange"]))[1]
+            body += (f"<tr><td class='b'>{it['symbol']}</td><td>{it['name']}</td><td class='muted'>{exchange}</td>"
                      f"<td>{it['today_close']:g}</td>"
                      f"<td class='{cls(it['price_change_pct'])} b'>{s(it['price_change_pct'], 1)}</td>"
                      f"<td class='{cls(it['hold_change_pct'])}'>{s(it['hold_change_pct'], 1)}</td>"
@@ -374,7 +375,7 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None
 
     best_items = [it for it in data["patterns"]["高富帅"]["items"] if any("优选" in t or "抗跌" in t for _, t in gao_tags(it))]
     best_html = "".join(f"<span class='best-card'>{it['name']} <b class='up'>{s(it['price_change_pct'], 1)}</b> 增仓{s(it['hold_change_pct'], 1)}</span>"
-                        for it in best_items) or "<span class='muted'>今日无⭐⭐优选信号</span>"
+                        for it in best_items) or "<span class='muted'>今日无优选或抗跌观察品种</span>"
 
     # MACD 八策略买卖点（当日首发信号）+ 与形态的共振/冲突
     pat_by_sym = {i["symbol"]: i for i in allr}
@@ -435,7 +436,7 @@ def build_report_body(data, prev, dates_sorted, root="", streaks=None, macd=None
 <div class='view'><b>大势判断：</b>今日 {up_c} 涨 {down_c} 跌，双20%强信号 {strong} 个，{'资金进攻力度强，顺势为主。' if up_c > down_c else '空方占优，防守为主。'}{resonance}</div>
 <div class='grid2'><div class='card'><h3>八形态分布</h3>{dist_html}</div><div class='card'><h3>涨幅 TOP 10</h3>{top_html}</div></div>
 
-<div class='card'><h3 class='blue'>⭐⭐ 今日优选信号</h3><div>{best_html}</div>
+<div class='card'><h3 class='blue'>⭐⭐ 今日优选 / 抗跌观察</h3><div>{best_html}</div>
 <div class='muted' style='font-size:11.5px;margin-top:6px'>优选标准：涨幅0~2% 且 增仓2~5%（400天回测5日胜率55.1%）；涨幅&gt;3%为⚠️追高（次日胜率仅44%）；弱势市里的高富帅为🛡抗跌先锋（胜率58%）</div></div>
 {macd_html}
 {section("高富帅")}{section("白富美")}
@@ -1002,7 +1003,7 @@ def method_body():
     rows = "".join(
         f"<tr><td>{PAT_ICON[p]} {p}</td><td>{PAT_DESC[p].split('｜')[0]}</td><td style='white-space:normal;text-align:left'>{PAT_DESC[p].split('｜')[1]}</td></tr>" for p in PATTERNS)
     return f"""<div class='hd'><div><h1>方法说明</h1><div class='sub'>本站全部内容由程序按固定规则自动生成，无人工干预</div></div></div>
-<div class='rule'><h4>1. 扫描范围</h4>国内五大期货交易所（上期所、大商所、郑商所、中金所、广期所）共 54 个品种的<b>主力连续合约</b>日线数据，来源为新浪财经（经 akshare 获取），无需密钥。每个交易日收盘后、新浪日线更新后（通常 17:00–18:30）自动运行。</div>
+<div class='rule'><h4>1. 扫描范围</h4>国内主要期货市场（上期所、上期能源、大商所、郑商所、中金所、广期所）共 54 个品种的<b>主力连续合约</b>日线数据，来源为新浪财经（经 akshare 获取），无需密钥。每个交易日收盘后、新浪日线更新后（通常 17:00–18:30）自动运行；定时服务可能延迟。</div>
 <div class='rule'><h4>2. 三个判定维度（每日收盘后计算）</h4>
 <b>价格方向</b>：<code>涨跌幅 = (今收 − 昨收) / 昨收</code>，&gt;0 上涨，&lt;0 下跌。<br>
 <b>量能状态</b>：今日成交量 <b>同时</b> 大于 5 日均量和 20 日均量 → 放量；否则 → 缩量。<br>

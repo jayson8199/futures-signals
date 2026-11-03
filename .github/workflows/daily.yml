@@ -48,6 +48,9 @@ jobs:
       - name: 安装依赖
         run: pip install -r scanner/requirements.txt tushare
 
+      - name: 日报发布回归（不联网、不发送通知）
+        run: python -m unittest discover -s scanner -p 'test_daily_delivery.py' -v
+
       - name: 扫描（仅定时/手动触发）
         id: scan
         if: github.event_name != 'push'
@@ -80,23 +83,14 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add data/
           git commit -m "data: ${{ steps.scan.outputs.data_date }}" || echo "无变化"
-          git pull --rebase origin main || true
+          git pull --rebase origin main
           git push
 
       - name: 同步最新数据（防止与其他运行的提交交错）
-        run: git pull --rebase origin main || true
+        run: git pull --rebase origin main
 
       - name: 生成网站
         run: python scanner/build_site.py --data data --out site
-
-      - name: 推送邮件/微信
-        if: steps.scan.outputs.updated == 'true'
-        env:
-          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-        run: python scanner/notify.py --date "${{ steps.scan.outputs.data_date }}"
 
       - uses: actions/configure-pages@v5
         with:
@@ -106,3 +100,13 @@ jobs:
           path: site
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      # 先确认网页发布成功，再发送链接；通知失败保留已上线网页并将任务标为失败。
+      - name: 推送邮件/微信
+        if: steps.scan.outputs.updated == 'true'
+        env:
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_RECEIVER: ${{ secrets.MAIL_RECEIVER }}
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python scanner/notify.py --date "${{ steps.scan.outputs.data_date }}"

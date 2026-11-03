@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 每日流水线入口（GitHub Actions 调用）
-  1. 扫描 → 若数据日期 != 今天（北京时间），每 10 分钟重扫，最多 N 轮（新浪日线有 1~3 小时延迟）
+  1. 扫描 → 等待目标收盘日数据，每 10 分钟重扫，最多 N 轮（新浪日线有 1~3 小时延迟）
   2. 数据到位：写入 data/<date>.json
-  3. 若最终仍非当日：判定休市/未更新，不写数据（退出码 0，后续步骤照常重建网站）
+  3. 休市/尚无目标日数据不写入；获取失败或部分更新不足门槛返回失败，不冒充发布成功。
 用法：python scanner/run_daily.py [--max-rounds 10] [--interval 600] [--force]
   --force：不管日期是否为今天都保存（用于手动补数/测试）
 退出时向 $GITHUB_OUTPUT 写 updated=true/false, data_date=...
@@ -14,12 +14,36 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 CN_TZ = ZoneInfo("Asia/Shanghai")
+
+
+def report_date(now=None):
+    """午夜后延迟启动仍检查上一收盘日；工作日不等同于交易所交易日。"""
+    now = now or datetime.now(CN_TZ)
+    day = now.date()
+    if now.hour < 15:
+        day -= timedelta(days=1)
+    while day.weekday() >= 5:
+        day -= timedelta(days=1)
+    return day.isoformat()
+
+
+def validate_snapshot(data):
+    """核对日期和计数，防止已有坏文件让备用任务直接跳过。"""
+    day = data["data_date"]
+    if datetime.strptime(day, "%Y-%m-%d").strftime("%Y-%m-%d") != day:
+        raise ValueError("数据日期格式无效")
+    rows = data["all_results"]
+    symbols = [row["symbol"] for row in rows]
+    if (not rows or len(symbols) != len(set(symbols))
+            or data["valid_count"] != len(rows)
+            or any(row["date"] != day for row in rows)):
+        raise ValueError("品种重复、日期混排或有效数量不一致")
 
 
 def scan(tmp_dir: Path) -> dict:
@@ -47,12 +71,23 @@ def main():
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
 
-    today = datetime.now(CN_TZ).strftime("%Y-%m-%d")
+    if args.max_rounds < 1 or args.interval < 0:
+        ap.error("轮数必须至少为1，间隔不能为负数")
+    today = report_date()
+    print(f"目标收盘日 {today}（北京时间15:00前检查上一工作日；节假日以实际数据为准）")
     done = ROOT / "data" / f"{today}.json"
     if done.exists() and not args.force:
-        print(f"✅ 今日 {today} 数据已存在（{done.name}），本次为备用触发，跳过扫描")
-        gh_output(updated="false", data_date=today)
-        return 0
+        try:
+            saved = json.loads(done.read_text(encoding="utf-8"))
+            validate_snapshot(saved)
+            if saved["data_date"] != today or saved["valid_count"] < 50:
+                raise ValueError("已有快照未达到目标日完整性门槛")
+        except (ValueError, KeyError, TypeError):
+            print("::warning::已有快照未通过检查，重新扫描，不作为完成凭据")
+        else:
+            print(f"✅ 目标日 {today} 数据已存在并核验（{done.name}），跳过重复扫描")
+            gh_output(updated="false", data_date=today)
+            return 0
     tmp = ROOT / ".scan_tmp"
     tmp.mkdir(exist_ok=True)
     data = None
@@ -60,6 +95,7 @@ def main():
         print(f"\n===== 第 {rnd}/{args.max_rounds} 轮扫描  北京时间 {datetime.now(CN_TZ):%H:%M} =====")
         try:
             data = scan(tmp)
+            validate_snapshot(data)
         except Exception as e:
             print(f"扫描异常：{e}")
             data = None
@@ -76,14 +112,19 @@ def main():
     if not data or data["valid_count"] < 40:
         print("❌ 数据获取失败或有效品种过少，本次不更新")
         gh_output(updated="false", data_date="")
-        return 0
+        return 1
     n_today = sum(1 for r in data["all_results"] if r["date"] == today)
     if n_today < 50 and not args.force:
-        print(f"⏸ 今日休市或新浪数据未更新完全（今日已更新 {n_today} 个，最新数据日期 {data['data_date']}），跳过")
+        if n_today:
+            print(f"::error::目标日 {today} 仅更新 {n_today} 个品种，未达50个门槛，不发布")
+            gh_output(updated="false", data_date=data["data_date"])
+            return 1
+        print(f"::warning::目标日 {today} 尚无数据（可能休市或提供商未更新；最新 {data['data_date']}），未生成新报告")
         gh_output(updated="false", data_date=data["data_date"])
         return 0
 
     out = ROOT / "data" / f"{data['data_date']}.json"
+    out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     try:
         sys.path.insert(0, str(ROOT / "scanner"))

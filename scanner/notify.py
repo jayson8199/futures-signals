@@ -4,7 +4,7 @@
 凭据只从环境变量读取（GitHub Secrets）：
   MAIL_SENDER / MAIL_PASSWORD / MAIL_RECEIVER / MAIL_SMTP(默认 smtp.qq.com) / PUSHPLUS_TOKEN
 用法：python scanner/notify.py --date 2026-10-15 [--site-url https://...]
-未配置的通道自动跳过，推送失败不影响流水线（退出码恒为 0）。
+未配置的通道自动跳过；已配置通道发送失败返回非零，不能作为送达验收凭据。
 """
 import argparse
 import json
@@ -74,7 +74,7 @@ def build_summary(data, site_url):
 def send_mail(subject, body):
     sender, pwd, recv = os.environ.get("MAIL_SENDER"), os.environ.get("MAIL_PASSWORD"), os.environ.get("MAIL_RECEIVER")
     if not (sender and pwd and recv):
-        return "邮件未配置，跳过"
+        return "邮件失败：配置不完整" if any((sender, pwd, recv)) else "邮件未配置，跳过"
     host = os.environ.get("MAIL_SMTP", "smtp.qq.com")
     msg = MIMEMultipart()
     msg["From"] = formataddr((str(Header("期货信号站", "utf-8")), sender))
@@ -84,10 +84,12 @@ def send_mail(subject, body):
     try:
         with smtplib.SMTP_SSL(host, 465, timeout=30) as s:
             s.login(sender, pwd)
-            s.sendmail(sender, [recv], msg.as_string())
+            refused = s.sendmail(sender, [recv], msg.as_string())
+            if refused:
+                return "邮件失败：收件人被拒绝"
         return "邮件已发送"
     except Exception as e:
-        return f"邮件失败：{e}"
+        return f"邮件失败：{type(e).__name__}"
 
 
 def send_wechat(title, content):
@@ -98,9 +100,9 @@ def send_wechat(title, content):
     try:
         with request.urlopen(request.Request("https://www.pushplus.plus/send", data=data, method="POST"), timeout=30) as r:
             j = json.loads(r.read().decode())
-        return "微信已推送" if j.get("code") == 200 else f"PushPlus 返回：{j.get('msg', j)}"
+        return "微信已推送" if j.get("code") == 200 else "微信失败：PushPlus未受理"
     except Exception as e:
-        return f"微信失败：{e}"
+        return f"微信失败：{type(e).__name__}"
 
 
 def main():
@@ -111,15 +113,19 @@ def main():
     f = ROOT / "data" / f"{args.date}.json"
     if not f.exists():
         print(f"无 {f.name}，不推送")
-        return 0
+        return 1
     data = json.loads(f.read_text(encoding="utf-8"))
+    if data.get("data_date") != args.date:
+        print("报告日期与请求日期不一致，不推送")
+        return 1
     body = build_summary(data, args.site_url)
     title = f"期货信号日报 {args.date}｜👑{data['patterns']['高富帅']['count']} 💎{data['patterns']['白富美']['count']}"
     print(body)
     print("---")
-    print(send_mail(title, body))
-    print(send_wechat(title, body))
-    return 0
+    results = [send_mail(title, body), send_wechat(title, body)]
+    for result in results:
+        print(result)
+    return int(any("失败" in result for result in results))
 
 
 if __name__ == "__main__":
