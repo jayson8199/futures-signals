@@ -1,0 +1,413 @@
+{
+  "report": {
+    "ai": {
+      "interpretation": [
+        {
+          "evidence_ids": [
+            "breadth.up",
+            "breadth.down",
+            "mkt.mom20_median",
+            "mkt.regime"
+          ],
+          "text": "下跌品种数多于上涨品种数，且20日动量中位数为负，或许说明当日整体环境偏弱。"
+        },
+        {
+          "evidence_ids": [
+            "sym.AG0",
+            "sym.IM0",
+            "sym.IC0"
+          ],
+          "text": "白银、中证1000、中证500当日上涨并伴随增仓，但20日动量均为负，可能属于短期反弹，尚不能说明趋势已经改变。"
+        },
+        {
+          "evidence_ids": [
+            "sym.LU0",
+            "sym.FU0",
+            "sym.PG0"
+          ],
+          "text": "低硫燃料油、燃料油、液化石油气下跌伴随减仓，且20日动量为正，可能是前期上涨之后的回落。"
+        },
+        {
+          "evidence_ids": [
+            "pat.dsjj",
+            "pat.xdfl",
+            "pat.zsjj",
+            "pat.szfl"
+          ],
+          "text": "跌势将尽10个、下跌乏力9个，多于涨势将尽8个、上涨乏力8个，或许说明下跌动能减弱的标记较多，但这只是形态计数。"
+        }
+      ],
+      "next_checks": [
+        {
+          "evidence_ids": [
+            "sym.AG0",
+            "sym.IM0",
+            "sym.IC0"
+          ],
+          "text": "白银、中证1000、中证500的涨幅与持仓变化，是否与交易所公布的数据一致？"
+        },
+        {
+          "evidence_ids": [
+            "sym.LU0",
+            "sym.FU0",
+            "sym.PG0"
+          ],
+          "text": "低硫燃料油、燃料油、液化石油气的下跌与减仓，在后续扫描中是否延续？"
+        },
+        {
+          "evidence_ids": [
+            "mkt.mom20_median",
+            "mkt.regime"
+          ],
+          "text": "后续扫描中20日动量中位数是否仍为负，市场环境标记是否发生变化？"
+        },
+        {
+          "evidence_ids": [
+            "pat.dsjj",
+            "pat.xdfl"
+          ],
+          "text": "被标为跌势将尽和下跌乏力的品种，后续涨跌是否与形态标签描述相符？"
+        }
+      ],
+      "summary": [
+        {
+          "evidence_ids": [
+            "cov.total",
+            "cov.valid",
+            "cov.errors",
+            "breadth.up",
+            "breadth.down"
+          ],
+          "text": "本次共扫描54个品种，有效54个，获取失败0个；其中上涨24个，下跌30个。"
+        },
+        {
+          "evidence_ids": [
+            "mkt.mom20_median",
+            "mkt.regime",
+            "sig.strong"
+          ],
+          "text": "全部品种20日动量中位数为-2.92%，市场环境标记为弱势；双20%强信号品种数为0。"
+        },
+        {
+          "evidence_ids": [
+            "sym.AG0",
+            "sym.IM0",
+            "sym.IC0",
+            "sym.LU0",
+            "sym.FU0",
+            "sym.PG0"
+          ],
+          "text": "涨幅居前的是白银6.85%、中证1000为4.78%、中证500为4.69%，均为上涨、放量、增仓；跌幅居前的是低硫燃料油-6.93%、燃料油-6.73%、液化石油气-3.37%。"
+        }
+      ],
+      "uncertainties": [
+        {
+          "evidence_ids": [
+            "cov.valid",
+            "cov.total"
+          ],
+          "text": "数据来自本站扫描快照，未做交易所或第二来源核对，各项数值是否准确无法确认。"
+        },
+        {
+          "evidence_ids": [
+            "cov.total",
+            "sym.AG0",
+            "sym.LU0"
+          ],
+          "text": "快照只记录扫描日期，没有扫描时刻，无法判断各品种数值是否为收盘后数据。"
+        },
+        {
+          "evidence_ids": [
+            "pat.gfs",
+            "pat.bfm",
+            "pat.xzfq",
+            "pat.xdfq"
+          ],
+          "text": "证据包没有给出各形态标签的定义与阈值，无法判断这些标签的含义是否稳定可靠。"
+        },
+        {
+          "evidence_ids": [
+            "sym.AG0",
+            "sym.IM0",
+            "sym.IC0",
+            "sym.LU0",
+            "sym.FU0",
+            "sym.PG0"
+          ],
+          "text": "品种明细只展示涨跌幅两端各3个，属于单日快照，其他品种的细节及多日的持续性均无法判断。"
+        }
+      ]
+    },
+    "brief_id": "brief-2026-11-04",
+    "data_date": "2026-11-04",
+    "evidence": {
+      "brief_id": "brief-2026-11-04",
+      "data_date": "2026-11-04",
+      "facts": [
+        {
+          "fact_id": "cov.valid",
+          "group": "coverage",
+          "label": "有效品种数",
+          "source_field": "valid_count",
+          "unit": "个",
+          "value": 54
+        },
+        {
+          "fact_id": "cov.total",
+          "group": "coverage",
+          "label": "扫描品种数",
+          "source_field": "total_scanned",
+          "unit": "个",
+          "value": 54
+        },
+        {
+          "fact_id": "cov.errors",
+          "group": "coverage",
+          "label": "获取失败品种数",
+          "source_field": "error_count",
+          "unit": "个",
+          "value": 0
+        },
+        {
+          "fact_id": "breadth.up",
+          "group": "breadth",
+          "label": "上涨品种数",
+          "source_field": "up_count",
+          "unit": "个",
+          "value": 24
+        },
+        {
+          "fact_id": "breadth.down",
+          "group": "breadth",
+          "label": "下跌品种数",
+          "source_field": "down_count",
+          "unit": "个",
+          "value": 30
+        },
+        {
+          "fact_id": "mkt.mom20_median",
+          "group": "market",
+          "label": "全部品种 20 日动量中位数",
+          "source_field": "market.mom20_median",
+          "unit": "%",
+          "value": -2.92
+        },
+        {
+          "fact_id": "mkt.regime",
+          "group": "market",
+          "label": "市场环境（中位数<0 为弱势）",
+          "source_field": "market.regime",
+          "unit": null,
+          "value": "弱势"
+        },
+        {
+          "fact_id": "sig.strong",
+          "group": "signal",
+          "label": "双20%强信号品种数",
+          "source_field": "strong_count",
+          "unit": "个",
+          "value": 0
+        },
+        {
+          "detail": "白银、中证500、中证1000、沪铜、沪深300",
+          "fact_id": "pat.gfs",
+          "group": "pattern",
+          "label": "形态「高富帅」品种数",
+          "source_field": "patterns.高富帅.count",
+          "unit": "个",
+          "value": 5
+        },
+        {
+          "detail": "棕榈油、塑料、聚丙烯、碳酸锂、乙二醇",
+          "fact_id": "pat.bfm",
+          "group": "pattern",
+          "label": "形态「白富美」品种数",
+          "source_field": "patterns.白富美.count",
+          "unit": "个",
+          "value": 5
+        },
+        {
+          "detail": "纯碱、黄金、纸浆、铁矿石、菜油、玻璃、沪锌、上证50",
+          "fact_id": "pat.szfl",
+          "group": "pattern",
+          "label": "形态「上涨乏力」品种数",
+          "source_field": "patterns.上涨乏力.count",
+          "unit": "个",
+          "value": 8
+        },
+        {
+          "detail": "甲醇、20号胶、豆粕、低硫燃料油、燃料油、尿素、豆油、PVC、沪锡",
+          "fact_id": "pat.xdfl",
+          "group": "pattern",
+          "label": "形态「下跌乏力」品种数",
+          "source_field": "patterns.下跌乏力.count",
+          "unit": "个",
+          "value": 9
+        },
+        {
+          "detail": "焦煤、沪镍、苹果",
+          "fact_id": "pat.xzfq",
+          "group": "pattern",
+          "label": "形态「虚涨分歧」品种数",
+          "source_field": "patterns.虚涨分歧.count",
+          "unit": "个",
+          "value": 3
+        },
+        {
+          "detail": "菜粕、硅铁、对二甲苯、锰硅、工业硅、集运指数",
+          "fact_id": "pat.xdfq",
+          "group": "pattern",
+          "label": "形态「虚跌分歧」品种数",
+          "source_field": "patterns.虚跌分歧.count",
+          "unit": "个",
+          "value": 6
+        },
+        {
+          "detail": "白糖、热轧卷板、螺纹钢、焦炭、棉花、不锈钢、烧碱、沪铅",
+          "fact_id": "pat.zsjj",
+          "group": "pattern",
+          "label": "形态「涨势将尽」品种数",
+          "source_field": "patterns.涨势将尽.count",
+          "unit": "个",
+          "value": 8
+        },
+        {
+          "detail": "玉米、PTA、沥青、天然橡胶、沪铝、花生、苯乙烯、原油、液化石油气、短纤",
+          "fact_id": "pat.dsjj",
+          "group": "pattern",
+          "label": "形态「跌势将尽」品种数",
+          "source_field": "patterns.跌势将尽.count",
+          "unit": "个",
+          "value": 10
+        },
+        {
+          "detail": "涨跌幅最大前3",
+          "fact_id": "sym.AG0",
+          "group": "symbol",
+          "label": "白银 AG0（上期所）",
+          "source_field": "all_results[symbol=AG0]",
+          "unit": null,
+          "value": {
+            "dims": "上涨·放量·增仓",
+            "hold_change_pct": 10.46,
+            "mom20": -16.87,
+            "pattern": "高富帅",
+            "price_change_pct": 6.85,
+            "today_close": 12453.0
+          }
+        },
+        {
+          "detail": "涨跌幅最大前3",
+          "fact_id": "sym.IM0",
+          "group": "symbol",
+          "label": "中证1000 IM0（中金所）",
+          "source_field": "all_results[symbol=IM0]",
+          "unit": null,
+          "value": {
+            "dims": "上涨·放量·增仓",
+            "hold_change_pct": 7.78,
+            "mom20": -9.76,
+            "pattern": "高富帅",
+            "price_change_pct": 4.78,
+            "today_close": 6469.2
+          }
+        },
+        {
+          "detail": "涨跌幅最大前3",
+          "fact_id": "sym.IC0",
+          "group": "symbol",
+          "label": "中证500 IC0（中金所）",
+          "source_field": "all_results[symbol=IC0]",
+          "unit": null,
+          "value": {
+            "dims": "上涨·放量·增仓",
+            "hold_change_pct": 9.41,
+            "mom20": -10.01,
+            "pattern": "高富帅",
+            "price_change_pct": 4.69,
+            "today_close": 6578.8
+          }
+        },
+        {
+          "detail": "涨跌幅最小前3",
+          "fact_id": "sym.LU0",
+          "group": "symbol",
+          "label": "低硫燃料油 LU0（上期能源）",
+          "source_field": "all_results[symbol=LU0]",
+          "unit": null,
+          "value": {
+            "dims": "下跌·放量·减仓",
+            "hold_change_pct": -3.6,
+            "mom20": 4.51,
+            "pattern": "下跌乏力",
+            "price_change_pct": -6.93,
+            "today_close": 5395.0
+          }
+        },
+        {
+          "detail": "涨跌幅最小前3",
+          "fact_id": "sym.FU0",
+          "group": "symbol",
+          "label": "燃料油 FU0（上期所）",
+          "source_field": "all_results[symbol=FU0]",
+          "unit": null,
+          "value": {
+            "dims": "下跌·放量·减仓",
+            "hold_change_pct": -3.91,
+            "mom20": 6.88,
+            "pattern": "下跌乏力",
+            "price_change_pct": -6.73,
+            "today_close": 4739.0
+          }
+        },
+        {
+          "detail": "涨跌幅最小前3",
+          "fact_id": "sym.PG0",
+          "group": "symbol",
+          "label": "液化石油气 PG0（大商所）",
+          "source_field": "all_results[symbol=PG0]",
+          "unit": null,
+          "value": {
+            "dims": "下跌·缩量·减仓",
+            "hold_change_pct": -9.08,
+            "mom20": 10.11,
+            "pattern": "跌势将尽",
+            "price_change_pct": -3.37,
+            "today_close": 7392.0
+          }
+        }
+      ],
+      "schema": "futures-brief-evidence/1",
+      "selection_note": "品种事实按 price_change_pct 原值取最大与最小各 3 个（同值按代码排序），只用于挑选展示，不是信号",
+      "source": {
+        "hash_semantics": "sha256(file bytes with CRLF->LF)",
+        "label": "本站新浪财经/akshare扫描快照",
+        "path": "data/2026-11-04.json",
+        "scan_date": "2026-11-04",
+        "scan_time": null,
+        "sha256": "06e020a65f1ec4ebda12ae7969a30cdbf40970c8404bd5429ca5d1fc2025a8b4",
+        "time_note": "快照只记录扫描日期，没有精确扫描时刻",
+        "verification": "未做交易所或第二来源核对；数值为本站扫描原值"
+      }
+    },
+    "evidence_sha256": "d8ea1021ec04641e998904398a84a5f6e13a51d4c21c8374c8226aaf28bb565c",
+    "generation": {
+      "cli_version": "2.1.299",
+      "generated_at": "2026-11-04T19:55:56+08:00",
+      "generator": "claude-code-cli",
+      "model": "claude-opus-5-5",
+      "prompt_sha256": "eb66f7dc458f8ad0b935ed047fb29a8ef213dc8c4db74ecf6d1f75a4609ac0b4",
+      "prompt_version": "brief-prompt/1",
+      "raw_receipt_sha256": "d686a25da192b3e0515fd6d40bf476aae5b3cbfd881bd7245748fc84d1448721"
+    },
+    "schema": "futures-brief-report/1"
+  },
+  "review": {
+    "decision": "accepted",
+    "note": "已逐条核对22项快照依据、AI数值引用和真实生成回执。仅验收站内快照解读，未作外部行情或策略效果核实。",
+    "report_sha256": "2cca620422be5f0f52e30f7ba112013f86d9ebdf9adc57142a913d679ba549e3",
+    "reviewed_at": "2026-11-04T19:14:16+07:00",
+    "reviewer": "Codex"
+  },
+  "schema": "futures-brief-accepted/1"
+}

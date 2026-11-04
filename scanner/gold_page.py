@@ -227,7 +227,7 @@ def strategies_body():
 <div class='g-small'>纸面记录与回测都不是实盘收益，也不构成投资建议。</div>"""
 
 
-def status_body(datas, gen_time, gold=None, macro=None, failed=None, snapshot_error=None):
+def status_body(datas, gen_time, gold=None, macro=None, failed=None, snapshot_error=None, extra_rows=None):
     latest = datas[-1]
     errs = latest.get("error_count") or 0
     rows = [("最新日报数据日期", escape(latest["data_date"]), f"<a href='reports/{escape(latest['data_date'])}.html'>查看日报</a>"),
@@ -242,6 +242,7 @@ def status_body(datas, gen_time, gold=None, macro=None, failed=None, snapshot_er
             rows.append((f"宏观 {escape(s['id'])}", "最新观测 " + escape(s["asOf"]), "抓取 " + escape(s["fetchedAt"]) + " · 冻结快照"))
     if snapshot_error:
         rows.append(("黄金/宏观快照", "校验未通过", escape(snapshot_error)))
+    rows += extra_rows or []  # 调用方已转义（如 research_briefs.status_rows）
     trs = "".join(f"<tr><td style='text-align:left'>{a}</td><td>{b}</td><td style='text-align:left;white-space:normal'>{c}</td></tr>" for a, b, c in rows)
     fail = ("<div class='g-note'>本次建站有页面生成失败：" + "、".join(escape(f) for f in failed) + "（见 Actions 日志）</div>") if failed else ""
     return f"""<style>{CSS}</style><div class='hd'><div><h1>运行状态</h1><div class='sub'>只列本次建站时读到的实际数据日期；数据日期与页面生成时间分开显示</div></div></div>

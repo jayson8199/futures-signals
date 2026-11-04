@@ -34,6 +34,8 @@ scanner/chart_page.py  K线形态图页面（本地 echarts，支持 主力连�
 scanner/weighted.py    加权指数：全部在市合约按持仓量加权（文华口径，2020 年起），--full 重建 / --update 每日续接
 scanner/gold_page.py   黄金专题 gold.html、栏目入口 research/strategies.html、运行状态 status.html（说明见 docs/gold-migration.md）
 scanner/gold_snapshot.py 黄金/美国宏观冻结快照一次性导入 → scanner/assets/gold/
+scanner/research_briefs.py AI 研究简报：证据包 → 本机 Claude 草稿 → 审阅 accept → briefs.html（说明见 docs/research-briefs.md）
+briefs/accepted/       已验收的 AI 研究简报（只放审阅通过的报告；草稿在本机 .local-briefs/，不入库）
 scanner/events_cal.py  财经事件日历（离线硬编码，每年需更新 FOMC 日期）
 scanner/probe_sources.py 数据源可用性探测（实验，结果在 experiments/）
 data/YYYY-MM-DD.json   每日扫描快照（当日实时抓取；标 backfilled 的为回填）
@@ -49,5 +51,11 @@ pip install -r scanner/requirements.txt
 python scanner/scan.py --out data          # 需能访问新浪财经
 python scanner/build_site.py               # 生成 site/
 ```
+
+## AI 研究简报（本机生成，GitHub 发布）
+
+这台 Windows 电脑是唯一开发环境，只用这一个文件夹；GitHub 负责定时运行和发布网站。Claude 写代码并起草简报，Codex 独立审阅验收，一次只做一项。
+旧的跨机 AI 投研系统不在本机，只记为“待导入”，本站不依赖它。
+生成、审阅、验收的步骤见 [docs/research-briefs.md](docs/research-briefs.md)。
 
 免责声明：本项目内容为程序自动生成，仅供学习交流，不构成投资建议。

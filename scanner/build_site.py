@@ -16,6 +16,7 @@ import macd8
 import chart as chart_mod
 import chart_page
 import gold_page
+import research_briefs
 from scan import SYMBOLS
 
 CN_TZ = ZoneInfo("Asia/Shanghai")
@@ -214,7 +215,8 @@ NAV_GROUPS = [
     ("strategies.html", "策略验证", "strategies", [
         ("strategies.html", "策略总览", "strategies"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"),
         ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort")]),
-    ("archive.html", "研究简报", "archive", [("archive.html", "历史归档", "archive"), ("method.html", "方法说明", "method")]),
+    ("briefs.html", "研究简报", "briefs", [
+        ("briefs.html", "AI研究简报", "briefs"), ("archive.html", "量化日报", "archive"), ("method.html", "方法说明", "method")]),
     ("status.html", "运行状态", "status", [("status.html", "运行状态", "status")]),
 ]
 
@@ -495,8 +497,8 @@ def archive_body(datas, macd_by_date=None):
                  f"<span>涨 <b class='up'>{d['up_count']}</b> 跌 <b class='down'>{d['down_count']}</b>"
                  f"<span class='pill up'>👑 {gao}</span><span class='pill down'>💎 {bai}</span><span class='pill'>MACD {len(macd_by_date.get(D, []))}</span>{f'<span class=pill>{regime}市</span>' if regime else ''}</span>"
                  f"<span class='m'>{gao_names or '无高富帅'}</span><span class='m'><a href='data/{D}.json'>JSON</a></span></li>")
-    return (f"<div class='hd'><div><h1>研究简报 · 历史归档</h1><div class='sub'>共 {len(datas)} 个交易日 ｜ 点击日期查看当日完整报告</div></div></div>"
-            "<div class='status'>每份简报都是程序按固定规则（八种形态、MACD 八策略）从收盘数据自动生成的量化日报，不是人工或 AI 撰写的分析文章。</div>"
+    return (f"<div class='hd'><div><h1>量化日报 · 历史归档</h1><div class='sub'>共 {len(datas)} 个交易日 ｜ 点击日期查看当日完整报告</div></div></div>"
+            "<div class='status'>每份日报都是程序规则生成：按固定规则（八种形态、MACD 八策略）从收盘数据自动生成的量化日报，不是人工或 AI 撰写的分析文章。</div>"
             f"<div class='card'><ul class='arch'>{rows}</ul></div>")
 
 
@@ -1139,8 +1141,17 @@ def main():
         shutil.rmtree(out / "assets" / "gold", ignore_errors=True)  # 不发布未通过校验的快照
         (out / "gold.html").write_text(layout(f"黄金专题 · {SITE_TITLE}", gold_page.unavailable_body(latest, {a["symbol"] for a in avail}, snap_err), "gold"),
                                        encoding="utf-8")
+    # AI 研究简报（scanner/research_briefs.py）：只发布 briefs/accepted/ 里通过校验的报告；出错时保留空态页，不影响日报
+    try:
+        brief_info = research_briefs.build_pages(out, layout, latest["data_date"], data_dir, site_title=SITE_TITLE)
+    except Exception as e:
+        brief_info = None
+        failed.append("briefs.html")
+        print(f"[警告] AI 研究简报页面生成失败：{e}")
+        (out / "briefs.html").write_text(layout(f"AI 研究简报 · {SITE_TITLE}", research_briefs.index_body([], latest["data_date"], []), "briefs"), encoding="utf-8")
     (out / "status.html").write_text(layout(f"运行状态 · {SITE_TITLE}", gold_page.status_body(
-        datas, datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M"), gold, macro, failed, snap_err), "status"), encoding="utf-8")
+        datas, datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M"), gold, macro, failed, snap_err,
+        extra_rows=research_briefs.status_rows(brief_info, latest["data_date"])), "status"), encoding="utf-8")
     (out / ".nojekyll").write_text("")
     print(f"网站已生成：{out}  共 {len(datas)} 天，最新 {latest['data_date']}")
     # 事件日历年度维护提醒：FOMC 日期按年硬编码，11 月起若下一年缺失则在日志中警告

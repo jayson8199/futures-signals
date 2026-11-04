@@ -29,6 +29,7 @@
 | 加权指数 / K 线形态图 | `scanner/weighted*.py` `chart.py` `chart_page.py` `fetch_long.py`；`weighted-rebuild.yml` `bydate-debug.yml` `trend-data.yml` | 「加权指数 / K 线形态图」对话 |
 | 二区定律 | `scanner/erqu_*.py`；`erqu.yml` `erqu-live.yml` | 建它的那个对话 |
 | 命盘日报 | `mingpan/` 整个目录；`mingpan-daily.yml` | 「命盘」对话（跑在曼谷电脑上） |
+| AI 研究简报 | `scanner/research_briefs.py` `test_research_briefs.py`；`briefs/accepted/`；`docs/research-briefs.md` | Claude 开发、Codex 验收（本机单一工作区，见文档） |
 | 实验 / 回测 | `scanner/trend_backtest.py` `season_stats.py` `calendar_stats.py` `thu_short.py` `events_cal.py` `probe_sources.py` `tushare_probe.py`；`probe.yml` `tushare-probe.yml` `calendar-stats.yml`；`experiments/` | 谁建的谁维护，不确定就问用户 |
 
 - 不是自己板块的文件，默认**不改**。确实要改，先告诉用户，让他去知会另一个对话。

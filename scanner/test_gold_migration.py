@@ -148,7 +148,7 @@ class SiteBuildTests(unittest.TestCase):
                 target = (page.parent / href.split("?")[0].split("#")[0]).resolve()
                 self.assertTrue(target.exists(), f"{page.name} → {href}")
         report = (self.site / "reports" / f"{self.latest['data_date']}.html").read_text(encoding="utf-8")
-        for h in ("../index.html", "../research.html", "../strategies.html", "../archive.html", "../status.html"):
+        for h in ("../index.html", "../research.html", "../strategies.html", "../briefs.html", "../status.html"):
             self.assertIn(f"href='{h}'", report)
 
     def test_gold_page_from_actual_data(self):
