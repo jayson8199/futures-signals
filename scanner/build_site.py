@@ -15,6 +15,7 @@ import stats as stats_mod
 import macd8
 import chart as chart_mod
 import chart_page
+import gold_page
 from scan import SYMBOLS
 
 CN_TZ = ZoneInfo("Asia/Shanghai")
@@ -67,6 +68,8 @@ td{font-family:var(--mono)}
 .brand small{display:block;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0;font-family:var(--sans);margin-left:17px}
 .nav a{color:var(--muted);margin-left:16px;font-size:13px;padding:4px 0;border-bottom:1px solid transparent}
 .nav button{margin-left:16px;font:inherit;font-size:12px;color:var(--muted);background:var(--panel2);border:1px solid var(--line2);border-radius:4px;padding:3px 9px;cursor:pointer;font-family:var(--mono)}.nav button:hover{color:var(--ink)}.nav a.on{color:var(--cyan);border-bottom-color:var(--cyan)}.nav a:hover{color:var(--ink);text-decoration:none}
+.subnav{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;margin-bottom:12px;padding:7px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.subnav a{color:var(--muted)}.subnav a.on{color:var(--cyan);font-weight:600}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 .wrap{max-width:1120px;margin:0 auto;padding:18px 16px}
@@ -202,19 +205,41 @@ def _macro_banner(root=""):
         return ""
 
 
+# 顶部五个栏目；每个栏目下的二级导航列出原有页面（旧网址不变）
+NAV_GROUPS = [
+    ("index.html", "今日总览", "home", [("index.html", "最新日报", "home")]),
+    ("research.html", "品种研究", "research", [
+        ("research.html", "研究总览", "research"), ("gold.html", "黄金专题", "gold"), ("chart.html", "K线形态图", "chart"),
+        ("macd.html", "MACD买卖点", "macd"), ("trend.html", "信号趋势", "trend"), ("macro.html", "宏观时钟", "macro")]),
+    ("strategies.html", "策略验证", "strategies", [
+        ("strategies.html", "策略总览", "strategies"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"),
+        ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort")]),
+    ("archive.html", "研究简报", "archive", [("archive.html", "历史归档", "archive"), ("method.html", "方法说明", "method")]),
+    ("status.html", "运行状态", "status", [("status.html", "运行状态", "status")]),
+]
+
+
+def nav_html(nav_on, root=""):
+    """返回 (顶部导航, 二级导航)；nav_on 为页面键，如 'gold'"""
+    group = next((g for g in NAV_GROUPS if any(k == nav_on for _, _, k in g[3])), NAV_GROUPS[0])
+    top = "".join(f"<a href='{root}{h}' class='{'on' if g is group else ''}'>{t}</a>" for g in NAV_GROUPS for h, t in [g[:2]])
+    items = group[3]
+    sub = ("<nav class='subnav' aria-label='本栏目'>" + "".join(
+        f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in items) + "</nav>") if len(items) > 1 else ""
+    return top, sub
+
+
 def layout(title, body, nav_on, root="", desc=""):
     gen = datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M")
-    nav = [("index.html", "最新日报", "home"), ("archive.html", "历史归档", "archive"),
-           ("trend.html", "信号趋势", "trend"), ("macd.html", "MACD买卖点", "macd"), ("chart.html", "K线形态图", "chart"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"), ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort"), ("macro.html", "宏观时钟", "macro"), ("method.html", "方法说明", "method")]
-    nav_html = "".join(f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in nav)
+    top_nav, sub_nav = nav_html(nav_on, root)
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#070b12"><title>{title}</title>
 <meta name="description" content="{desc or '国内期货54品种 量·仓·价三维八种形态每日自动扫描公示'}">
 <script>(function(){{try{{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}}catch(e){{}}}})();</script>
 <style>{CSS}</style></head><body>
 <div class="top"><div class="in"><a class="brand" href="{root}index.html">{SITE_TITLE}<small>国内期货 54 品种 · 量仓价三维自动扫描 · 每交易日收盘后更新</small></a>
-<nav class="nav">{nav_html}<button type="button" id="themeBtn" aria-label="切换深浅色">深色</button></nav></div></div>
-<div class="wrap">{_macro_banner(root)}{body}
+<nav class="nav">{top_nav}<button type="button" id="themeBtn" aria-label="切换深浅色">深色</button></nav></div></div>
+<div class="wrap">{sub_nav}{_macro_banner(root)}{body}
 <div class="ft">信号判定：量·仓·价三维分类 ｜ 三档标注依据：400天历史回测（13014个信号）｜ 白富美经全年数据验证对后市方向无显著预测力，降级观察 ｜ 数据来源：新浪财经（akshare）｜ 理论参考：北大期货班八种形态<br>
 本站内容为程序自动生成，仅供学习交流，不构成任何投资建议。页面生成时间：{gen}（北京时间）</div>
 </div>
@@ -470,7 +495,9 @@ def archive_body(datas, macd_by_date=None):
                  f"<span>涨 <b class='up'>{d['up_count']}</b> 跌 <b class='down'>{d['down_count']}</b>"
                  f"<span class='pill up'>👑 {gao}</span><span class='pill down'>💎 {bai}</span><span class='pill'>MACD {len(macd_by_date.get(D, []))}</span>{f'<span class=pill>{regime}市</span>' if regime else ''}</span>"
                  f"<span class='m'>{gao_names or '无高富帅'}</span><span class='m'><a href='data/{D}.json'>JSON</a></span></li>")
-    return f"<div class='hd'><div><h1>历史归档</h1><div class='sub'>共 {len(datas)} 个交易日 ｜ 点击日期查看当日完整报告</div></div></div><div class='card'><ul class='arch'>{rows}</ul></div>"
+    return (f"<div class='hd'><div><h1>研究简报 · 历史归档</h1><div class='sub'>共 {len(datas)} 个交易日 ｜ 点击日期查看当日完整报告</div></div></div>"
+            "<div class='status'>每份简报都是程序按固定规则（八种形态、MACD 八策略）从收盘数据自动生成的量化日报，不是人工或 AI 撰写的分析文章。</div>"
+            f"<div class='card'><ul class='arch'>{rows}</ul></div>")
 
 
 def trend_body(datas):
@@ -1055,6 +1082,7 @@ def main():
           "regime": (d.get("market") or {}).get("regime")} for d in datas], ensure_ascii=False), encoding="utf-8")
 
     st = stats_mod.compute(datas)
+    failed = []
     for i, d in enumerate(datas):
         prev = datas[i - 1] if i > 0 else None
         body = build_report_body(d, prev, dates, root="../", streaks=st["streaks"] if i == len(datas) - 1 else None,
@@ -1075,15 +1103,18 @@ def main():
         import thu_short_page
         (out / "thushort.html").write_text(layout(f"周四做空实盘 · {SITE_TITLE}", thu_short_page.body(), "thushort"), encoding="utf-8")
     except Exception as e:
+        failed.append("thushort.html")
         print(f"[警告] 周四做空页面生成失败：{e}")
     try:
         import macro_page
         (out / "macro.html").write_text(layout(f"宏观时钟 · {SITE_TITLE}", macro_page.macro_body(), "macro"), encoding="utf-8")
     except Exception as e:
+        failed.append("macro.html")
         print(f"[警告] 宏观时钟页面生成失败：{e}")
     try:
         (out / "oversold.html").write_text(layout(f"跌够久实盘 · {SITE_TITLE}", oversold_body(), "oversold"), encoding="utf-8")
     except Exception as e:
+        failed.append("oversold.html")
         print(f"[警告] 跌够久页面生成失败：{e}")
     # K 线形态图：逐品种 JSON + 页面 + 本地 echarts
     avail = chart_mod.build(out, SYMBOLS)
@@ -1091,6 +1122,25 @@ def main():
     shutil.copy(Path(__file__).resolve().parent / "assets" / "echarts.min.js", out / "assets" / "echarts.min.js")
     (out / "chart.html").write_text(layout(f"K线形态图 · {SITE_TITLE}", chart_page.body(avail, SECTOR), "chart",
                                            desc="按王刚期货交易体系手册规则自动标注蜡烛形态、包线、量仓信号与趋势状态的交互 K 线图"), encoding="utf-8")
+    # 黄金专题 + 栏目入口 + 运行状态（scanner/gold_page.py）；冻结快照每次建站重新复制到 site/assets/gold/
+    (out / "research.html").write_text(layout(f"品种研究 · {SITE_TITLE}", gold_page.research_body(), "research"), encoding="utf-8")
+    (out / "strategies.html").write_text(layout(f"策略验证 · {SITE_TITLE}", gold_page.strategies_body(), "strategies"), encoding="utf-8")
+    gold = macro = snap_err = None
+    try:
+        gold, macro = gold_page.load_snapshots()
+        gold_page.copy_assets(out)
+        (out / "gold.html").write_text(layout(f"黄金专题 · {SITE_TITLE}", gold_page.gold_body(latest, {a["symbol"] for a in avail}, gold, macro), "gold",
+                                              desc="上期所 AU0 每日扫描与 COMEX GC=F 冻结历史快照、美国宏观观测、风险预算计算器"), encoding="utf-8")
+    except Exception as e:
+        snap_err = f"{type(e).__name__}: {e}"
+        gold = macro = None
+        failed.append("gold.html")
+        print(f"[警告] 黄金专题快照不可用，生成说明页：{snap_err}")
+        shutil.rmtree(out / "assets" / "gold", ignore_errors=True)  # 不发布未通过校验的快照
+        (out / "gold.html").write_text(layout(f"黄金专题 · {SITE_TITLE}", gold_page.unavailable_body(latest, {a["symbol"] for a in avail}, snap_err), "gold"),
+                                       encoding="utf-8")
+    (out / "status.html").write_text(layout(f"运行状态 · {SITE_TITLE}", gold_page.status_body(
+        datas, datetime.now(CN_TZ).strftime("%Y-%m-%d %H:%M"), gold, macro, failed, snap_err), "status"), encoding="utf-8")
     (out / ".nojekyll").write_text("")
     print(f"网站已生成：{out}  共 {len(datas)} 天，最新 {latest['data_date']}")
     # 事件日历年度维护提醒：FOMC 日期按年硬编码，11 月起若下一年缺失则在日志中警告

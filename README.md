@@ -32,6 +32,8 @@ scanner/build_site.py  静态网站生成（首页/历史/趋势/买卖点/战�
 scanner/chart.py       K线形态图数据：按《王刚期货交易体系手册》规则标注蜡烛形态/包线/量仓/趋势状态
 scanner/chart_page.py  K线形态图页面（本地 echarts，支持 主力连续/加权 切换）
 scanner/weighted.py    加权指数：全部在市合约按持仓量加权（文华口径，2020 年起），--full 重建 / --update 每日续接
+scanner/gold_page.py   黄金专题 gold.html、栏目入口 research/strategies.html、运行状态 status.html（说明见 docs/gold-migration.md）
+scanner/gold_snapshot.py 黄金/美国宏观冻结快照一次性导入 → scanner/assets/gold/
 scanner/events_cal.py  财经事件日历（离线硬编码，每年需更新 FOMC 日期）
 scanner/probe_sources.py 数据源可用性探测（实验，结果在 experiments/）
 data/YYYY-MM-DD.json   每日扫描快照（当日实时抓取；标 backfilled 的为回填）
