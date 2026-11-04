@@ -8,6 +8,8 @@
 栏目顺序按 2026-10-26 个人日报融合样稿：速览 → 事业财运感情 → 近期关注（没填就不显示）→ 预测实验 → 生活补充
 → 未来七天 → 晚间回顾
 → 运年月背景 → 流日计分 → 五行 → 神煞调候 → 时辰方位 → 节气和下月。
+2026-11-04 v3 新增（只呈现，不计分）：速览加「今年姿态」「国库水位」两行，预测实验后加年度台账，
+未来七天前加年度作战路标，神煞后加个人专属旗标；微信在星级下加两行。都标「v3 新增」。
 """
 import datetime
 import html
@@ -68,6 +70,23 @@ def table(head, rows, widths=None, small=False):
     return f'<table style="width:100%;border-collapse:collapse;margin:0 0 6px">{"<tr>" + th + "</tr>"}{tr}</table>'
 
 
+def v3_badge():
+    return ('<span style="display:inline-block;font-size:11px;font-weight:normal;color:#7a4b00;background:#fff3d6;'
+            'border:1px solid #f0d08a;border-radius:8px;padding:0 6px;margin-left:6px;vertical-align:1px">v3 新增</span>')
+
+
+def v3_rows(d):
+    """速览里紧挨星级的两行：今年姿态（A）、国库水位（B）。"""
+    v = d["v3"]
+    pz, w = v["posture"], v["water"]
+    lvl_color = {"满仓": "#1e8449", "平": "#7f8c8d", "枯水": "#c0392b"}[w["label"]]
+    return (f'<div style="font-size:14px;line-height:1.65;margin:6px 0 0"><b>今年姿态：{esc(pz["posture"])}</b>{v3_badge()}'
+            f'<span style="color:#555">　{pz["year"]} {esc(pz["gz"])}年 · {esc(pz["line"])}</span></div>'
+            f'<div style="font-size:14px;line-height:1.65;margin:2px 0 0"><b>国库水位：<span style="color:{lvl_color}">'
+            f'{esc(w["label"])}</span>（W {w["W"]:+.1f}）</b>{v3_badge()}'
+            f'<span style="color:#555">　{esc(w["text"])}。</span></div>')
+
+
 # ---------- 各栏目 ----------
 
 def s_overview(d):
@@ -80,6 +99,7 @@ def s_overview(d):
         f'<div style="font-size:24px;color:{c};margin:6px 0 2px;letter-spacing:2px">{stars(d["stars"])}'
         f'<span style="font-size:16px;letter-spacing:0;margin-left:8px">{d["stars"]}/5 · {esc(d["level"])}</span>'
         f'<span style="font-size:12px;color:#888;letter-spacing:0;margin-left:8px">和你自己一年里的日子比</span></div>'
+        + v3_rows(d) +
         f'<div style="font-size:16px;font-weight:bold;margin:8px 0 4px">今日主线：{esc(t["name"])}，{esc(t["line"])}。</div>'
         f'<div style="font-size:14px;line-height:1.65;color:#333">{esc(t["explain"])}</div>'
         f'<div style="font-size:14px;line-height:1.65;margin-top:8px"><b style="color:{ACCENT}">今日行动</b>　{esc(t["action"])}。</div>'
@@ -130,6 +150,45 @@ def s_predict(d):
     return "".join(out)
 
 
+def s_v3_annual(d):
+    r = d["v3"]["annual"]
+    rows = [[f"<b>{x['year']}</b> {esc(x['gz'])}", esc(x["claim"]), esc(x["basis"]),
+             f"{x['check'][5:].replace('-', '/')} 前后" + (f"<br>{esc(x['state'])}" if x["state"] != "待对账" else "")]
+            for x in r["rows"]]
+    return (h2("", "年度预测实验台账", f"{r['version']} · 不参与评分 · 年末对账") .replace("</div>", v3_badge() + "</div>", 1)
+            + table(["年", "预注册内容", "依据", "对账"], rows, ["18%", "38%", "24%", "20%"], small=True)
+            + note(f"{r['registered']} 预注册，事先写死不改（指纹 {r['fingerprint']}），每年 12 月底对账，"
+                   "只记「发生 / 没发生 / 说不清」，不凑数；对账结果记在项目文件里，不进公开仓库，也不进每日预测实验的对照。"))
+
+
+def s_v3_roadmap(d):
+    v = d["v3"]
+    cur = v["posture"]["year"]
+    rows = []
+    for y, gz, pos, line in v["roadmap"]:
+        hl = y == cur
+        mark = (lambda t: f'<b style="color:#7a4b00">{t}</b>') if hl else (lambda t: t)
+        rows.append([mark(f"{'▶ ' if hl else ''}{y}"), mark(esc(gz)), mark(esc(pos)), mark(esc(line))])
+    pz = v["posture"]
+    now = ("" if pz["source"] == "表" else
+           f"今年 {pz['year']} {pz['gz']}年不在表里：{pz['line']}，姿态「{pz['posture']}」。")
+    return (h2("", "年度作战路标", "年度尺度，和单日星级互不替代").replace("</div>", v3_badge() + "</div>", 1)
+            + box(f'<div style="font-size:13px;line-height:1.65;color:#333">{esc(v["doctrine"])}</div>', bg="#fffaf0", border="#f0d08a")
+            + table(["年", "干支", "姿态", "一句话"], rows, ["13%", "13%", "17%", "57%"], small=True)
+            + note(now + "流年按立春换；当年那一行高亮。姿态说的是做事和精力的进退，不是买卖建议。"))
+
+
+def s_v3_flags(d):
+    fl = d["v3"]["flags"]
+    if fl:
+        inner = "".join(label_row(f"{x['name']}（{x['hit']}）", f"{x['action']}。依据：{x['basis']}。", "#7a4b00") for x in fl)
+    else:
+        inner = label_row("今天没有", "个人旗标只在甲、戊、丙日和辰、戌、巳、亥日出现。")
+    return (h2("", "个人专属旗标", f"{d['day_gz']}日 · 纯查表，不计分").replace("</div>", v3_badge() + "</div>", 1)
+            + box(inner, border="#f0d08a", bg="#fffaf0")
+            + note("按流日干支查表，和上面的神煞并列看；巳亥冲在计分里已经算过，这里只加一句行动语，不重复计分。"))
+
+
 def s_life(d):
     return h2("", "生活补充", "家人、学习、身心") + box("".join(label_row(k, v) for k, v in d["life"])) + note(
         "身心只做休息、活动和自我观察的提醒，不按五行推断症状，不代替看医生。")
@@ -178,7 +237,10 @@ def s_score(d):
         f'<div style="font-size:14px;line-height:1.8"><b>命盘层：</b>助力 {d["gain"]:+.1f}，消耗 {d["loss"]:+.1f}，'
         f'小计 {d["subtotal"]:+.1f}<br><b>神煞调整：</b>'
         + ("、".join(f"{esc(x['name'])} {x['pts']:+.1f}" for x in sha) or "无") + f'（合计 {d["sha_adj"]:+.1f}）<br>'
-        f'<b>最终评分 {d["score"]:+.1f}，对应 {d["stars"]} 星（{esc(d["level"])}）</b>；黄道黑道不计分。</div>',
+        f'<b>最终评分 {d["score"]:+.1f}，对应 {d["stars"]} 星（{esc(d["level"])}）</b>；黄道黑道不计分。'
+        + (lambda w: f'<br><b>国库水位：{esc(w["label"])}，W {w["W"]:+.1f}</b>{v3_badge()}　'
+                     f'{md(w["start"])}–{md(w["end"])} 共 {w["window"]} 天，水木 {w["plus"]:.1f} − 火土 {w["minus"]:.1f}；'
+                     '累积存量，和单日评分分开看，不计分。')(d["v3"]["water"]) + '</div>',
         border="#cfe0d7", bg="#f4f8f6")
     return (h2("", "流日计分明细", f"{d['day_gz']}日 · {d['dm']}{d['dm_wx']}日主")
             + table(["#", "计分项", "分值", "解释摘要"], rows, ["6%", "38%", "10%", "46%"], small=True) + tot)
@@ -274,9 +336,9 @@ def s_month(d):
 
 PAGES = [  # PDF 分页：前两页日用，后两页依据
     ("今天怎么用", ["s_overview", "s_cols"]),
-    ("把命理提示接上日常", ["s_concerns", "s_predict", "s_life", "s_week", "s_review"]),
+    ("把命理提示接上日常", ["s_concerns", "s_predict", "s_v3_annual", "s_life", "s_v3_roadmap", "s_week", "s_review"]),
     ("命盘底色与计分", ["s_background", "s_score", "s_wuxing"]),
-    ("神煞、时辰与月度", ["s_sha", "s_hours", "s_month"]),
+    ("神煞、时辰与月度", ["s_sha", "s_v3_flags", "s_hours", "s_month"]),
 ]
 
 
@@ -328,6 +390,8 @@ def wechat_lines(d):
     r = d["review_date"]
     return [
         (f"{md(d['target'])} 周{d['wd']} · {d['day_gz']}日 · {stars(d['stars'])} {d['level']}", None),
+        ("今年姿态 · v3 新增", f"{d['v3']['posture']['posture']}（{d['v3']['posture']['gz']}年）：{d['v3']['posture']['short']}。"),
+        ("国库水位 · v3 新增", f"{d['v3']['water']['label']}（近 10 天 W {d['v3']['water']['W']:+.1f}）：{d['v3']['water']['short']}。"),
         ("今日主线", f"{t['name']}：{t['line']}。{t['explain']}"),
         ("事业", f"{c['事业']['theme']}行动：{c['事业']['action']}"),
         ("财运", f"{c['财运']['theme']}要做：{c['财运']['action']}"),
@@ -413,6 +477,8 @@ def text(d):
     L = [f"{head_line(d)} · {d['lunar_text']}" + (f" · 大运{d['dayun']}" if d["dayun"] else ""),
          f"{stars(d['stars'])} {d['stars']}/5 {d['level']}　评分 {d['score']:+.1f}"
          f"（命盘小计 {d['subtotal']:+.1f}，神煞 {d['sha_adj']:+.1f}）",
+         f"【v3 新增】今年姿态：{d['v3']['posture']['posture']}（{d['v3']['posture']['year']} {d['v3']['posture']['gz']}年）：{d['v3']['posture']['line']}",
+         f"【v3 新增】国库水位：{d['v3']['water']['label']}（W {d['v3']['water']['W']:+.1f}，水木 {d['v3']['water']['plus']:.1f} − 火土 {d['v3']['water']['minus']:.1f}）：{d['v3']['water']['text']}",
          f"今日主线：{t['name']}，{t['line']}。{t['explain']}", f"今日行动：{t['action']}。"]
     if d["tip"]:
         L.append(f"个人设置 · 长期提醒：{d['tip']}")
@@ -423,7 +489,12 @@ def text(d):
         L += ["", "## 近期关注"] + [f"- {x['text']}" + (f"（期限 {x['due']}）" if x["due"] else "") + f"：{x['step']}"
                                  for x in d["concerns"]]
     L += ["", f"## {d['obs_word']}（预测实验，待验证）", d["predict"]["text"]]
+    an = d["v3"]["annual"]
+    L += ["", f"## 年度预测实验台账（v3 新增，{an['version']}，预注册 {an['registered']}，指纹 {an['fingerprint']}）"] + [
+        f"- {x['year']} {x['gz']}：{x['claim']}（{x['basis']}）— {x['state']}，{x['check']} 对账" for x in an["rows"]]
     L += ["", "## 生活补充"] + [f"- {k}：{v}" for k, v in d["life"]]
+    L += ["", "## 年度作战路标（v3 新增）", d["v3"]["doctrine"]] + [
+        f"- {'▶ ' if y == d['v3']['posture']['year'] else ''}{y} {gz} {pos}：{line}" for y, gz, pos, line in d["v3"]["roadmap"]]
     L += ["", "## 未来七天"] + [f"- {md(w['date'])} 周{w['wd']} {w['gz']} {stars(w['stars'])} {w['struct']}　提示：{w['hint']}"
                                for w in d["week"]]
     L += ["", f"## 晚间回顾：{md(d['review_date'])} 晚上 21:37 发当天复盘题"]
@@ -434,6 +505,9 @@ def text(d):
     L += ["", "## 五行分量"] + [f"- {i['wx']}（{i['group']}，{k}）{i['w']:.1f}" for k in ("喜", "忌") for i in d["wuxing"][k]]
     L += ["", "## 神煞与调候"] + [f"- {x['name']}（{'计分 %+.2g' % x['pts'] if x['pts'] else '不计分'}）：{x['note']}。用法：{x['use']}。"
                                 for x in d["sha"]] + [f"- 黄历（不计分）：{d['huangli']}"]
+    L += ["", "## 个人专属旗标（v3 新增，查表不计分）"] + (
+        [f"- {x['name']}（{x['hit']}）：{x['action']}。依据：{x['basis']}" for x in d["v3"]["flags"]]
+        or ["- 今天没有（只在甲、戊、丙日和辰、戌、巳、亥日出现）"])
     L += ["", "## 时辰与方位（当地钟点）"]
     if not any(x["level"] == "好" for x in h["good"]):
         L.append("- 07:00 到 23:00 之间没有真正的好时辰，标「平」的只是相对稳的")

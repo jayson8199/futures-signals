@@ -20,6 +20,7 @@ import re
 
 import daily as D
 import predict as P
+import v3 as V3
 
 WEEK = "一二三四五六日"
 TEN2GROUP = {"比肩": "比劫", "劫财": "比劫", "偏印": "印", "正印": "印", "食神": "食伤", "伤官": "食伤",
@@ -293,6 +294,7 @@ def build(p, target, send_date=None, personal=None):
         "items": sorted(scored, key=lambda x: -abs(x["pts"])), "bases": bases, "sha": a["sha"], "zxj": a["zxj"],
         "theme": theme, "cols": {"事业": career, "财运": money, "感情": love},
         "concerns": concerns, "missing": missing, "predict": pred,
+        "v3": V3.build(p, target, a),   # v3 新增（年度路标、国库水位、个人旗标、年度台账），不参与评分
         "obs_word": "明日观察" if send_date < target else "今日观察",
         "life": life, "week": week, "cal": cal, "mo": mo,
         "next_jq": (jq.getName(), jd, (jd - target).days),

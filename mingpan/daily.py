@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 命盘日报：把当天的流日放进「原局 + 大运 + 流年 + 流月」里看，生成日报并经 notify.py 推送。
-规则说明见 rules.md。
+规则说明见 rules.md。v3 新增四项（年度路标、国库水位、个人旗标、年度台账，rules.md 第十一节）只呈现、不计分，
+代码在 v3.py，由 compose.py 调用，这里的评分不受影响。
 用法：
   python mingpan/daily.py                       生成今天（曼谷时间）的日报并推送
   python mingpan/daily.py --dry-run             只打印，不推送
