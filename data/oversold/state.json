@@ -1,11 +1,23 @@
 {
  "start": "2026-10-19",
- "equity": 1.0,
- "positions": {},
- "pending": {
-  "IF0": "enter",
-  "IF0__sigdate": "2026-11-04"
+ "equity": 1.000411,
+ "positions": {
+  "IF0": {
+   "sym": "IF0",
+   "name": "沪深300",
+   "w": 0.0409,
+   "entry": 4056.0,
+   "entry_date": "2026-11-05",
+   "stop": 3601.571428571429,
+   "extreme": 4097.6,
+   "bars": 1,
+   "pnl": 0.0004113102311547177,
+   "last_close": 4097.6,
+   "signal_date": "2026-11-04",
+   "cur_ret_pct": 1.03
+  }
  },
+ "pending": {},
  "closed": [],
  "curve": [
   [
@@ -85,9 +97,15 @@
    1.0,
    0,
    0
+  ],
+  [
+   "2026-11-05",
+   1.000411,
+   1,
+   0.041
   ]
  ],
- "last_date": "2026-11-04",
+ "last_date": "2026-11-05",
  "rules": {
   "RISK_PCT": 0.005,
   "ATR_K": 6.0,
