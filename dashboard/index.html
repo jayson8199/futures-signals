@@ -51,6 +51,16 @@
   <h1>🎚️ AI 团队作战室</h1>
   <div class="sub">数据文件：<span id="src">内置快照</span> · 最后更新：<span id="ts">2026-11-06 21:20 (曼谷)</span> · <span class="flash" style="color:#3fb950">● 实时盯盘中</span></div>
 
+  <div class="card" style="margin-bottom:20px">
+    <h2>📈 实时行情 <span id="qtime" style="font-size:14px;color:#8b949e;font-weight:normal"></span></h2>
+    <div class="team">
+      <div class="member"><div class="role" id="dji">道指 …</div><div class="name">Dow Jones</div></div>
+      <div class="member"><div class="role" id="dia">DIA …</div><div class="name">道指ETF（你的期权标的）</div></div>
+      <div class="member"><div class="role" id="djiChg">…</div><div class="name">涨跌幅</div></div>
+      <div class="member"><div class="role" id="alertState">…</div><div class="name">报警哨位 50,550 / 52,500</div></div>
+    </div>
+  </div>
+
   <div class="grid">
     <div class="card">
       <h2>📋 进行中的项目 <span class="status s-run" id="runBadge">4 项</span></h2>
@@ -117,6 +127,37 @@ fetch("status.json", {cache:"no-store"})
   .then(d => { if(d){ document.getElementById("src").textContent="status.json（活数据）"; render(d);} })
   .catch(()=>{});
 setInterval(()=>fetch("status.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>d&&render(d)).catch(()=>{}), 60000);
+
+// ===== 实时行情（浏览器直接向Yahoo Finance拉取，每60秒刷新）=====
+async function fetchQuote(sym){
+  const u = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) + "?range=1d&interval=5m";
+  const r = await fetch(u);
+  const j = await r.json();
+  const m = j.chart.result[0].meta;
+  return { price: m.regularMarketPrice, prev: m.chartPreviousClose };
+}
+async function refreshQuotes(){
+  const el = id => document.getElementById(id);
+  try {
+    const [dj, dia] = await Promise.all([fetchQuote("^DJI"), fetchQuote("DIA")]);
+    const chg = ((dj.price - dj.prev) / dj.prev * 100);
+    const fmt = n => n.toLocaleString("en-US", {maximumFractionDigits: 0});
+    el("dji").textContent = fmt(dj.price);
+    el("dia").textContent = dia.price.toFixed(2);
+    const c = el("djiChg");
+    c.textContent = (chg >= 0 ? "▲ +" : "▼ ") + chg.toFixed(2) + "%";
+    c.style.color = chg >= 0 ? "#3fb950" : "#f85149";
+    const a = el("alertState");
+    if (dj.price <= 50550) { a.textContent = "⚠️ 已跌破 50,550"; a.style.color = "#d29922"; }
+    else if (dj.price >= 52500) { a.textContent = "⚠️ 已站回 52,500"; a.style.color = "#f85149"; }
+    else { a.textContent = "🟢 哨位之间"; a.style.color = "#3fb950"; }
+    el("qtime").textContent = "· " + new Date().toLocaleTimeString("zh-CN");
+  } catch (e) {
+    el("qtime").textContent = "· 行情源暂不可达";
+  }
+}
+refreshQuotes();
+setInterval(refreshQuotes, 60000);
 </script>
 </body>
 </html>
