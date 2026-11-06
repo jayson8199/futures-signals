@@ -1,48 +1,25 @@
 {
-  "updated": "2026-11-07 00:10 (曼谷)",
+  "updated": "2026-11-07 00:35 (曼谷)",
   "tasks": [
-    {
-      "name": "期权图解报告",
-      "st": "ok",
-      "stText": "已交付",
-      "detail": "YM技术图及核对版盈亏图、A/B/C完整中文正文于22:04（曼谷）在聊天内验收；主选A；Cboe期权链截图仍为11/5，核对版采用美东09:37/曼谷21:37的公开延迟盘口，非实时，模型估算有历史局限；一次性重算任务已暂停不重开",
-      "owner": "主Bot"
-    },
-    {
-      "name": "价格报警 ×2",
-      "st": "run",
-      "stText": "在线",
-      "detail": "主Bot ^DJI常规美股时段每15分钟监控，跌破50,550确认、站回52,500失效。本轮监工公开核验 Yahoo（非主Bot例程回报）00:10:21 Bangkok 51,528.75，日低50,992.61，未跌破50,550、未站回52,500。主Bot最近已核实读数（不是现在价格）：22:30:25 Bangkok 51,493.59；22:37:38 Bangkok 51,410.49；本轮未能直连主Bot刷新例程armed状态",
-      "owner": "主Bot"
-    },
-    {
-      "name": "微信测试推送",
-      "st": "ok",
-      "stText": "已成功",
-      "detail": "23:05（曼谷）后独立Server酱测试执行一次，HTTP 200 JSON code 0；一次性任务因host无法删除已暂停，不会自动重发；22:04验收通知HTTP失败没有补发",
-      "owner": "主Bot"
-    },
-    {
-      "name": "期货仓库邮件故障",
-      "st": "wait",
-      "stText": "待恢复验证",
-      "detail": "run42193356483（11/6 16:21 Bangkok）扫描和Pages成功，QQ邮件SMTPServerDisconnected，微信PushPlus成功。其后含42197744047、42253957370、42254544499成功但「推送邮件/微信」均为skipped，不算SMTP恢复；无SMTP修复或重跑授权",
-      "owner": "用户+监工"
-    }
+    { "name": "💰 实盘持仓：DIA 12/18 470P × 3手 @ $3.50", "st": "ok", "stText": "持仓中", "detail": "总权利金 $1,050 · 盈亏平衡 DIA 466.5（道指≈46,700）· 目标43,600→约+$9,300 · 剩余42天", "owner": "你" },
+    { "name": "持仓监控+每日收盘报告", "st": "run", "stText": "已接管", "detail": "主Bot每日收盘后报市值/浮盈亏/剩余天数；权利金±50%微信告警", "owner": "主Bot" },
+    { "name": "价格报警 ×2", "st": "run", "stText": "在线", "detail": "跌破 50,550 → 确认信号 · 站回 52,500 → 逻辑失效", "owner": "主Bot" },
+    { "name": "期货仓库邮件故障", "st": "wait", "stText": "等你", "detail": "就差QQ邮箱SMTP授权码 → 给ZCode即可写入Secrets", "owner": "你" },
+    { "name": "微信推送通道", "st": "ok", "stText": "已验证", "detail": "Server酱全链路成功 · 每天5条额度", "owner": "全员" }
   ],
   "timeline": [
-    { "t": "21:30", "e": "美股开盘 · Bot开始实时盯盘", "now": false },
-    { "t": "21:55", "e": "期权核对版已生成，并标注为延迟行情", "now": false },
-    { "t": "23:05", "e": "微信测试成功，HTTP 200 JSON code 0", "now": false },
-    { "t": "明早8:00", "e": "邮件日报：QQ SMTP待恢复验证", "now": true }
+    { "t": "每晚21:30", "e": "美股开盘 · 实时盯盘+持仓监控", "now": true },
+    { "t": "每晚收盘后", "e": "持仓日报（市值/浮盈亏/剩余天数）", "now": false },
+    { "t": "12/18", "e": "期权到期（42天后）", "now": false },
+    { "t": "每天早8:00", "e": "邮件日报（例行）", "now": false }
   ],
   "team": [
     { "role": "调度总管", "name": "Grok Bot", "on": true },
     { "role": "研究员", "name": "Claude Opus 5.5", "on": true },
     { "role": "备用大脑", "name": "ChatGPT GPT-6", "on": true },
     { "role": "项目监工", "name": "项目监工Bot", "on": true },
-    { "role": "ChatGPT接管", "name": "ChatGPT监工Bot", "on": true },
-    { "role": "代码仓库", "name": "GitHub @jayson8199", "on": true },
+    { "role": "ChatGPT接管", "name": "ChatGPT接活员", "on": true },
+    { "role": "ZCode联络", "name": "ZCode联络处", "on": true },
     { "role": "老板", "name": "你 😎", "on": true }
   ]
 }
