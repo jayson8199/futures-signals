@@ -1,16 +1,40 @@
 {
-  "updated": "2026-11-06 21:26 (曼谷)",
+  "updated": "2026-11-06 23:35 (曼谷)",
   "tasks": [
-    { "name": "期权图解报告", "st": "run", "stText": "进行中", "detail": "TradingView截图+盈亏图 · 21:30交带图版 · 21:55交实时重算版", "owner": "主Bot" },
-    { "name": "价格报警 ×2", "st": "run", "stText": "在线", "detail": "跌破 50,550 → 确认信号 · 站回 52,500 → 逻辑失效", "owner": "主Bot" },
-    { "name": "微信测试推送", "st": "time", "stText": "已定时", "detail": "23:05（曼谷）· Server酱额度重置后自动发送", "owner": "主Bot" },
-    { "name": "期货仓库邮件故障", "st": "wait", "stText": "等你", "detail": "QQ邮箱SMTP授权码待更新到 GitHub Secrets 后验证", "owner": "你+监工" }
+    {
+      "name": "期权图解报告",
+      "st": "ok",
+      "stText": "已交付",
+      "detail": "YM技术图及核对版盈亏图、A/B/C完整中文正文于22:04（曼谷）在聊天内验收；主选A；Cboe期权链截图仍为11/5，核对版采用美东09:37/曼谷21:37的公开延迟盘口，非实时，模型估算有历史局限；一次性重算任务已暂停不重开",
+      "owner": "主Bot"
+    },
+    {
+      "name": "价格报警 ×2",
+      "st": "run",
+      "stText": "在线",
+      "detail": "主Bot ^DJI常规美股时段每15分钟监控，跌破50,550确认、站回52,500失效。最近已核实读数（不是现在价格）：22:30:25 Bangkok 51,493.59，未跌破50,550；22:37:38 Bangkok 51,410.49，未站回52,500",
+      "owner": "主Bot"
+    },
+    {
+      "name": "微信测试推送",
+      "st": "ok",
+      "stText": "已成功",
+      "detail": "23:05（曼谷）后独立Server酱测试执行一次，HTTP 200 JSON code 0；一次性任务因host无法删除已暂停，不会自动重发；22:04验收通知HTTP失败没有补发",
+      "owner": "主Bot"
+    },
+    {
+      "name": "期货仓库邮件故障",
+      "st": "wait",
+      "stText": "待恢复验证",
+      "detail": "run42193356483（11/6 16:21 Bangkok）扫描和Pages成功，QQ邮件SMTPServerDisconnected，微信PushPlus成功。run42197744047成功但邮件/微信步骤skipped，不算恢复；无SMTP修复或重跑授权",
+      "owner": "用户+监工"
+    }
   ],
   "timeline": [
-    { "t": "21:30", "e": "美股开盘 · Bot开始实时盯盘", "now": true },
-    { "t": "21:55", "e": "期权方案实时重算（A/B/C案）", "now": false },
-    { "t": "23:05", "e": "微信通道测试推送（北京0:05）", "now": false },
-    { "t": "明早8:00", "e": "邮件日报（例行）", "now": false }
+    { "t": "21:30", "e": "美股开盘 · Bot开始实时盯盘", "now": false },
+    { "t": "21:55", "e": "期权核对版已生成，并标注为延迟行情", "now": false },
+    { "t": "23:05", "e": "微信测试成功，HTTP 200 JSON code 0", "now": false },
+    { "t": "明早8:00", "e": "邮件日报：QQ SMTP待恢复验证", "now": true }
   ],
   "team": [
     { "role": "调度总管", "name": "Grok Bot", "on": true },
