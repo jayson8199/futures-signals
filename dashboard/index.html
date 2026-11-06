@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 团队作战室</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+    background:#0d1117; color:#e6edf3; padding:24px;
+    font-size:18px; line-height:1.6;
+  }
+  .wrap { max-width:1100px; margin:0 auto; }
+  h1 { font-size:34px; margin-bottom:4px; }
+  .sub { color:#8b949e; margin-bottom:24px; font-size:16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(480px,1fr)); gap:20px; }
+  @media (max-width:520px){ .grid{grid-template-columns:1fr;} body{font-size:16px;padding:14px;} h1{font-size:26px;} }
+  .card {
+    background:#161b22; border:1px solid #30363d; border-radius:14px;
+    padding:20px 22px;
+  }
+  .card h2 { font-size:22px; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+  .status { font-size:15px; padding:4px 14px; border-radius:20px; font-weight:bold; white-space:nowrap; }
+  .s-run  { background:#1f6feb33; color:#58a6ff; }
+  .s-ok   { background:#23863633; color:#3fb950; }
+  .s-wait { background:#d2992233; color:#d29922; }
+  .s-time { background:#8957e533; color:#bc8cff; }
+  .row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #21262d; font-size:17px; }
+  .row:last-child { border-bottom:none; }
+  .row .k { color:#8b949e; }
+  .row .v { font-weight:bold; text-align:right; }
+  .timeline { margin-top:6px; }
+  .tl-item { display:flex; gap:14px; padding:10px 0; border-bottom:1px solid #21262d; }
+  .tl-item:last-child { border-bottom:none; }
+  .tl-time { color:#58a6ff; font-weight:bold; min-width:110px; font-variant-numeric:tabular-nums; }
+  .tl-now { color:#3fb950; font-size:14px; border:1px solid #238636; border-radius:10px; padding:1px 8px; margin-left:8px; }
+  .team { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  .member { background:#1c2128; border-radius:10px; padding:14px; text-align:center; }
+  .member .role { font-size:20px; font-weight:bold; }
+  .member .name { color:#8b949e; font-size:15px; margin-top:4px; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; }
+  .d-on { background:#3fb950; box-shadow:0 0 8px #3fb95088; }
+  footer { text-align:center; color:#484f58; margin-top:26px; font-size:14px; }
+  .flash { animation:fl 2s infinite; }
+  @keyframes fl { 50% { opacity:.45; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎚️ AI 团队作战室</h1>
+  <div class="sub">数据文件：<span id="src">内置快照</span> · 最后更新：<span id="ts">2026-11-06 21:20 (曼谷)</span> · <span class="flash" style="color:#3fb950">● 实时盯盘中</span></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📋 进行中的项目 <span class="status s-run" id="runBadge">4 项</span></h2>
+      <div id="tasks"></div>
+    </div>
+
+    <div class="card">
+      <h2>⏰ 今晚时间线</h2>
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1">
+      <h2>👥 值班团队</h2>
+      <div class="team" id="team"></div>
+    </div>
+  </div>
+
+  <footer>监工Bot每30分钟更新一次数据 · 价格报警7×24在线 · 微信通道已备</footer>
+</div>
+
+<script>
+const fallback = {
+  updated: "2026-11-06 21:20 (曼谷)",
+  tasks: [
+    { name:"期权图解报告", st:"run",  stText:"进行中", detail:"TradingView截图+盈亏图 · 21:30交带图版 · 21:55交实时重算版", owner:"主Bot" },
+    { name:"价格报警 ×2",  st:"run",  stText:"在线",   detail:"跌破 50,550 → 确认信号 · 站回 52,500 → 逻辑失效", owner:"主Bot" },
+    { name:"微信测试推送", st:"time", stText:"已定时", detail:"23:05（曼谷）· Server酱额度重置后自动发送", owner:"主Bot" },
+    { name:"期货仓库邮件故障", st:"wait", stText:"等你", detail:"QQ邮箱SMTP授权码待更新到 GitHub Secrets 后验证", owner:"你+监工" }
+  ],
+  timeline: [
+    { t:"21:30", e:"美股开盘 · Bot开始实时盯盘", now:true },
+    { t:"21:55", e:"期权方案实时重算（C案/B案/A案）", now:false },
+    { t:"23:05", e:"微信通道测试推送（北京0:05）", now:false },
+    { t:"明早8:00", e:"邮件日报（例行）", now:false }
+  ],
+  team: [
+    { role:"调度总管", name:"Grok Bot", on:true },
+    { role:"研究员",   name:"Claude Opus 5.5", on:true },
+    { role:"备用大脑", name:"ChatGPT GPT-6", on:true },
+    { role:"项目监工", name:"项目监工Bot", on:true },
+    { role:"代码仓库", name:"GitHub @jayson8199", on:true },
+    { role:"老板",     name:"你 😎", on:true }
+  ]
+};
+
+const stMap = { run:"s-run", ok:"s-ok", wait:"s-wait", time:"s-time" };
+
+function render(d){
+  document.getElementById("ts").textContent = d.updated;
+  document.getElementById("tasks").innerHTML = d.tasks.map(t =>
+    `<div class="row"><span class="k">${t.name}<div style="font-size:14px;font-weight:normal">${t.detail}</div></span>
+     <span class="v"><span class="status ${stMap[t.st]}">${t.stText}</span><div style="font-size:13px;color:#8b949e;margin-top:4px">${t.owner}</div></span></div>`).join("");
+  document.getElementById("runBadge").textContent = d.tasks.length + " 项";
+  document.getElementById("timeline").innerHTML = d.timeline.map(x =>
+    `<div class="tl-item"><span class="tl-time">${x.t}</span><span>${x.e}${x.now?'<span class="tl-now">即将发生</span>':""}</span></div>`).join("");
+  document.getElementById("team").innerHTML = d.team.map(m =>
+    `<div class="member"><div class="role"><span class="dot ${m.on?'d-on':''}"></span>${m.role}</div><div class="name">${m.name}</div></div>`).join("");
+}
+
+render(fallback);
+// 若同目录有 status.json（监工Bot维护），则加载并每60秒刷新
+fetch("status.json", {cache:"no-store"})
+  .then(r => r.ok ? r.json() : null)
+  .then(d => { if(d){ document.getElementById("src").textContent="status.json（活数据）"; render(d);} })
+  .catch(()=>{});
+setInterval(()=>fetch("status.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>d&&render(d)).catch(()=>{}), 60000);
+</script>
+</body>
+</html>
