@@ -3,7 +3,7 @@
   "tasks": [
     { "name": "💰 实盘持仓：DIA 12/18 470P × 3手 @ $3.50", "st": "ok", "stText": "持仓中", "detail": "总权利金 $1,050 · 盈亏平衡 DIA 466.5（道指≈46,700）· 目标43,600→约+$9,300 · 剩余42天", "owner": "你" },
     { "name": "持仓监控+每日收盘报告", "st": "run", "stText": "已接管", "detail": "主Bot每日收盘后报市值/浮盈亏/剩余天数；权利金±50%微信告警", "owner": "主Bot" },
-    { "name": "价格报警 ×2", "st": "run", "stText": "在线", "detail": "跌破50,550确认 · 站回52,500失效。本轮监工公开核验 Yahoo（非主Bot例程回报）00:36:56 Bangkok 51,437.44，日低50,992.61，未触阈值；未能本轮直连主Bot刷新例程armed", "owner": "主Bot" },
+    { "name": "价格报警 ×2", "st": "run", "stText": "在线", "detail": "主Bot直接核实：现金^DJI两项例程enabled，Yahoo Finance每15分钟常规时段监控（最多晚5分钟），严格跌破50,550确认、严格站回52,500失效，截止2026-12-19。最近实际检查（不是实时价格）：00:19:47 Bangkok 51,557.52未触发，00:16:36 Bangkok 51,540.69未触发。本轮同步时的独立Yahoo辅助快照00:36:56 Bangkok 51,437.44亦未触阈值；未触发安静，不交易。", "owner": "主Bot" },
     { "name": "期货仓库邮件故障", "st": "wait", "stText": "等你", "detail": "就差QQ邮箱SMTP授权码→给ZCode写Secrets。42193356483 曾 SMTPServerDisconnected；其后含42262397483成功跑「推送邮件/微信」仍为skipped，不算恢复", "owner": "你" },
     { "name": "微信推送通道", "st": "ok", "stText": "已验证", "detail": "Server酱全链路成功 · 每天5条额度", "owner": "全员" }
   ],
