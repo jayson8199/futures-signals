@@ -1,0 +1,24 @@
+{
+  "updated": "2026-11-06 21:26 (曼谷)",
+  "tasks": [
+    { "name": "期权图解报告", "st": "run", "stText": "进行中", "detail": "TradingView截图+盈亏图 · 21:30交带图版 · 21:55交实时重算版", "owner": "主Bot" },
+    { "name": "价格报警 ×2", "st": "run", "stText": "在线", "detail": "跌破 50,550 → 确认信号 · 站回 52,500 → 逻辑失效", "owner": "主Bot" },
+    { "name": "微信测试推送", "st": "time", "stText": "已定时", "detail": "23:05（曼谷）· Server酱额度重置后自动发送", "owner": "主Bot" },
+    { "name": "期货仓库邮件故障", "st": "wait", "stText": "等你", "detail": "QQ邮箱SMTP授权码待更新到 GitHub Secrets 后验证", "owner": "你+监工" }
+  ],
+  "timeline": [
+    { "t": "21:30", "e": "美股开盘 · Bot开始实时盯盘", "now": true },
+    { "t": "21:55", "e": "期权方案实时重算（A/B/C案）", "now": false },
+    { "t": "23:05", "e": "微信通道测试推送（北京0:05）", "now": false },
+    { "t": "明早8:00", "e": "邮件日报（例行）", "now": false }
+  ],
+  "team": [
+    { "role": "调度总管", "name": "Grok Bot", "on": true },
+    { "role": "研究员", "name": "Claude Opus 5.5", "on": true },
+    { "role": "备用大脑", "name": "ChatGPT GPT-6", "on": true },
+    { "role": "项目监工", "name": "项目监工Bot", "on": true },
+    { "role": "ChatGPT接管", "name": "ChatGPT监工Bot", "on": true },
+    { "role": "代码仓库", "name": "GitHub @jayson8199", "on": true },
+    { "role": "老板", "name": "你 😎", "on": true }
+  ]
+}
