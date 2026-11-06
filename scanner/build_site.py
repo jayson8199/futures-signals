@@ -1122,6 +1122,8 @@ def main():
     avail = chart_mod.build(out, SYMBOLS)
     (out / "assets").mkdir(exist_ok=True)
     shutil.copy(Path(__file__).resolve().parent / "assets" / "echarts.min.js", out / "assets" / "echarts.min.js")
+    # AI作战室：随建站一并发布
+    shutil.copytree(Path(__file__).resolve().parent.parent / "dashboard", out / "dashboard", dirs_exist_ok=True)
     (out / "chart.html").write_text(layout(f"K线形态图 · {SITE_TITLE}", chart_page.body(avail, SECTOR), "chart",
                                            desc="按王刚期货交易体系手册规则自动标注蜡烛形态、包线、量仓信号与趋势状态的交互 K 线图"), encoding="utf-8")
     # 黄金专题 + 栏目入口 + 运行状态（scanner/gold_page.py）；冻结快照每次建站重新复制到 site/assets/gold/
