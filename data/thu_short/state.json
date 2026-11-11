@@ -1,40 +1,5 @@
 {
  "start": "2026-11-04",
- "open": {
-  "open_date": "2026-11-11",
-  "opened_at": "2026-11-12 00:40",
-  "legs": {
-   "IF": {
-    "name": "IF 沪深300 期货",
-    "open": 4043.4,
-    "idx_open": 4075.709,
-    "stop": 4286.0
-   },
-   "IO": {
-    "name": "IO 沪深300平值认沽",
-    "code": "io2611P4100",
-    "ex_code": "IO2611-P-4100",
-    "K": 4100,
-    "expiry": "2026-11-20",
-    "idx_open": 4075.709,
-    "iv_model": 0.1891,
-    "open": 61.6,
-    "src_open": "新浪收盘价",
-    "stop": 30.8
-   },
-   "HO": {
-    "name": "HO 上证50平值认沽",
-    "code": "ho2611P2750",
-    "ex_code": "HO2611-P-2750",
-    "K": 2750,
-    "expiry": "2026-11-20",
-    "idx_open": 2765.54,
-    "iv_model": 0.12,
-    "open": 16.8,
-    "src_open": "新浪收盘价",
-    "stop": 8.4
-   }
-  }
- },
+ "open": null,
  "trades": []
 }
