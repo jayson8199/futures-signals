@@ -1,40 +1,63 @@
 {
  "start": "2026-11-04",
- "open": {
-  "open_date": "2026-11-04",
-  "opened_at": "2026-11-12 00:49",
-  "legs": {
-   "IF": {
-    "name": "IF 沪深300 期货",
-    "open": 4071.2,
-    "idx_open": 4101.335,
-    "stop": 4315.5
-   },
-   "IO": {
-    "name": "IO 沪深300平值认沽",
-    "code": "io2611P4100",
-    "ex_code": "IO2611-P-4100",
-    "K": 4100,
-    "expiry": "2026-11-20",
-    "idx_open": 4101.335,
-    "iv_model": 0.1891,
-    "open": 69.4,
-    "src_open": "新浪收盘价",
-    "stop": 34.7
-   },
-   "HO": {
-    "name": "HO 上证50平值认沽",
-    "code": "ho2611P2800",
-    "ex_code": "HO2611-P-2800",
-    "K": 2800,
-    "expiry": "2026-11-20",
-    "idx_open": 2808.536,
-    "iv_model": 0.12,
-    "open": 36.0,
-    "src_open": "新浪收盘价",
-    "stop": 18.0
+ "open": null,
+ "trades": [
+  {
+   "open_date": "2026-11-04",
+   "close_date": "2026-11-06",
+   "closed_at": "2026-11-12 00:51",
+   "legs": {
+    "IF": {
+     "name": "IF 沪深300 期货",
+     "open": 4071.2,
+     "idx_open": 4101.335,
+     "stop": 4315.5,
+     "close": 4018.4,
+     "idx_close": 4054.277,
+     "roll_fix": false,
+     "stop_day": null,
+     "pnl": 15664,
+     "ret_pct": 1.3
+    },
+    "IO": {
+     "name": "IO 沪深300平值认沽",
+     "code": "io2611P4100",
+     "ex_code": "IO2611-P-4100",
+     "K": 4100,
+     "expiry": "2026-11-20",
+     "idx_open": 4101.335,
+     "iv_model": 0.1891,
+     "open": 69.4,
+     "src_open": "新浪收盘价",
+     "stop": 34.7,
+     "close": 99.8,
+     "src_close": "新浪收盘价",
+     "stop_day": null,
+     "idx_close": 4054.277,
+     "idx_ret_pct": -1.15,
+     "pnl": 2970,
+     "ret_pct": 42.8
+    },
+    "HO": {
+     "name": "HO 上证50平值认沽",
+     "code": "ho2611P2800",
+     "ex_code": "HO2611-P-2800",
+     "K": 2800,
+     "expiry": "2026-11-20",
+     "idx_open": 2808.536,
+     "iv_model": 0.12,
+     "open": 36.0,
+     "src_open": "新浪收盘价",
+     "stop": 18.0,
+     "close": 45.4,
+     "src_close": "新浪收盘价",
+     "stop_day": null,
+     "idx_close": 2787.405,
+     "idx_ret_pct": -0.75,
+     "pnl": 870,
+     "ret_pct": 24.2
+    }
    }
   }
- },
- "trades": []
+ ]
 }
