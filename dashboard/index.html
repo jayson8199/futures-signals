@@ -72,6 +72,125 @@
       <div class="timeline" id="timeline"></div>
     </div>
 
+<!-- ===== 「国家队监控」卡片（自包含片段：插入 dashboard/index.html 的 <div class="grid"> 内，放在「👥 值班团队」卡片之前） =====
+     依赖作战室已有样式：.card .status .s-ok .s-wait .s-run .row；其余样式均以 ntm- 前缀隔离，不影响原页面。
+     数据源：window.NTM_FEED_URLS（可选覆盖）→ 默认先请求 Netlify 摘要接口，失败再读同目录 etf-monitor.json。
+     缺数据/陈旧时显示「—」与原因，绝不显示 0。 -->
+<style>
+  .ntm-sub { color:#8b949e; font-size:14px; margin:-6px 0 10px; }
+  .ntm-tag { display:inline-block; font-size:13px; color:#d29922; border:1px solid #d2992266; border-radius:10px; padding:1px 8px; margin-left:6px; font-weight:normal; }
+  .ntm-table { width:100%; border-collapse:collapse; font-size:15px; font-variant-numeric:tabular-nums; }
+  .ntm-table th { color:#8b949e; font-weight:normal; text-align:right; padding:6px 6px; border-bottom:1px solid #30363d; white-space:nowrap; }
+  .ntm-table th:first-child, .ntm-table td:first-child { text-align:left; }
+  .ntm-table td { text-align:right; padding:8px 6px; border-bottom:1px solid #21262d; vertical-align:top; }
+  .ntm-code { font-weight:bold; }
+  .ntm-name { color:#8b949e; font-size:13px; }
+  .ntm-hit { color:#f85149; font-weight:bold; }
+  .ntm-na { color:#6e7681; }
+  .ntm-small { color:#8b949e; font-size:12px; }
+  .ntm-trig { margin-top:12px; }
+  .ntm-trig h3 { font-size:16px; color:#8b949e; font-weight:normal; margin-bottom:4px; }
+  .ntm-note { margin-top:10px; color:#6e7681; font-size:13px; }
+  @media (max-width:520px){ .ntm-table { font-size:13px; } .ntm-hide-sm { display:none; } }
+</style>
+<div class="card" id="ntm-card" style="grid-column:1/-1">
+  <h2>🇨🇳 国家队监控 <span class="status s-wait" id="ntm-badge">加载中</span></h2>
+  <div class="ntm-sub">待验证的国家队活动信号（量价旁证）<span class="ntm-tag">非身份证据</span> · <span id="ntm-meta">—</span></div>
+  <div style="overflow-x:auto">
+    <table class="ntm-table">
+      <thead><tr>
+        <th>ETF</th><th>交易日</th><th>成交量</th><th class="ntm-hide-sm">量·20日均</th><th>量倍数</th>
+        <th>成交额</th><th class="ntm-hide-sm">额·20日均</th><th>额倍数</th><th>3倍异动</th>
+      </tr></thead>
+      <tbody id="ntm-rows"><tr><td colspan="9" class="ntm-na">等待数据…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="ntm-trig"><h3>最近触发记录</h3><div id="ntm-trigs" class="ntm-na">—</div></div>
+  <div class="ntm-note">规则：当日量或额 ÷ 前20个完整交易日均值（不含当日）&gt; 3 记为异动，两项同时 &gt; 3 为强信号；缺任何一天基线则跳过。只是量价旁证，不能识别买方身份，不代表汇金或任何机构入场。仅个人研究，非投资建议。</div>
+</div>
+<script>
+(function () {
+  var FEEDS = window.NTM_FEED_URLS || [
+    "https://howard-capital-research.netlify.app/api/etf-monitor-summary",
+    "etf-monitor.json"
+  ];
+  var STALE_HOURS = 30;
+  var el = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]; }); };
+  var NA = function (why) { return '<span class="ntm-na" title="' + esc(why || "无数据") + '">—</span>'; };
+  var num = function (x) { return typeof x === "number" && isFinite(x) && x > 0; };
+  function fmtVol(v) { return num(v) ? (v / 1e4).toFixed(2) + " 万手" : null; }          // f56：手（未核）
+  function fmtAmt(v) { return num(v) ? (v / 1e8).toFixed(2) + " 亿元" : null; }          // f57：元
+  function fmtRatio(r, hit) { if (!num(r)) return null; var t = r.toFixed(2) + "×"; return hit ? '<span class="ntm-hit">' + t + "</span>" : t; }
+  var VERDICT_TEXT = {
+    evaluated: null, no_data: "暂无数据", insufficient_baseline: "基线不足，跳过",
+    "skipped:no_valid_bar": "当日无有效K线"
+  };
+  function badge(cls, text) { var b = el("ntm-badge"); b.className = "status " + cls; b.textContent = text; }
+
+  function render(d) {
+    var ageH = d.generatedAt ? (Date.now() - Date.parse(d.generatedAt)) / 3600000 : Infinity;
+    var stale = !(ageH <= STALE_HOURS);
+    var gen = d.generatedAt ? new Date(d.generatedAt).toLocaleString("zh-CN", { timeZone: "Asia/Bangkok", hour12: false }) + "（曼谷）" : "未知";
+    el("ntm-meta").textContent = "生成于 " + gen + (d.rawIncluded === false ? " · 量额未公开" : "") + (stale ? " · ⚠ 数据可能陈旧" : "");
+    var etfs = Array.isArray(d.etfs) ? d.etfs : [];
+    var anyHit = false, anyStrong = false;
+    el("ntm-rows").innerHTML = etfs.length ? etfs.map(function (e) {
+      var ok = e.verdict === "evaluated";
+      var why = VERDICT_TEXT[e.verdict] || ("跳过：" + (e.verdict || "未知"));
+      var hidden = d.rawIncluded === false ? "量额未公开（许可开关关闭）" : why;
+      var volHit = ok && num(e.ratio_vol) && e.ratio_vol > (d.threshold || 3);
+      var amtHit = ok && num(e.ratio_amt) && e.ratio_amt > (d.threshold || 3);
+      if (ok && e.triggered) anyHit = true; if (ok && e.strong) anyStrong = true;
+      var flag = !ok ? '<span class="ntm-small">' + esc(why) + "</span>"
+        : e.strong ? '<span class="status s-run" style="background:#f8514933;color:#f85149">强信号</span>'
+        : e.triggered ? '<span class="status s-wait">触发</span>'
+        : '<span class="status s-ok">未触发</span>';
+      var volR = e.vol_split_flag ? '<span class="ntm-small">疑似拆分，作废</span>' : (ok ? fmtRatio(e.ratio_vol, volHit) : null);
+      return "<tr>" +
+        '<td><span class="ntm-code">' + esc(e.code) + '</span><div class="ntm-name">' + esc(e.name || "") + "</div></td>" +
+        "<td>" + (e.tradeDate ? esc(e.tradeDate.slice(5)) : NA(why)) + "</td>" +
+        "<td>" + (fmtVol(e.vol) || NA(hidden)) + "</td>" +
+        '<td class="ntm-hide-sm">' + (fmtVol(e.mean20_vol) || NA(hidden)) + "</td>" +
+        "<td>" + (volR || NA(why)) + "</td>" +
+        "<td>" + (fmtAmt(e.amt) || NA(hidden)) + "</td>" +
+        '<td class="ntm-hide-sm">' + (fmtAmt(e.mean20_amt) || NA(hidden)) + "</td>" +
+        "<td>" + ((ok ? fmtRatio(e.ratio_amt, amtHit) : null) || NA(why)) + "</td>" +
+        "<td>" + flag + "</td></tr>";
+    }).join("") : '<tr><td colspan="9" class="ntm-na">摘要里没有 ETF 记录</td></tr>';
+    var tr = Array.isArray(d.recentTriggers) ? d.recentTriggers : [];
+    el("ntm-trigs").innerHTML = tr.length ? tr.map(function (t) {
+      var parts = [];
+      if (num(t.ratio_vol)) parts.push("量 " + t.ratio_vol.toFixed(2) + "×");
+      if (num(t.ratio_amt)) parts.push("额 " + t.ratio_amt.toFixed(2) + "×");
+      return '<div class="row"><span class="k">' + esc(t.tradeDate) + " · " + esc(t.code) + "</span><span class=\"v\">" +
+        parts.join(" / ") + (t.strong ? ' <span class="ntm-hit">强信号</span>' : "") + "</span></div>";
+    }).join("") : '<span class="ntm-na">暂无触发记录</span>';
+    if (stale) badge("s-wait", "数据陈旧");
+    else if (anyStrong) badge("s-run", "强信号");
+    else if (anyHit) badge("s-wait", "有触发");
+    else if (etfs.some(function (e) { return e.verdict === "evaluated"; })) badge("s-ok", "无异动");
+    else badge("s-wait", "待数据");
+  }
+
+  function fail(msg) {
+    badge("s-wait", "数据不可用");
+    el("ntm-meta").textContent = msg;
+    el("ntm-rows").innerHTML = '<tr><td colspan="9" class="ntm-na">' + esc(msg) + "（不显示任何数值）</td></tr>";
+  }
+
+  function load(i) {
+    if (i >= FEEDS.length) return fail("摘要暂不可达：监控尚未部署或未生成数据");
+    fetch(FEEDS[i], { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.schema === "hcr-etf-monitor-summary/1") render(d); else load(i + 1); })
+      .catch(function () { load(i + 1); });
+  }
+  load(0);
+  setInterval(function () { load(0); }, 10 * 60 * 1000);
+})();
+</script>
+<!-- ===== 「国家队监控」卡片结束 ===== -->
     <div class="card" style="grid-column:1/-1">
       <h2>👥 值班团队</h2>
       <div class="team" id="team"></div>
