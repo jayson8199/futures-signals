@@ -1,0 +1,62 @@
+{
+ "time": "2026-11-13T02:28:42.983803+08:00",
+ "results": [
+  {
+   "source": "official:SHFE:20261112",
+   "ok": false,
+   "error": "module 'akshare' has no attribute 'get_futures_daily'",
+   "secs": 0.0
+  },
+  {
+   "source": "official:DCE:20261112",
+   "ok": false,
+   "error": "module 'akshare' has no attribute 'get_futures_daily'",
+   "secs": 0.0
+  },
+  {
+   "source": "official:CZCE:20261112",
+   "ok": false,
+   "error": "module 'akshare' has no attribute 'get_futures_daily'",
+   "secs": 0.0
+  },
+  {
+   "source": "official:CFFEX:20261112",
+   "ok": false,
+   "error": "module 'akshare' has no attribute 'get_futures_daily'",
+   "secs": 0.0
+  },
+  {
+   "source": "official:GFEX:20261112",
+   "ok": false,
+   "error": "module 'akshare' has no attribute 'get_futures_daily'",
+   "secs": 0.0
+  },
+  {
+   "source": "sina:RB0",
+   "ok": true,
+   "rows": 47,
+   "cols": [
+    "日期",
+    "开盘价",
+    "最高价",
+    "最低价",
+    "收盘价",
+    "成交量",
+    "持仓量",
+    "动态结算价"
+   ],
+   "secs": 2.6
+  },
+  {
+   "source": "sina:main_contract_list",
+   "ok": true,
+   "rows": 85,
+   "cols": [
+    "symbol",
+    "exchange",
+    "name"
+   ],
+   "secs": 38.0
+  }
+ ]
+}
