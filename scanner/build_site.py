@@ -206,12 +206,22 @@ def _macro_banner(root=""):
         return ""
 
 
+ETF_PANEL_URL = "https://howard-capital-research.netlify.app/etf-panel.html"
+
+
+def _href(root, h):
+    """站外链接（http/https）原样使用，站内页面加相对前缀 root"""
+    return h if h.startswith(("http://", "https://")) else f"{root}{h}"
+
+
 # 顶部五个栏目；每个栏目下的二级导航列出原有页面（旧网址不变）
 NAV_GROUPS = [
     ("index.html", "今日总览", "home", [("index.html", "最新日报", "home")]),
     ("research.html", "品种研究", "research", [
         ("research.html", "研究总览", "research"), ("gold.html", "黄金专题", "gold"), ("chart.html", "K线形态图", "chart"),
-        ("macd.html", "MACD买卖点", "macd"), ("trend.html", "信号趋势", "trend"), ("macro.html", "宏观时钟", "macro")]),
+        ("macd.html", "MACD买卖点", "macd"), ("trend.html", "信号趋势", "trend"), ("macro.html", "宏观时钟", "macro"),
+        # 台账 003：ETF 私密面板在 Netlify（需密码），这里只放入口链接，不放任何数据
+        (ETF_PANEL_URL, "ETF资金面板🔒", "etfpanel")]),
     ("strategies.html", "策略验证", "strategies", [
         ("strategies.html", "策略总览", "strategies"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"),
         ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort")]),
@@ -227,7 +237,7 @@ def nav_html(nav_on, root=""):
     top = "".join(f"<a href='{root}{h}' class='{'on' if g is group else ''}'>{t}</a>" for g in NAV_GROUPS for h, t in [g[:2]])
     items = group[3]
     sub = ("<nav class='subnav' aria-label='本栏目'>" + "".join(
-        f"<a href='{root}{h}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in items) + "</nav>") if len(items) > 1 else ""
+        f"<a href='{_href(root, h)}' class='{'on' if k == nav_on else ''}'>{t}</a>" for h, t, k in items) + "</nav>") if len(items) > 1 else ""
     return top, sub
 
 
