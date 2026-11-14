@@ -206,7 +206,7 @@ def _macro_banner(root=""):
         return ""
 
 
-ETF_PANEL_URL = "https://howard-capital-research.netlify.app/etf-panel.html"
+ETF_PANEL_URL = gold_page.ETF_PANEL_URL
 
 
 def _href(root, h):
