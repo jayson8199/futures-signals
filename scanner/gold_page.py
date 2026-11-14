@@ -204,6 +204,10 @@ def unavailable_body(latest, avail_syms, error):
 <details style='margin-top:8px'><summary>技术原因</summary><div class='card g-small' style='border-radius:0 0 6px 6px'>{escape(error)}</div></details></div>"""
 
 
+# 外部私密面板（Howard Capital Research，需登录）；导航和品种研究卡片共用这一个地址
+ETF_PANEL_URL = "https://howard-capital-research.netlify.app/etf-panel.html"
+
+
 def _hub(cards):
     return "<div class='hub'>" + "".join(f"<a href='{h}'><b>{t}</b><span>{d}</span></a>" for h, t, d in cards) + "</div>"
 
@@ -214,7 +218,8 @@ def research_body():
        ("chart.html", "K 线形态图", "54 品种加权指数 K 线，按《王刚期货交易体系手册》规则自动标注"),
        ("macd.html", "MACD 买卖点", "MACD 八策略分策略胜率与最近信号"),
        ("trend.html", "信号趋势", "近 60 个交易日的形态数量与涨跌家数变化"),
-       ("macro.html", "宏观时钟", "中国 PMI / CPI / PPI / M2 / Shibor 等，美林时钟中国版")])}"""
+       ("macro.html", "宏观时钟", "中国 PMI / CPI / PPI / M2 / Shibor 等，美林时钟中国版"),
+       (ETF_PANEL_URL, "ETF 资金面板 🔒", "国家队相关 ETF 成交量监控与资金面板，交易日 15:30（北京时间）后更新；在 Howard Capital Research 站，需登录")])}"""
 
 
 def strategies_body():
