@@ -1,0 +1,63 @@
+name: 晨读报推送
+
+# 「晨读报」个人日报的微信推送入口（PushPlus，html 模板，保留排版）。
+# 由 Claude 定时任务每天早上生成报纸后触发；本 workflow 不加载仓库代码。
+# 用法（gh）：
+#   gh api -X POST repos/jayson8199/futures-signals/actions/workflows/newspaper-push.yml/dispatches \
+#     -f ref=main -f 'inputs[title]=晨读报 11-16' -f 'inputs[content]=<html 正文>'
+# 正文只用行内样式（style="..."），不要 <style>/<script>。说明见 newspaper/README.md。
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 推送标题（100 字以内）
+        required: true
+        type: string
+      content:
+        description: 报纸正文（HTML，行内样式）
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 发微信
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSH_TITLE: ${{ inputs.title }}
+          PUSH_CONTENT: ${{ inputs.content }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys
+          from urllib import parse, request
+
+          token = os.environ.get("PUSHPLUS_TOKEN", "").strip()
+          if not token:
+              print("PUSHPLUS_TOKEN 没配置，发不了")
+              sys.exit(1)
+          content = os.environ["PUSH_CONTENT"]
+          print(f"正文长度 {len(content)} 字符")
+          data = parse.urlencode({
+              "token": token,
+              "title": os.environ["PUSH_TITLE"][:100],
+              "content": content,
+              "template": "html",
+          }).encode("utf-8")
+          req = request.Request("https://www.pushplus.plus/send", data=data, method="POST")
+          try:
+              with request.urlopen(req, timeout=30) as resp:
+                  r = json.loads(resp.read().decode("utf-8"))
+          except Exception as e:
+              print(f"微信推送失败: {e}")
+              sys.exit(1)
+          if r.get("code") == 200:
+              print("晨读报已发到微信")
+          else:
+              print(f"PushPlus 返回: {r.get('msg', r)}")
+              sys.exit(1)
+          PY
