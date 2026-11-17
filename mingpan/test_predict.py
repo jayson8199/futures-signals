@@ -3,6 +3,7 @@
 预测实验和日报版面的自检：python3 test_predict.py（在 mingpan 目录下运行，不推送、不写正式存档，只用临时目录）。
 """
 import datetime
+import html
 import json
 import subprocess
 import sys
@@ -237,10 +238,14 @@ try:
 finally:
     notify.send_wechat, notify.send_mail = real
 d30 = compose.build(p, day(2026, 10, 30), day(2026, 10, 29))
-check("正式发送用新样式", sent["wx"][0][1] == layout.wechat_html(d30) and sent["wx"][0][2] == "html")
+check("正式发送微信发全文（2026-11-17 起）", sent["wx"][0][1] == layout.wechat_full_html(d30) and sent["wx"][0][2] == "html")
+check("微信全文在 PushPlus 2 万字上限内、包含纯文字版每一行",
+      len(layout.wechat_full_html(d30, "可读性测试：样稿")) < 18000
+      and all(html.escape(x[3:] if x.startswith("## ") else x[2:] if x.startswith("- ") else x) in layout.wechat_full_html(d30)
+              for x in layout.text(d30).split("\n") if x.strip()))
 check("测试只发微信、不发邮件", len(sent["wx"]) == 2 and len(sent["mail"]) == 1)
 check("测试标题和横幅标「可读性测试」", sent["wx"][1][0].startswith("【可读性测试】") and "可读性测试：10/30" in sent["wx"][1][1])
-check("测试样稿按前一晚重算，内容和正式一致", wx_text(sent["wx"][1][1]).endswith(wx_text(layout.wechat_html(d30))))
+check("测试样稿按前一晚重算，内容和正式一致", wx_text(sent["wx"][1][1]).endswith(wx_text(layout.wechat_full_html(d30))))
 check("10/30 指纹不变", d30["predict"]["fingerprint"] == "4d5b377d2051" and "4d5b377d2051" in sent["log"][1])
 check("测试日志行不会被当成正式发送", X.LOG_RE.search(sent["log"][1]) is None and X.LOG_RE.search(sent["log"][0]) is not None)
 

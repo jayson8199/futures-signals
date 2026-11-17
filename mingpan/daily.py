@@ -914,8 +914,8 @@ def main():
             # 只发微信，不发邮件；日志行不以日期开头、没有「预测 vN」，experiment.py verify 不会把它当正式发送
             label = os.environ.get("WECHAT_TEST_LABEL", "").strip()
             label = label if label not in ("", "1") else "可读性测试"
-            banner = f"{label}：{date.month}/{date.day} 日报的重发样稿，内容与原来发出的一致，只改了显示样式。"
-            wechat = notify.send_wechat(f"【{label}】" + d["subject"], layout.wechat_html(d, banner), "html")
+            banner = f"{label}：{date.month}/{date.day} 日报的重发样稿，内容与原来发出的一致，只是按现在的微信版式重发。"
+            wechat = notify.send_wechat(f"【{label}】" + d["subject"], layout.wechat_full_html(d, banner), "html")
             sha = (os.environ.get("GITHUB_SHA") or "")[:7] or __import__("experiment").commit()
             print(f"{label} {date.isoformat()}（按 {send_date.isoformat()} 晚上发出时重算）| {wechat} | 未发邮件 | "
                   f"规则 {d['predict']['rule_version']} 观察 {len(d['predict']['predictions'])} 条 "
@@ -923,7 +923,8 @@ def main():
             if not wechat.endswith("已推送"):
                 sys.exit(1)
             continue
-        mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_html(d))
+        # 2026-11-17 起微信也发全文（他说摘要提示太少，复盘做不好）；全文被拒收时自动改发摘要
+        mail, wechat = notify.push_split(d["subject"], mail_html, layout.wechat_full_html(d), layout.wechat_html(d))
         # 日志只打印预测指纹（不打印内容），晚上保存时可以核对发出去的和存档的是同一份
         # 提交号用工作流自带的 GITHUB_SHA；本机运行时取 git，取不到写 unknown
         sha = (os.environ.get("GITHUB_SHA") or "")[:7] or __import__("experiment").commit()

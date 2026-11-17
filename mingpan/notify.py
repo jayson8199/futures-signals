@@ -74,9 +74,15 @@ def send_wechat(title, content, template="txt"):
         return f"微信失败：{type(e).__name__}"
 
 
-def push_split(title, mail_html, wechat_html):
-    """邮件发完整版，微信发摘要；两个渠道各自 try，一个失败不影响另一个。"""
-    return send_mail(title, None, mail_html), send_wechat(title, wechat_html, "html")
+def push_split(title, mail_html, wechat_html, wechat_fallback=None):
+    """邮件、微信各自 try，一个失败不影响另一个。2026-11-17 起微信也发全文；
+    PushPlus 明确拒收全文（比如嫌太长）时改发 wechat_fallback 摘要。超时之类可能已送达的失败不重发，免得重复。"""
+    mail = send_mail(title, None, mail_html)
+    wechat = send_wechat(title, wechat_html, "html")
+    if wechat_fallback and wechat.startswith("PushPlus 返回"):
+        reason = wechat.replace("|", "/")
+        wechat = f"全文被拒（{reason}），" + send_wechat(title, wechat_fallback, "html").replace("微信已推送", "微信摘要已推送")
+    return mail, wechat
 
 
 def push(title, body, markdown=False, html=None):

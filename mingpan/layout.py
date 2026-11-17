@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 命盘日报的三种版面，都从 compose.build 得到的同一份数据渲染：
-  wechat_html / wechat_text  微信摘要（PushPlus html 模板，约 350-600 字，不用宽表格）
+  wechat_full_html           微信全文（2026-11-17 起微信默认发这个：纯文字版全文逐行排版，栏目数值和邮件一致；PushPlus 内容上限 2 万字，所以不用邮件版的重样式）
+  wechat_html / wechat_text  微信摘要（PushPlus html 模板，约 350-600 字，不用宽表格；全文被 PushPlus 拒收时的备用）
   email_html                 邮件完整版（样式写在行内，兼容邮件客户端，手机上单栏阅读）
   pdf_html                   PDF 版（同一套栏目，分四页：前两页日用，后两页依据；本地用 Chromium 转 PDF）
   text                       纯文字版，--dry-run 打印用
@@ -434,6 +435,19 @@ def _wx(tag, body, css="", cls="", fg=None):
     return f'<{tag}{a} style="{c}{css}">{body}</{tag}>'
 
 
+def _wx_stars(d):
+    """日期干支一行，星级单独一行：五颗星不拆行，后面跟加粗的「n / 5 星 · 等级」。"""
+    n = d["stars"]
+    st = "font-size:26px;line-height:1.3;letter-spacing:5px;font-weight:400"
+    row = (_wx("span", _wx("span", "★" * n, st, "mp-on", WX_STAR_ON[0])
+               + _wx("span", "☆" * (5 - n), st, "mp-off", WX_STAR_OFF[0]),
+               "white-space:nowrap;display:inline-block;margin-right:8px")
+           + _wx("span", f"{n} / 5 星 · {esc(d['level'])}", "font-size:18px;font-weight:700;vertical-align:3px"))
+    return [_wx("p", f"【{esc(md(d['target']))} 周{esc(d['wd'])} · {esc(d['day_gz'])}日】",
+                "font-size:19px;font-weight:700;line-height:1.6;margin:0 0 6px"),
+            _wx("p", row, "line-height:1.6;margin:0 0 20px")]
+
+
 def wechat_html(d, banner=None):
     sec = "margin:0 0 20px;padding:0"
     label = "font-size:18px;font-weight:700;line-height:1.6;margin:0 0 4px"
@@ -443,15 +457,7 @@ def wechat_html(d, banner=None):
                "padding:8px 12px;border:2px solid #b03a2e;border-radius:6px")] if banner else []
     for k, v in wechat_lines(d):
         if v is None:
-            n = d["stars"]   # 日期干支一行，星级单独一行：五颗星不拆行，后面跟加粗的「n / 5 星 · 等级」
-            out.append(_wx("p", f"【{esc(md(d['target']))} 周{esc(d['wd'])} · {esc(d['day_gz'])}日】",
-                           "font-size:19px;font-weight:700;line-height:1.6;margin:0 0 6px"))
-            st = "font-size:26px;line-height:1.3;letter-spacing:5px;font-weight:400"
-            row = (_wx("span", _wx("span", "★" * n, st, "mp-on", WX_STAR_ON[0])
-                       + _wx("span", "☆" * (5 - n), st, "mp-off", WX_STAR_OFF[0]),
-                       "white-space:nowrap;display:inline-block;margin-right:8px")
-                   + _wx("span", f"{n} / 5 星 · {esc(d['level'])}", "font-size:18px;font-weight:700;vertical-align:3px"))
-            out.append(_wx("p", row, "line-height:1.6;margin:0 0 20px"))
+            out += _wx_stars(d)
         elif k is None:
             out.append(_wx("p", esc(v), "font-size:16px;line-height:1.75;margin:4px 0 0", "mp-sub", WX_LIGHT["sub"]))
         elif k in preds:
@@ -465,6 +471,38 @@ def wechat_html(d, banner=None):
     return WX_STYLE + _wx("div", "".join(out),
                           "font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:18px;"
                           "line-height:1.8;padding:18px 16px;word-break:break-word;overflow-wrap:anywhere", "mpw")
+
+
+# 微信全文（2026-11-17 起默认）：内容就是纯文字版 text(d) 的每一行，和邮件栏目、数值一致。
+# PushPlus 普通用户内容上限 2 万字（含 HTML 标签），邮件版行内样式太多（4 万多字）发不出去，
+# 所以这里只在每个元素上成对写底色和字色（深色模式不会黑底深字），字号间距放进 <style> 的 class，被清理时也照样能读。
+WX_FULL_STYLE = ("<style>.mpf p{font-size:17px;line-height:1.75;margin:0 0 8px}"
+                 ".mpf .h{font-size:19px;font-weight:700;margin:20px 0 6px}"
+                 ".mpf .li{padding-left:1em;text-indent:-1em}.mpf .ft{font-size:15px}</style>")
+WX_PAIR = f'background-color:{WX_LIGHT["bg"]};color:{WX_LIGHT["fg"]}'
+
+
+def wechat_full_html(d, banner=None):
+    out = [_wx("p", esc(banner), "font-size:16px;font-weight:700;line-height:1.7;margin:0 0 16px;"
+               "padding:8px 12px;border:2px solid #b03a2e;border-radius:6px")] if banner else []
+    out += _wx_stars(d)
+    for line in text(d).split("\n"):
+        if not line.strip():
+            continue
+        if line.startswith("## "):
+            cls, body = "h", line[3:]
+        elif line.startswith("- "):
+            cls, body = "li", "· " + line[2:]
+        elif line.startswith(DISCLAIMER):
+            cls, body = "ft", line
+        else:
+            cls, body = "", line
+        body = f"<b>{esc(body)}</b>" if cls == "h" else esc(body)   # 小标题加 <b>，样式被清理时也是粗体
+        out.append(f'<p{f" class={chr(34)}{cls}{chr(34)}" if cls else ""} style="{WX_PAIR}">{body}</p>')
+    return WX_STYLE + WX_FULL_STYLE + _wx("div", "".join(out),
+                                          "font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;font-size:17px;"
+                                          "line-height:1.75;padding:18px 16px;word-break:break-word;overflow-wrap:anywhere",
+                                          "mpw mpf")
 
 
 def wechat_text(d):
