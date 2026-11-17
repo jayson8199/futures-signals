@@ -6,7 +6,7 @@
   fix    ≥13:35 后：五区(13:00-13:35，比课程多看 5 分钟)是否创 9:30 以来新高/新低 → 修正
   settle ≥15:00 后：用官方开盘/收盘判对错，更新累计
 对照组同时记录：A) 10:30 价相对开盘  B) 13:30 价相对开盘  C) 永远"不会跌"
-数据：新浪 5 分钟（akshare stock_zh_a_minute），官方开收盘：新浪日线（stock_zh_index_daily），均不需密钥
+数据：新浪 5 分钟（akshare stock_zh_a_hist_min_sina，原 stock_zh_a_minute），官方开收盘：新浪日线（index_zh_daily_sina，原 stock_zh_index_daily），均不需密钥
 记录：data/erqu/<date>.json；汇总由 build_site 读取
 """
 import argparse
@@ -31,7 +31,7 @@ def now_cn():
 
 def fetch_5min_today(day: str) -> pd.DataFrame:
     import akshare as ak
-    df = ak.stock_zh_a_minute(symbol="sh000001", period="5", adjust="")
+    df = ak.stock_zh_a_hist_min_sina(symbol="sh000001", period="5", adjust="")
     df = df.rename(columns={"day": "time"})
     for c in ("open", "high", "low", "close"):
         df[c] = df[c].astype(float)
@@ -42,7 +42,7 @@ def fetch_5min_today(day: str) -> pd.DataFrame:
 
 def fetch_official_daily(day: str):
     import akshare as ak
-    df = ak.stock_zh_index_daily(symbol="sh000001")
+    df = ak.index_zh_daily_sina(symbol="sh000001")
     df["date"] = df["date"].astype(str)
     r = df[df["date"] == day]
     if r.empty:

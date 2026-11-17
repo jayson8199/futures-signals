@@ -41,8 +41,8 @@ MARGIN, STOP = 0.12, 0.5
 FUT_STOP_PCT = STOP * MARGIN
 OTICK, OMULT, OFEE, KSTEP, R = 0.2, 100, 15, 50, 0.015
 OPTS = {  # 腿名: (中文名, 标的指数代码, 新浪合约前缀, akshare 日线函数名, 实时函数名)
-    "IO": ("沪深300", "sh000300", "io", "option_cffex_hs300_daily_sina", "option_cffex_hs300_spot_sina"),
-    "HO": ("上证50", "sh000016", "ho", "option_cffex_sz50_daily_sina", "option_cffex_sz50_spot_sina"),
+    "IO": ("沪深300", "sh000300", "io", "option_cffex_hs300_daily_sina", "option_cffex_hs300_realtime_sina"),
+    "HO": ("上证50", "sh000016", "ho", "option_cffex_sz50_daily_sina", "option_cffex_sz50_realtime_sina"),
 }
 LEG_TAG = {"IF": "A", "IO": "B", "HO": "C"}
 
@@ -64,7 +64,7 @@ def fut_daily():
 
 def idx_daily(code):
     import akshare as ak
-    df = ak.stock_zh_index_daily(symbol=code)
+    df = ak.index_zh_daily_sina(symbol=code)
     df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
     return df.set_index("date").iloc[-80:]
 
@@ -275,7 +275,7 @@ def preview(push_msg=True, force=False):
     if not force and (today.weekday() != 2 or today.strftime("%Y-%m-%d") < START):
         print("非周三或未到起点，不预告")
         return
-    spot = ak.stock_zh_index_spot_sina()
+    spot = ak.index_zh_spot_sina()
     wed = today.date() + timedelta(days=(2 - today.weekday()) % 7)
     lines = [f"【周四做空·预告】{today.strftime('%m-%d %H:%M')} 按实时点位，今天收盘前拟开仓："]
     for leg, (cn, icode, pre, _d, spot_fn) in OPTS.items():
@@ -319,7 +319,7 @@ def probe():
         except Exception as e:
             print(leg, "实时报价失败", e)
     try:
-        sp = ak.stock_zh_index_spot_sina()
+        sp = ak.index_zh_spot_sina()
         print("指数实时", sp[sp["代码"].isin(["sh000300", "sh000016"])][["代码", "名称", "最新价"]].to_dict("records"))
     except Exception as e:
         print("指数实时失败", e)
