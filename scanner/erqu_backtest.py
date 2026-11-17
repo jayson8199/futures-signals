@@ -25,7 +25,7 @@ Z5_END = "13:35"  # 五区观察窗口结束（课程 13:30；2026-10-16 起按�
 
 def fetch(start, end):
     import akshare as ak
-    df = ak.index_zh_a_hist_min_em(symbol="000001", period="5", start_date=f"{start[:4]}-{start[4:6]}-{start[6:]} 09:30:00",
+    df = ak.index_zh_hist_min_em(symbol="000001", period="5", start_date=f"{start[:4]}-{start[4:6]}-{start[6:]} 09:30:00",
                                    end_date=f"{end[:4]}-{end[4:6]}-{end[6:]} 15:00:00")
     df = df.rename(columns={"时间": "time", "开盘": "open", "收盘": "close", "最高": "high", "最低": "low"})
     return df[["time", "open", "close", "high", "low"]]
