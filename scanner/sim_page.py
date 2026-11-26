@@ -83,15 +83,15 @@ def pill(d, txt=None):
 def kchart(code, plan, marks, side="l"):
     """日线 K 线（红涨绿跌）＋计划价位，价位线直接写成白话，赚钱区/亏钱区上色，纯 SVG"""
     d = L.hist(code).tail(40)
-    W, H, Lm, R, T, B = 360, 280, 34, 96, 22, 20
+    W, H, Lm, R, T, B = 360, 280, 34, 70, 22, 20
     n = len(d); cw = (W - Lm - R) / n
     long = side == "l"
     lines = []
     if plan:
         for o in plan["开仓"]:
-            lines.append((f"{'开多' if long else '开空'}（{o['方式']}）", o["价"], "var(--ink)"))
-        lines.append(("止损（认赔）", plan["止损"], "var(--amber)"))
-        lines.append(("止盈（目标）", plan["止盈"], "var(--cyan)"))
+            lines.append(("开多" if long else "开空", o["价"], "var(--ink)"))
+        lines.append(("止损", plan["止损"], "var(--amber)"))
+        lines.append(("止盈", plan["止盈"], "var(--cyan)"))
     vals = list(d.high) + list(d.low) + [v for _, v, _ in lines] + [m[1] for m in marks]
     lo, hi = min(vals), max(vals); pad = (hi - lo) * .06; lo -= pad; hi += pad
     y = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
@@ -124,7 +124,7 @@ def kchart(code, plan, marks, side="l"):
         g.append(f"<line x1='{Lm}' x2='{W - R}' y1='{yy:.1f}' y2='{yy:.1f}' style='stroke:{c};stroke-width:1.5' stroke-dasharray='5 3'/>")
         g.append(f"<text x='{W - R + 4}' y='{ty + 4:.1f}' style='fill:{c};font-size:11px'>{esc(nm)} {v:g}</text>")
     last = float(d.close.iloc[-1])
-    g.append(f"<text x='{x(n - 1):.1f}' y='{y(last) - 8:.1f}' text-anchor='end' style='fill:var(--ink);font-size:11px'>现价 {last:g}</text>")
+    g.append(f"<text x='{x(n - 1) - 8:.1f}' y='{y(last) + 22:.1f}' text-anchor='end' style='fill:var(--ink);font-size:11px'>现价 {last:g}</text>")
     di = {dt.strftime('%Y-%m-%d'): i for i, dt in enumerate(d.index)}
     for day, v, kind, tip in marks:
         if day not in di:
