@@ -80,36 +80,51 @@ def pill(d, txt=None):
     return f"<span class='pill {cls}'>{esc(txt or DIR[d])}</span>"
 
 
-def kchart(code, plan, marks):
-    """近 40 日 K 线（红涨绿跌）＋21 日线＋计划价位虚线＋成交标记，纯 SVG"""
+def kchart(code, plan, marks, side="l"):
+    """日线 K 线（红涨绿跌）＋计划价位，价位线直接写成白话，赚钱区/亏钱区上色，纯 SVG"""
     d = L.hist(code).tail(40)
-    W, H, Lm, R, T, B = 360, 240, 2, 74, 8, 18
+    W, H, Lm, R, T, B = 360, 280, 34, 96, 22, 20
     n = len(d); cw = (W - Lm - R) / n
+    long = side == "l"
     lines = []
     if plan:
         for o in plan["开仓"]:
-            lines.append((o["方式"], o["价"], "var(--ink)"))
-        lines.append(("止损", plan["止损"], "var(--amber)"))
-        lines.append(("止盈", plan["止盈"], "var(--cyan)"))
+            lines.append((f"{'开多' if long else '开空'}（{o['方式']}）", o["价"], "var(--ink)"))
+        lines.append(("止损（认赔）", plan["止损"], "var(--amber)"))
+        lines.append(("止盈（目标）", plan["止盈"], "var(--cyan)"))
     vals = list(d.high) + list(d.low) + [v for _, v, _ in lines] + [m[1] for m in marks]
-    lo, hi = min(vals), max(vals); pad = (hi - lo) * .05; lo -= pad; hi += pad
+    lo, hi = min(vals), max(vals); pad = (hi - lo) * .06; lo -= pad; hi += pad
     y = lambda v: T + (hi - v) / (hi - lo) * (H - T - B)
     x = lambda i: Lm + cw * i + cw / 2
-    g = []
+    g = [f"<text x='0' y='12' style='fill:var(--ink);font-size:12px;font-weight:600'>日线 · 最近 40 个交易日</text>"]
+    # 价格刻度
+    step = (hi - lo) / 4
+    for k in range(5):
+        v = lo + step * k; yy = y(v)
+        g.append(f"<line x1='{Lm}' x2='{W - R}' y1='{yy:.1f}' y2='{yy:.1f}' style='stroke:var(--line)'/>")
+        g.append(f"<text x='{Lm - 4}' y='{yy + 4:.1f}' text-anchor='end'>{v:.0f}</text>")
+    # 赚钱区 / 亏钱区
+    if plan:
+        e = plan["开仓"][0]["价"]
+        for a_, b_, col, txt in ((e, plan["止盈"], "var(--up)" if long else "var(--down)", "赚钱区"), (e, plan["止损"], "var(--amber)", "亏钱区")):
+            y1, y2 = sorted((y(a_), y(b_)))
+            g.append(f"<rect x='{Lm}' y='{y1:.1f}' width='{W - R - Lm}' height='{y2 - y1:.1f}' style='fill:{col};opacity:.09'/>")
+            if y2 - y1 > 14:
+                g.append(f"<text x='{Lm + 4}' y='{(y1 + y2) / 2 + 4:.1f}' style='fill:{col};opacity:.8'>{txt}</text>")
     for i, b in enumerate(d.itertuples()):
         up = b.close >= b.open; col = "var(--up)" if up else "var(--down)"
         g.append(f"<line x1='{x(i):.1f}' x2='{x(i):.1f}' y1='{y(b.high):.1f}' y2='{y(b.low):.1f}' style='stroke:{col}'/>")
         t = y(max(b.open, b.close)); h = max(1, abs(y(b.open) - y(b.close)))
         g.append(f"<rect x='{x(i) - cw * .36:.1f}' y='{t:.1f}' width='{cw * .72:.1f}' height='{h:.1f}' style='fill:{'var(--panel)' if up else col};stroke:{col}'/>")
-    pts = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in enumerate(d.ma21) if pd.notna(v))
-    g.append(f"<polyline points='{pts}' style='fill:none;stroke:var(--cyan);stroke-width:1.2;opacity:.5'/>")
     ls = sorted(([nm, v, c, y(v), y(v)] for nm, v, c in lines), key=lambda a: a[3])
     for i in range(1, len(ls)):
-        if ls[i][4] - ls[i - 1][4] < 13:
-            ls[i][4] = ls[i - 1][4] + 13
+        if ls[i][4] - ls[i - 1][4] < 14:
+            ls[i][4] = ls[i - 1][4] + 14
     for nm, v, c, yy, ty in ls:
-        g.append(f"<line x1='{Lm}' x2='{W - R}' y1='{yy:.1f}' y2='{yy:.1f}' style='stroke:{c};stroke-width:1.4' stroke-dasharray='5 3'/>")
-        g.append(f"<text x='{W - R + 4}' y='{ty + 4:.1f}' style='fill:{c}'>{esc(nm)} {v:g}</text>")
+        g.append(f"<line x1='{Lm}' x2='{W - R}' y1='{yy:.1f}' y2='{yy:.1f}' style='stroke:{c};stroke-width:1.5' stroke-dasharray='5 3'/>")
+        g.append(f"<text x='{W - R + 4}' y='{ty + 4:.1f}' style='fill:{c};font-size:11px'>{esc(nm)} {v:g}</text>")
+    last = float(d.close.iloc[-1])
+    g.append(f"<text x='{x(n - 1):.1f}' y='{y(last) - 8:.1f}' text-anchor='end' style='fill:var(--ink);font-size:11px'>现价 {last:g}</text>")
     di = {dt.strftime('%Y-%m-%d'): i for i, dt in enumerate(d.index)}
     for day, v, kind, tip in marks:
         if day not in di:
@@ -121,8 +136,8 @@ def kchart(code, plan, marks):
             g.append(f"<path d='M{xx - 5:.1f} {yy - 5:.1f}L{xx + 5:.1f} {yy + 5:.1f}M{xx + 5:.1f} {yy - 5:.1f}L{xx - 5:.1f} {yy + 5:.1f}' style='stroke:var(--ink);stroke-width:2'><title>{esc(tip)}</title></path>")
     for i, anc in ((0, "start"), (n // 2, "middle"), (n - 1, "end")):
         g.append(f"<text x='{x(i):.1f}' y='{H - 4}' text-anchor='{anc}'>{d.index[i].strftime('%m-%d')}</text>")
-    return (f"<div class='kc'><svg viewBox='0 0 {W} {H}' role='img' aria-label='近 40 日 K 线和计划价位'>{''.join(g)}</svg></div>"
-            "<div class='src'>近 40 日 · 淡蓝线 21 日线 · ▲ 开仓成交 ✕ 平仓</div>")
+    return (f"<div class='kc'><svg viewBox='0 0 {W} {H}' role='img' aria-label='日线 K 线和开仓止损止盈价位'>{''.join(g)}</svg></div>"
+            "<div class='src'>一根 K 线 = 一天，红涨绿跌。成交后图上会标 ▲ 开仓、✕ 平仓。</div>")
 
 
 def fmt(v):
@@ -175,7 +190,7 @@ def body():
             if r["平仓日"]:
                 marks.append((r["平仓日"], r["平仓价"], "out", f"{r['状态']} {r['平仓价']:g}"))
         try:
-            chart = kchart(t["code"], plan, marks)
+            chart = kchart(t["code"], plan, marks, t["d"])
         except Exception as e:  # 图出错不影响页面其他部分
             chart = f"<p class='muted'>K 线图生成失败：{esc(e)}</p>"
         cards.append(
