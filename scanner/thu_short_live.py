@@ -247,14 +247,22 @@ def auto(day=None, push_msg=True):
     have = today in F.index and all(today in IX[k].index for k in IX)
     wd = pd.Timestamp(today).weekday()
     msg = None
+    # 补开（2026-11-26 加）：GitHub 定时任务常延迟过北京午夜，周三那次没开成时，
+    # 之后任何一次运行（周五、周一兜底等）都按最近一个周三的收盘价补开；周三休市（无数据）则本周照旧不做。
+    if not st["open"] and wd != 2:
+        wed = (pd.Timestamp(today) - pd.Timedelta(days=(wd - 2) % 7)).strftime("%Y-%m-%d")
+        wed_have = wed in F.index and all(wed in IX[k].index for k in IX)
+        if wed >= st["start"] and wed_have and not any(t["open_date"] == wed for t in st["trades"]):
+            m = do_open(wed, F.loc[:wed], {k: v.loc[:wed] for k, v in IX.items()}, st)
+            msg = m.replace("收盘开仓", f"收盘开仓（{today} 补记，按周三收盘价）", 1)
     if st["open"]:
         fri = (pd.Timestamp(st["open"]["open_date"]) + pd.Timedelta(days=2)).strftime("%Y-%m-%d")
         if have and today == fri:
-            msg = do_close(today, F, IX, st)
+            msg = "\n\n".join(x for x in [msg, do_close(today, F, IX, st)] if x)
         elif today > fri:
             last = [d for d in F.index if st["open"]["open_date"] < d <= fri and all(d in IX[k].index for k in IX)]
             if last:
-                msg = do_close(last[-1], F, IX, st)
+                msg = "\n\n".join(x for x in [msg, do_close(last[-1], F, IX, st)] if x)
         else:
             print(f"持仓中（{st['open']['open_date']} 开），等 {fri} 收盘平仓")
     elif wd == 2 and have and not any(t["open_date"] == today for t in st["trades"]):
