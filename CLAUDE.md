@@ -31,6 +31,7 @@
 | 命盘日报 | `mingpan/` 整个目录；`mingpan-daily.yml` | 「命盘」对话（跑在曼谷电脑上） |
 | AI 研究简报 | `scanner/research_briefs.py` `test_research_briefs.py`；`briefs/accepted/`；`docs/research-briefs.md` | Claude 开发、Codex 验收（本机单一工作区，见文档） |
 | 晨读报（个人日报） | `newspaper/` 整个目录；`newspaper-push.yml`（正文不入库，见 `newspaper/README.md`） | 「晨读报」对话 |
+| 方向清单模拟盘 | `scanner/sim_page.py` `sim_ledger.py`；`data/sim/`（`list.json` 每期方向清单、`plans.json` 计划单、`directions.json` 每日方向，只追加不改旧的） | 「做基本面方向清单」对话（Claude 定时任务每个交易日早上更新 `data/sim/`） |
 | 实验 / 回测 | `scanner/trend_backtest.py` `season_stats.py` `calendar_stats.py` `thu_short.py` `events_cal.py` `probe_sources.py` `tushare_probe.py`；`probe.yml` `tushare-probe.yml` `calendar-stats.yml`；`experiments/` | 谁建的谁维护，不确定就问用户 |
 
 - 不是自己板块的文件，默认**不改**。确实要改，先告诉用户，让他去知会另一个对话。
@@ -52,6 +53,7 @@
 - `data/`：**全部由 Actions 生成**，不要手改。
   `data/YYYY-MM-DD.json` 每日快照；`data/history/` 长期日线；`data/weighted/` `data/weighted_tushare/` 加权指数；
   `data/oversold/` 「跌够久」纸面实盘状态；`data/erqu/` 二区定律记录；`data/long/` 趋势回测长数据；`data/macro/` 宏观时钟数据（PMI/CPI/PPI/M2/Shibor 等）；`data/thu_short/` 「周四做空」纸面实盘记录；`data/index/` 上证/沪深300 等指数日线。
+  例外：`data/sim/` 是方向清单模拟盘的输入，由 Claude 定时任务手工维护（不是 Actions 生成）。
 - `experiments/`：实验输出和探测日志，可以参考，不当正式结论。
 - `site/`：`build_site.py` 生成，已 gitignore，不提交；GitHub Pages 由 Actions 部署。
 - `mingpan/`：`daily.py` 生成日报并推送，`rules.md` 是解读口径，`profile.json` 只是占位，真实资料在 Secret 里。

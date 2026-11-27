@@ -224,7 +224,8 @@ NAV_GROUPS = [
         (ETF_PANEL_URL, "ETF资金面板🔒", "etfpanel")]),
     ("strategies.html", "策略验证", "strategies", [
         ("strategies.html", "策略总览", "strategies"), ("stats.html", "历史战绩", "stats"), ("erqu.html", "二区实盘", "erqu"),
-        ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort")]),
+        ("cta.html", "趋势回测", "cta"), ("oversold.html", "跌够久实盘", "oversold"), ("thushort.html", "周四做空", "thushort"),
+        ("sim.html", "方向模拟盘", "sim")]),
     ("briefs.html", "研究简报", "briefs", [
         ("briefs.html", "AI研究简报", "briefs"), ("archive.html", "量化日报", "archive"), ("method.html", "方法说明", "method")]),
     ("status.html", "运行状态", "status", [("status.html", "运行状态", "status")]),
@@ -1111,6 +1112,12 @@ def main():
     (out / "method.html").write_text(layout(f"方法说明 · {SITE_TITLE}", method_body(), "method"), encoding="utf-8")
     (out / "erqu.html").write_text(layout(f"二区实盘 · {SITE_TITLE}", erqu_body(), "erqu"), encoding="utf-8")
     (out / "cta.html").write_text(layout(f"趋势回测 · {SITE_TITLE}", cta_body(), "cta"), encoding="utf-8")
+    try:
+        import sim_page
+        (out / "sim.html").write_text(layout(f"方向清单模拟盘 · {SITE_TITLE}", sim_page.body(), "sim"), encoding="utf-8")
+    except Exception as e:
+        failed.append("sim.html")
+        print(f"[警告] 方向模拟盘页面生成失败：{e}")
     try:
         import thu_short_page
         (out / "thushort.html").write_text(layout(f"周四做空实盘 · {SITE_TITLE}", thu_short_page.body(), "thushort"), encoding="utf-8")
