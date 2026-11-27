@@ -169,5 +169,62 @@
     "ret_pct": 12.4
    }
   }
+ },
+ {
+  "open_date": "2026-11-25",
+  "close_date": "2026-11-27",
+  "closed_at": "2026-11-28 02:15",
+  "legs": {
+   "IF": {
+    "name": "IF 沪深300 期货",
+    "open": 3824.0,
+    "idx_open": 3898.236,
+    "stop": 4053.4,
+    "close": 4053.6,
+    "idx_close": 4063.064,
+    "roll_fix": true,
+    "stop_day": "2026-11-27",
+    "pnl": -69053,
+    "ret_pct": -6.0
+   },
+   "IO": {
+    "name": "IO 沪深300平值认沽",
+    "code": "io2612P3900",
+    "ex_code": "IO2612-P-3900",
+    "K": 3900,
+    "expiry": "2026-12-18",
+    "idx_open": 3898.236,
+    "iv_model": 0.1488,
+    "open": 118.0,
+    "src_open": "新浪收盘价",
+    "stop": 59.0,
+    "close": 58.8,
+    "src_close": "止损（11-26 公式估算 45.0）",
+    "stop_day": "2026-11-26",
+    "idx_close": 4063.064,
+    "idx_ret_pct": 4.23,
+    "pnl": -5970,
+    "ret_pct": -50.6
+   },
+   "HO": {
+    "name": "HO 上证50平值认沽",
+    "code": "ho2612P2750",
+    "ex_code": "HO2612-P-2750",
+    "K": 2750,
+    "expiry": "2026-12-18",
+    "idx_open": 2751.85,
+    "iv_model": 0.0958,
+    "open": 60.0,
+    "src_open": "新浪收盘价",
+    "stop": 30.0,
+    "close": 29.8,
+    "src_close": "止损（11-27 新浪最低价 15.2）",
+    "stop_day": "2026-11-27",
+    "idx_close": 2834.677,
+    "idx_ret_pct": 3.01,
+    "pnl": -3070,
+    "ret_pct": -51.2
+   }
+  }
  }
 ]
